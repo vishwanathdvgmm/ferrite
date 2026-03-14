@@ -6,3 +6,5 @@ implementation_plan.md
 validation_report.md
 release/
 release_notes.md
+*.bak
+*.py

@@ -1,0 +1,121 @@
+# Ferrite v1.4 Formal Grammar
+
+The Ferrite parser uses a recursive descent algorithm with Pratt parsing for expressions. Below is an EBNF-style informal grammar outlining the structure.
+
+## Program
+```ebnf
+program = stmt* ;
+```
+
+## Statements
+```ebnf
+stmt = expr_stmt
+     | let_stmt
+     | let_list_stmt
+     | let_map_stmt
+     | assign_stmt
+     | compound_assign_stmt
+     | print_stmt
+     | write_stmt
+     | return_stmt
+     | throw_stmt
+     | try_catch_stmt
+     | break_stmt
+     | continue_stmt
+     | while_stmt
+     | for_stmt
+     | fn_def_stmt
+     | match_stmt
+     | import_stmt
+     ;
+
+expr_stmt            = expr [ ";" ] ;
+let_stmt             = "let" IDENT "=" expr ";" ;
+let_list_stmt        = "let" "[" unpack_items "]" "=" expr ";" ;
+let_map_stmt         = "let" "{" IDENT ("," IDENT)* "}" "=" expr ";" ;
+assign_stmt          = lhs "=" expr ";" ;
+compound_assign_stmt = lhs ( "+=" | "-=" | "*=" | "/=" | "%=" ) expr ";" ;
+print_stmt           = "print" "(" expr ")" ";" ;
+write_stmt           = "write" "(" expr ")" ";" ;
+return_stmt          = "return" [ expr ] ";" ;
+throw_stmt           = "throw" expr ";" ;
+try_catch_stmt       = "try" block "catch" [ "(" ] IDENT [ ")" ] block ;
+break_stmt           = "break" ";" ;
+continue_stmt        = "continue" ";" ;
+while_stmt           = "while" expr block ;
+for_stmt             = "for" ( IDENT | "[" unpack_items "]" ) "in" expr block ;
+fn_def_stmt          = "fn" IDENT "(" [ params ] ")" block ;
+match_stmt           = "match" expr "{" ( match_arm "," )* match_arm [ "," ] "}" ;
+import_stmt          = "import" STRING ";" ;
+
+block = "{" stmt* "}" ;
+unpack_items = unpack_item ("," unpack_item)* ;
+unpack_item = IDENT | "..." IDENT ;
+params = ( IDENT | "..." IDENT ) ( "," ( IDENT | "..." IDENT ) )* ;
+
+lhs = IDENT
+    | expr "[" expr "]"
+    | expr "." IDENT
+    ;
+```
+
+## Match Patterns
+```ebnf
+match_arm = match_pat "=>" block ;
+match_pat = literal
+          | expr ".." expr
+          | "_"
+          | IDENT
+          ;
+```
+
+## Expressions (Pratt Parsing Flow)
+```ebnf
+expr = null_coal_expr ;
+
+null_coal_expr = or_expr ( "??" or_expr )* ;
+or_expr        = and_expr ( "||" and_expr )* ;
+and_expr       = eq_expr ( "&&" eq_expr )* ;
+eq_expr        = comp_expr ( ( "==" | "!=" ) comp_expr )* ;
+comp_expr      = add_expr ( ( "<" | "<=" | ">" | ">=" ) add_expr )* ;
+add_expr       = mul_expr ( ( "+" | "-" ) mul_expr )* ;
+mul_expr       = unary_expr ( ( "*" | "/" | "%" | "//" ) unary_expr )* ;
+
+unary_expr = ( "-" | "!" ) unary_expr
+           | postfix_expr ;
+
+postfix_expr = primary_expr ( call_suffix | index_suffix | field_suffix )* ;
+
+call_suffix  = "(" [ expr ( "," expr )* ] ")" ;
+index_suffix = "[" expr "]" ;
+field_suffix = "." IDENT ;
+
+primary_expr = NUMBER 
+             | STRING 
+             | FSTRING
+             | BOOLEAN 
+             | "null" 
+             | IDENT 
+             | list_literal 
+             | map_literal
+             | "(" expr ")" 
+             | if_expr 
+             | lambda_expr 
+             ;
+
+list_literal = "[" [ expr ( "," expr )* ] "]" ;
+map_literal  = "{" [ expr ":" expr ( "," expr ":" expr )* ] "}" ;
+
+if_expr = "if" expr block [ "else" ( if_expr | block ) ] ;
+lambda_expr = "fn" "(" [ params ] ")" block ;
+```
+
+## Lexical Tokens
+
+```ebnf
+NUMBER  ::= [0-9]+ ( "." [0-9]+ )?
+STRING  ::= '"' [^"]* '"'
+FSTRING ::= 'f"' ( [^"{] | "{" expr "}" )* '"'
+BOOLEAN ::= "true" | "false"
+IDENT   ::= [a-zA-Z_] [a-zA-Z0-9_]*
+```
