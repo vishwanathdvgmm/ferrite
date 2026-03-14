@@ -1,0 +1,153 @@
+// ═══════════════════════════════════════════════════════
+//  Ferrite Example Programs
+//  Run with:  ferrite examples.fe
+// ═══════════════════════════════════════════════════════
+
+// ── 1. Hello, World ────────────────────────────────────
+print("Hello from Ferrite! 🦀");
+
+// ── 2. Variables & Arithmetic ──────────────────────────
+let x = 10;
+let y = 3;
+print(x + y);    // 13
+print(x / y);    // 3.333...
+print(x % y);    // 1
+print(x * 2.5);  // 25.0
+
+// ── 3. Strings ─────────────────────────────────────────
+let name = "Ferrite";
+print("Language: " + name);
+print("Length: " + str(name.len));
+print(name.upper);
+print(name.lower);
+
+// ── 4. Lists ───────────────────────────────────────────
+let nums = [10, 20, 30, 40, 50];
+print(nums);
+print("First: " + str(nums[0]));
+print("Last:  " + str(nums[-1]));
+
+// Mutate a list element
+nums[2] = 99;
+print(nums);
+
+// ── 5. If / Else ───────────────────────────────────────
+let score = 87;
+if score >= 90 {
+    print("Grade: A");
+} else {
+    if score >= 80 {
+        print("Grade: B");
+    } else {
+        print("Grade: C");
+    }
+}
+
+// ── 6. While loop ──────────────────────────────────────
+let i = 1;
+let product = 1;
+while i <= 5 {
+    product = product * i;
+    i = i + 1;
+}
+print("5! = " + str(product));   // 120
+
+// ── 7. For loop + range ────────────────────────────────
+let total = 0;
+for n in range(1, 11) {
+    total = total + n;
+}
+print("Sum 1..10 = " + str(total));  // 55
+
+// ── 8. For loop over a list ────────────────────────────
+let fruits = ["apple", "banana", "cherry"];
+for fruit in fruits {
+    print("Fruit: " + fruit);
+}
+
+// ── 9. Functions ───────────────────────────────────────
+fn greet(person) {
+    return "Hello, " + person + "!";
+}
+print(greet("World"));
+
+// Recursive fibonacci
+fn fib(n) {
+    if n <= 1 { return n; }
+    return fib(n - 1) + fib(n - 2);
+}
+print("fib(10) = " + str(fib(10)));   // 55
+
+// ── 10. First-class functions & closures ───────────────
+fn make_adder(n) {
+    return fn(x) { return x + n; };
+}
+let add5 = make_adder(5);
+print(add5(10));   // 15
+print(add5(42));   // 47
+
+// ── 11. Higher-order: manual map ───────────────────────
+fn map(lst, f) {
+    let result = [];
+    for item in lst {
+        result = push(result, f(item));
+    }
+    return result;
+}
+
+let doubled = map([1, 2, 3, 4, 5], fn(x) { return x * 2; });
+print(doubled);   // [2, 4, 6, 8, 10]
+
+// ── 12. Builtins ───────────────────────────────────────
+print(len([1, 2, 3]));          // 3
+print(sqrt(144.0));             // 12.0
+print(abs(-99));                // 99
+print(max(3, 7, 1, 9, 2));     // 9
+print(min(3, 7, 1, 9, 2));     // 1
+print(floor(3.9));              // 3
+print(ceil(3.1));               // 4
+
+// ── 13. FizzBuzz ───────────────────────────────────────
+for k in range(1, 21) {
+    if k % 15 == 0 {
+        print("FizzBuzz");
+    } else {
+        if k % 3 == 0 {
+            print("Fizz");
+        } else {
+            if k % 5 == 0 {
+                print("Buzz");
+            } else {
+                print(k);
+            }
+        }
+    }
+}
+
+// ── 14. Bubble sort ────────────────────────────────────
+fn bubble_sort(arr) {
+    let n = len(arr);
+    let i = 0;
+    while i < n {
+        let j = 0;
+        while j < n - i - 1 {
+            if arr[j] > arr[j + 1] {
+                let tmp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = tmp;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return arr;
+}
+
+let unsorted = [64, 34, 25, 12, 22, 11, 90];
+print(bubble_sort(unsorted));
+
+// ── 15. String iteration ───────────────────────────────
+let word = "Ferrite";
+for ch in word {
+    print(ch);
+}
