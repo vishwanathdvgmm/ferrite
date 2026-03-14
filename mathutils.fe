@@ -1,0 +1,5 @@
+
+fn square(x) { return x * x; }
+fn cube(x)   { return x * x * x; }
+fn hyp(a, b) { return sqrt(a*a + b*b); }
+let TAU = PI * 2.0;
