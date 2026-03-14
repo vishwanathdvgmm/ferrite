@@ -5,6 +5,8 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 use std::rc::Rc;
 
+pub mod vm;
+
 use crate::ast::*;
 use crate::lexer::{FsPart, Lexer};
 use crate::parser::Parser;
@@ -1766,6 +1768,10 @@ impl Interp {
     fn run_src(&mut self, src: &str) -> Result<(), String> {
         let tokens = Lexer::new(src).tokenize()?;
         let stmts = Parser::new(tokens).parse_program()?;
+        
+        // Phase 2a: Static Semantic Analysis Pass
+        crate::semantic::Resolver::new().resolve(&stmts)?;
+
         for s in &stmts {
             match self.exec(s) {
                 Ok(_) => {}

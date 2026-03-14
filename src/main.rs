@@ -1,7 +1,9 @@
 pub mod ast;
+pub mod codegen;
 pub mod lexer;
 pub mod parser;
 pub mod runtime;
+pub mod semantic;
 pub mod stdlib;
 
 use crate::runtime::Interp;
