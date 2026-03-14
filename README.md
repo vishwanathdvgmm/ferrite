@@ -4,7 +4,7 @@ A clean, expressive scripting language — written entirely in Rust.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start (v1.4.0)
 
 ```bash
 # Build
@@ -13,173 +13,151 @@ cargo build --release
 # Run a file
 ./target/release/ferrite examples.fe
 
-# Start the REPL
+# Start the Multi-line REPL
 ./target/release/ferrite
 ```
 
 ---
 
-## Language Tour
+## 📖 Language Tour
 
-### Variables
+### Variables & F-Strings
 ```ferrite
 let x = 42;
 let name = "Ferrite";
-let pi = 3.14159;
-let flag = true;
+let msg = f"Hello {name}, you are version {x / 30.0}!";
 let nothing = null;
+let default_val = config_port ?? 8080; # Null coalescing
 ```
 
-### Arithmetic & Strings
-```ferrite
-let a = 10 + 3 * 2;     // 16  (standard precedence)
-let b = 10 / 3;          // 3.3333...
-let c = 10 % 3;          // 1
-let s = "Hello, " + name;
-let rep = "ha" * 3;      // "hahaha"
-```
-
-### Lists
+### Lists, Maps & Unpacking
 ```ferrite
 let nums = [1, 2, 3, 4, 5];
-print(nums[0]);       // 1
-print(nums[-1]);      // 5  (negative indexing)
-nums[2] = 99;         // mutation
+let user = {"name": "Alice", "age": 30};
 
-// Concatenation
-let more = nums + [6, 7, 8];
+# Array and Object Destructuring
+let [first, second, ...rest] = nums;
+let { name, age } = user;
 ```
 
 ### Control Flow
 ```ferrite
-if score >= 90 {
-    print("A");
-} else {
-    print("B or lower");
+# if/else as expressions
+let grade = if score >= 90 { "A" } else { "B" };
+
+# Match patterns (Literals, Ranges, Bindings)
+match grade {
+    "A" => print("Excellent!"),
+    "B" => print("Good job!"),
+    other => print(f"You got {other}")
 }
 ```
 
-### Loops
+### Loops (with Range & Destructuring)
 ```ferrite
-// while
+# Standard loops
 let i = 0;
-while i < 10 {
-    print(i);
-    i = i + 1;
+while i < 10 { print(i); i += 1; }
+
+# For-loops over ranges and lists
+for n in range(0, 10, 2) { print(n); } # 0, 2, 4, 6, 8
+
+# Enumerate and Zip Destructuring
+for [i, fruit] in enumerate(["apple", "banana"]) {
+    print(f"{i}: {fruit}");
 }
-
-// for over a range
-for n in range(5) { print(n); }        // 0..4
-for n in range(1, 11) { print(n); }    // 1..10
-for n in range(0, 10, 2) { print(n); } // 0, 2, 4, 6, 8
-
-// for over a list
-for item in ["a", "b", "c"] { print(item); }
-
-// for over a string (character by character)
-for ch in "hello" { print(ch); }
 ```
 
-### Functions
+### Functions & Closures
 ```ferrite
-fn add(a, b) {
-    return a + b;
+# Variadic functions
+fn log_msg(level, ...messages) {
+    print(level + ": " + join(messages, " "));
 }
-print(add(3, 4));   // 7
-```
+log_msg("INFO", "Server", "started.");
 
-### Closures & First-Class Functions
-```ferrite
+# Mutable closures
 fn make_counter() {
     let count = 0;
     return fn() {
-        count = count + 1;
+        count += 1;
         return count;
     };
 }
-
-let c = make_counter();
-print(c());  // 1
-print(c());  // 2
 ```
 
-### Anonymous Functions (Lambdas)
+### Error Handling
 ```ferrite
-let square = fn(x) { return x * x; };
-print(square(5));  // 25
+try {
+    let danger = 1 / 0;
+    throw "This shouldn't be reached";
+} catch err {
+    print(f"Caught an error gracefully: {err}");
+}
 ```
 
-### String Properties
+### Standard Library (Module System)
+Ferrite v1.4.0 ships with a robust `std/` module system. Place it next to your binary.
+
 ```ferrite
-let s = "  Hello World  ";
-print(s.upper);   // "  HELLO WORLD  "
-print(s.lower);   // "  hello world  "
-print(s.trim);    // "Hello World"
-print(s.len);     // 15
-print(s.chars);   // list of characters
+import "std/mathutils";
+import "std/strings";
+import "std/collections";
+import "std/functional";
+
+print(square(5)); 
+print(pad_left("42", 5, "0")); 
+print(chunk([1,2,3,4,5], 2)); 
+```
+
+### File I/O
+```ferrite
+write_file("test.txt", "Hello World");
+append_file("test.txt", "!");
+if file_exists("test.txt") {
+    print(read_file("test.txt"));
+}
 ```
 
 ---
 
-## Built-in Functions
+## 🛠️ Built-in Functions
 
-| Function           | Description                          |
-|--------------------|--------------------------------------|
-| `len(x)`           | Length of list or string             |
-| `push(list, val)`  | Returns new list with val appended   |
-| `pop(list)`        | Returns last element                 |
-| `str(x)`           | Convert to string                    |
-| `int(x)`           | Convert to integer                   |
-| `float(x)`         | Convert to float                     |
-| `type(x)`          | Returns type name as string          |
-| `range(n)`         | List `[0..n)`                        |
-| `range(a, b)`      | List `[a..b)`                        |
-| `range(a, b, step)`| List with step                       |
-| `sqrt(n)`          | Square root                          |
-| `abs(n)`           | Absolute value                       |
-| `floor(n)`         | Floor to integer                     |
-| `ceil(n)`          | Ceiling to integer                   |
-| `max(a, b, ...)`   | Maximum of values                    |
-| `min(a, b, ...)`   | Minimum of values                    |
-| `input(prompt?)`   | Read a line from stdin               |
-| `print(x)`         | Print a value                        |
+Ferrite includes a powerful global standard library available natively:
+
+| Category | Functions |
+|----------|-----------|
+| **Core** | `len(x)`, `print(x)`, `type(x)`, `input(prompt?)` |
+| **Math** | `range(a,b,step)`, `sqrt`, `abs`, `floor`, `ceil`, `round`, `max`, `min`, `pow`, `log`, `sin`, `cos` |
+| **Lists** | `push`, `pop`, `contains`, `map`, `filter`, `reduce`, `sort`, `reverse`, `enumerate`, `zip` |
+| **Strings** | `str`, `split`, `join`, `replace`, `trim`, `upper`, `lower`, `chars`, `substr`, `starts_with`, `ends_with` |
+| **Maps** | `keys(m)`, `values(m)`, `has_key(m, k)`, `delete(m, k)` |
+| **Files** | `read_file`, `write_file`, `append_file`, `file_exists` |
 
 ---
 
-## Operators
-
-| Category   | Operators                  |
-|------------|----------------------------|
-| Arithmetic | `+  -  *  /  %`            |
-| Comparison | `==  !=  <  <=  >  >=`     |
-| Logic      | `&&  \|\|  !`              |
-| Assignment | `=`                        |
-| String     | `+` (concat), `*` (repeat) |
-| List       | `+` (concat)               |
-
----
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 ferrite/
 ├── Cargo.toml
+├── std/
+│   ├── mathutils.fe   ← Standard math library
+│   ├── strings.fe     ← Extraneous string helpers
+│   ├── collections.fe ← List/Map chunking, grouping
+│   └── functional.fe  ← Compose, pipe, partials
 ├── src/
 │   └── main.rs        ← entire language in one file
-│       ├── Lexer      (tokenisation)
-│       ├── Parser     (recursive-descent → AST)
-│       ├── Interp     (tree-walking interpreter)
-│       └── main()     (REPL + file runner)
 └── examples.fe        ← example programs
 ```
 
 ---
 
-## Implementation Details
+## 💡 Implementation Details
 
-- **~700 lines** of clean, idiomatic Rust — zero dependencies
+- **~1600 lines** of clean, idiomatic Rust — zero dependencies
 - **Lexer** — hand-written character-level scanner
 - **Parser** — recursive-descent with Pratt-style precedence climbing
 - **Interpreter** — tree-walking with lexical scoping via environment chains
-- **Closures** — captured by cloning the environment at definition time
+- **Closures** — captured by cloning the environment at definition time (`Rc<RefCell<HashMap>>`)
 - **No unsafe** — pure safe Rust throughout

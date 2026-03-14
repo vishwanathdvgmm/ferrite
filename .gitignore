@@ -4,3 +4,4 @@ target/
 implementation_plan.md
 *.exe
 validation_report.md
+release/
