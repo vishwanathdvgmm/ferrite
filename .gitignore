@@ -2,3 +2,5 @@ target/
 *.lock
 *.txt
 implementation_plan.md
+*.exe
+validation_report.md
