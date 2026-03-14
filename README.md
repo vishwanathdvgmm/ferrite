@@ -32,13 +32,12 @@ ferrite/
 │  ├─ runtime/   # Tree-walking evaluator, Scopes, and Built-ins
 │  ├─ semantic/  # (Future) Static analysis & type checking
 │  ├─ codegen/   # (Future) Bytecode emission
-│  └─ stdlib/    # Internal registry for linking the external `std/` folder
-├─ std/          # The Ferrite Standard Library (written in .fe)
+│  └─ stdlib/    # The standard library `.fe` files, now fully embedded into the rust binary!
 └─ docs/         # Formal language specifications
 ```
 
-> **Note on `src/stdlib` vs `std/`:**
-> The `std/` folder on the root contains the actual *Ferrite code* (like `mathutils.fe`). The `src/stdlib/` folder inside the Rust compiler is a planned module for future updates to register native Rust functions directly into the environment, or to pre-compile/embed the `.fe` files directly into the executable byte-slice so you don't have to distribute the `std/` folder alongside the binary.
+> **Note on `stdlib/`:**
+> As of v1.4.0, you do not need to distribute an external `std/` folder alongside the binary. All standard library scripts (such as `mathutils`, `strings`, `collections`) are statically embedded directly into the Rust executable at compile time via `include_str!`.
 
 ---
 

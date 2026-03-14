@@ -2,6 +2,7 @@ pub mod ast;
 pub mod lexer;
 pub mod parser;
 pub mod runtime;
+pub mod stdlib;
 
 use crate::runtime::Interp;
 use std::io::{self, Write};
