@@ -1,10 +1,10 @@
 # Ferrite Standard Library
 
-Ferrite natively includes many builtins inside the core evaluator and comes bundled with a powerful `std/` module system for advanced routines.
+Ferrite natively includes many builtins inside the core evaluator and comes bundled with a powerful statically embedded module system for advanced routines.
 
 ## System Imports
 
-Using the `import` statement checks relatively first, and if not found, automatically looks into the `std/` standard library folder placed next to your executable binary. The `.fe` extension is optional.
+Using the `import` statement checks locally first, and if not found, automatically loads the embedded standard library right from the compiler's own memory. The `.fe` extension is optional.
 
 ```ferrite
 import "std/mathutils";
@@ -15,9 +15,9 @@ import "std/functional";
 
 ---
 
-## The `std/` Official Modules
+## The Embedded Official Modules
 
-### `std/mathutils.fe`
+### `mathutils`
 * **`square(x)`** - Squares the value.
 * **`cube(x)`** - Cubes the value.
 * **`hyp(a, b)`** - Hypotenuse `sqrt(a^2 + b^2)`.
@@ -29,7 +29,7 @@ import "std/functional";
 * **`factorial(n)`** - Computes `n!`.
 * **`TAU`** - Evaluates to `2.0 * PI`.
 
-### `std/strings.fe`
+### `strings`
 * **`repeat_str(s, n)`** - Repeats string `s` n-times.
 * **`pad_left(s, length, pad_char)`**
 * **`pad_right(s, length, pad_char)`**
@@ -39,7 +39,7 @@ import "std/functional";
 * **`char_at(s, index)`**
 * **`index_of(s, search)`**
 
-### `std/collections.fe`
+### `collections`
 * **`flatten(list)`** - Flattens an array of arrays into a 1D list.
 * **`chunk(list, size)`** - Separates arrays into chunks.
 * **`unique(list)`** - Deduplicates array elements.
@@ -52,7 +52,7 @@ import "std/functional";
 * **`find_index(list, predicate)`**
 * **`any(list, predicate)`** / **`all(...)`**
 
-### `std/functional.fe`
+### `functional`
 * **`compose(f, g)`** - Executes `f(g(arg))`.
 * **`pipe(f, g)`** - Executes `g(f(arg))`.
 * **`partial(f, bound_arg)`** - Partially applies single argument to `f`.
