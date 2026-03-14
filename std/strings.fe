@@ -1,0 +1,70 @@
+# Ferrite Standard Library: Strings
+
+fn repeat_str(s, n) {
+    if n <= 0 { return ""; }
+    let result = "";
+    for i in range(0, n) {
+        result = result + s;
+    }
+    return result;
+}
+
+fn pad_left(s, length, pad_char) {
+    let slen = len(s);
+    if slen >= length { return s; }
+    return repeat_str(pad_char, length - slen) + s;
+}
+
+fn pad_right(s, length, pad_char) {
+    let slen = len(s);
+    if slen >= length { return s; }
+    return s + repeat_str(pad_char, length - slen);
+}
+
+fn capitalize(s) {
+    if len(s) == 0 { return s; }
+    let first = upper(substr(s, 0, 1));
+    let rest  = substr(s, 1, len(s));
+    return first + rest;
+}
+
+fn title_case(s) {
+    let words = split(s, " ");
+    let result = [];
+    for w in words {
+        result = result + [capitalize(w)];
+    }
+    return join(result, " ");
+}
+
+fn is_numeric(s) {
+    if len(s) == 0 { return false; }
+    let c = chars(s);
+    let allowed = "0123456789.-";
+    for ch in c {
+        if !contains(allowed, ch) { return false; }
+    }
+    return true;
+}
+
+fn char_at(s, index) {
+    if index < 0 || index >= len(s) { return ""; }
+    return substr(s, index, 1);
+}
+
+fn index_of(s, search) {
+    let slen = len(s);
+    let search_len = len(search);
+    if search_len == 0 { return 0; }
+    if search_len > slen { return -1; }
+    
+    for i in range(0, slen - search_len + 1) {
+        if substr(s, i, search_len) == search {
+            return i;
+        }
+    }
+    return -1;
+}
+
+# Add substr builtin in main.rs if not exists (checked: it needs adding or we can use slice if later v1.5)
+# Wait, let me check if substr exists in main.rs builtins.

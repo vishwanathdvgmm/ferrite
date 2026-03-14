@@ -1,8 +1,9 @@
 // ================================================================
-//  Ferrite v1.3 — built on the user's clean v1.2 base
-//  Added: try/catch/throw, file I/O, f-strings, variadic fns,
-//         list/map unpack, line numbers, import, enumerate/zip,
-//         ?? operator, mutable closures, multi-line REPL
+//  Ferrite v1.4 — Standard Library & Module System
+//  v1.3: try/catch/throw, file I/O, f-strings, variadic fns,
+//        list/map unpack, line numbers, import, enumerate/zip,
+//        ?? operator, mutable closures, multi-line REPL
+//  v1.4: std/ library infrastructure, module path resolution
 // ================================================================
 
 use std::cell::RefCell;
@@ -889,6 +890,8 @@ struct Interp {
     env: Env,
     current_line: u32,
     import_base: Option<PathBuf>,
+    std_path: Option<PathBuf>,
+    imported: Vec<PathBuf>,
 }
 
 impl Interp {
@@ -899,16 +902,20 @@ impl Interp {
             "input","sqrt","abs","max","min","floor","ceil","round",
             "assert","keys","values","has_key","delete",
             "sort","reverse","contains","map","filter","reduce",
-            "split","join","replace","starts_with","ends_with","trim","upper","lower","chars",
+            "split","join","replace","starts_with","ends_with","trim","upper","lower","chars","substr",
             "pow","log","log2","log10","sin","cos","tan","atan","atan2","pi","e","inf",
             "format","write","exit",
-            "enumerate","zip",
+            "enumerate","zip","range",
             "read_file","write_file","append_file","file_exists",
         ] { g.insert(n.to_string(), Value::Builtin(n.to_string())); }
         g.insert("PI".into(),  Value::Float(std::f64::consts::PI));
         g.insert("E".into(),   Value::Float(std::f64::consts::E));
         g.insert("INF".into(), Value::Float(f64::INFINITY));
-        Interp { env: vec![Rc::new(RefCell::new(g))], current_line: 0, import_base: None }
+        // Resolve std/ path next to the binary
+        let std_path = std::env::current_exe().ok()
+            .and_then(|p| p.parent().map(|d| d.join("std")))
+            .filter(|p| p.is_dir());
+        Interp { env: vec![Rc::new(RefCell::new(g))], current_line: 0, import_base: None, std_path, imported: Vec::new() }
     }
 
     fn get(&self, n: &str) -> Option<Value> {
@@ -1099,6 +1106,17 @@ impl Interp {
             "upper" => { arity!(1); match &a[0] { Value::Str(s) => Ok(Value::Str(s.to_uppercase())),           v => e!(format!("upper() needs a string, got {}", v.kind())) } }
             "lower" => { arity!(1); match &a[0] { Value::Str(s) => Ok(Value::Str(s.to_lowercase())),           v => e!(format!("lower() needs a string, got {}", v.kind())) } }
             "chars" => { arity!(1); match &a[0] { Value::Str(s) => Ok(Value::List(s.chars().map(|c| Value::Str(c.to_string())).collect())), v => e!(format!("chars() needs a string, got {}", v.kind())) } }
+            "substr" => {
+                if n != 3 { e!("substr(s, start, len) takes 3 args"); }
+                match (&a[0], &a[1], &a[2]) {
+                    (Value::Str(s), Value::Int(start), Value::Int(len)) => {
+                        let st = (*start).max(0) as usize;
+                        let l = (*len).max(0) as usize;
+                        Ok(Value::Str(s.chars().skip(st).take(l).collect()))
+                    }
+                    _ => e!("substr() needs (string, int, int)")
+                }
+            }
             // file I/O
             "read_file"   => { arity!(1); let p = match &a[0] { Value::Str(s) => s.clone(), _ => e!("read_file() needs a string path") }; std::fs::read_to_string(&p).map(Value::Str).map_err(|err| Sig::err(format!("read_file('{}'): {}", p, err))) }
             "write_file"  => { if n != 2 { e!("write_file() takes (path, content)"); } let p = match &a[0] { Value::Str(s) => s.clone(), _ => e!("write_file() needs a string path") }; std::fs::write(&p, a[1].to_string()).map(|_| Value::Null).map_err(|err| Sig::err(format!("write_file('{}'): {}", p, err))) }
@@ -1346,6 +1364,32 @@ impl Interp {
         }
     }
 
+    // ── Import Resolution ─────────────────────────────────────────
+    fn resolve_import(&self, path: &str) -> Option<PathBuf> {
+        let mut p = PathBuf::from(path);
+        if p.extension().is_none() { p.set_extension("fe"); }
+
+        // 1. Relative to current file
+        if let Some(ref base) = self.import_base {
+            let candidate = base.join(&p);
+            if candidate.exists() { return Some(candidate); }
+        } else if p.exists() {
+            return Some(p.clone());
+        }
+
+        // 2. Try std/ relative to binary
+        if let Some(ref std) = self.std_path {
+            let candidate = std.join(&p);
+            if candidate.exists() { return Some(candidate); }
+        }
+
+        // 3. Try std/ in current working directory (fallback for cargo run)
+        let cwd_std = std::env::current_dir().unwrap_or_default().join("std").join(&p);
+        if cwd_std.exists() { return Some(cwd_std); }
+
+        None
+    }
+
     // ── Exec ──────────────────────────────────────────────────────
     fn exec_block(&mut self, stmts: &[Stmt]) -> Result<Value, Sig> {
         let mut last = Value::Null;
@@ -1504,9 +1548,12 @@ impl Interp {
             }
 
             Stmt::Import { path } => {
-                let full = if let Some(ref base) = self.import_base {
-                    base.join(path)
-                } else { PathBuf::from(path) };
+                let full = self.resolve_import(path)
+                    .ok_or_else(|| Sig::err(format!("import '{}': module not found", path)))?;
+                // Guard against double-import
+                let canonical = full.canonicalize().unwrap_or_else(|_| full.clone());
+                if self.imported.contains(&canonical) { return Ok(Value::Null); }
+                self.imported.push(canonical);
                 let src = std::fs::read_to_string(&full)
                     .map_err(|e| Sig::err(format!("import '{}': {}", path, e)))?;
                 let old_base = self.import_base.clone();
@@ -1560,7 +1607,7 @@ fn run_main() {
         }
     } else {
         println!("\x1b[36m╔══════════════════════════════════════╗");
-        println!("║   Ferrite v1.3  —  built in Rust     ║");
+        println!("║   Ferrite v1.4  —  built in Rust     ║");
         println!("║   Type 'exit' or Ctrl+D to quit       ║");
         println!("╚══════════════════════════════════════╝\x1b[0m");
 

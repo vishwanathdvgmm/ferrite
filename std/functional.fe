@@ -1,0 +1,38 @@
+# Ferrite Standard Library: Functional Programming
+
+fn compose(f, g) {
+    return fn(arg) {
+        return f(g(arg));
+    };
+}
+
+fn pipe(f, g) {
+    return fn(arg) {
+        return g(f(arg));
+    };
+}
+
+fn partial(f, bound_arg) {
+    return fn(arg) {
+        return f(bound_arg, arg);
+    };
+}
+
+fn memoize(f) {
+    let cache = {};
+    return fn(arg) {
+        # Only works for single hashable argument for now
+        if !has_key(cache, arg) {
+            cache[arg] = f(arg);
+        }
+        return cache[arg];
+    };
+}
+
+fn identity(x) {
+    return x;
+}
+
+fn constant(x) {
+    return fn() { return x; };
+}

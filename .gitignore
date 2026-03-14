@@ -1,3 +1,4 @@
 target/
 *.lock
 *.txt
+implementation_plan.md

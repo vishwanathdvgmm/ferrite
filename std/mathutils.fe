@@ -1,0 +1,59 @@
+# Ferrite Standard Library: Math Utilities
+
+let TAU = PI * 2.0;
+
+fn square(x) { return x * x; }
+fn cube(x)   { return x * x * x; }
+fn hyp(a, b) { return sqrt(a*a + b*b); }
+
+fn clamp(val, min_val, max_val) {
+    if val < min_val { return min_val; }
+    if val > max_val { return max_val; }
+    return val;
+}
+
+fn lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+fn fibonacci(n) {
+    if n <= 1 { return n; }
+    let a = 0;
+    let b = 1;
+    for i in range(2, n+1) {
+        let temp = a + b;
+        a = b;
+        b = temp;
+    }
+    return b;
+}
+
+fn is_prime(n) {
+    if n <= 1 { return false; }
+    if n <= 3 { return true; }
+    if n % 2 == 0 || n % 3 == 0 { return false; }
+    let i = 5;
+    while i * i <= n {
+        if n % i == 0 || n % (i + 2) == 0 { return false; }
+        i += 6;
+    }
+    return true;
+}
+
+fn gcd(a, b) {
+    while b != 0 {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+fn factorial(n) {
+    if n <= 1 { return 1; }
+    let result = 1;
+    for i in range(2, n+1) {
+        result = result * i;
+    }
+    return result;
+}
