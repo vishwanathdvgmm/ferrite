@@ -119,13 +119,13 @@ try {
 ```
 
 ### Standard Library (Module System)
-Ferrite v1.4.0 ships with a robust `std/` module system. Place it next to your binary.
+Ferrite v1.4.0 automatically embeds a robust standard module system directly into the compiler.
 
 ```ferrite
-import "std/mathutils";
-import "std/strings";
-import "std/collections";
-import "std/functional";
+import "mathutils";
+import "strings";
+import "collections";
+import "functional";
 
 print(square(5)); 
 print(pad_left("42", 5, "0")); 
@@ -158,26 +158,9 @@ Ferrite includes a powerful global standard library available natively:
 
 ---
 
-## 🏗️ Project Structure
-
-```
-ferrite/
-├── Cargo.toml
-├── std/
-│   ├── mathutils.fe   ← Standard math library
-│   ├── strings.fe     ← Extraneous string helpers
-│   ├── collections.fe ← List/Map chunking, grouping
-│   └── functional.fe  ← Compose, pipe, partials
-├── src/
-│   └── main.rs        ← entire language in one file
-└── examples.fe        ← example programs
-```
-
----
-
 ## 💡 Implementation Details
 
-- **~1600 lines** of clean, idiomatic Rust — zero dependencies
+- **Modularized, idiomatic Rust** — zero external dependencies
 - **Lexer** — hand-written character-level scanner
 - **Parser** — recursive-descent with Pratt-style precedence climbing
 - **Interpreter** — tree-walking with lexical scoping via environment chains

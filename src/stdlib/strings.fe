@@ -66,5 +66,4 @@ fn index_of(s, search) {
     return -1;
 }
 
-# Add substr builtin in main.rs if not exists (checked: it needs adding or we can use slice if later v1.5)
-# Wait, let me check if substr exists in main.rs builtins.
+# Note: substr builtin is implemented inside src/runtime/mod.rs against strings natively

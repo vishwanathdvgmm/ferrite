@@ -7,10 +7,10 @@ Ferrite natively includes many builtins inside the core evaluator and comes bund
 Using the `import` statement checks locally first, and if not found, automatically loads the embedded standard library right from the compiler's own memory. The `.fe` extension is optional.
 
 ```ferrite
-import "std/mathutils";
-import "std/strings";
-import "std/collections";
-import "std/functional";
+import "mathutils";
+import "strings";
+import "collections";
+import "functional";
 ```
 
 ---

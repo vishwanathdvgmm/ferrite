@@ -3,7 +3,7 @@
 //  v1.3: try/catch/throw, file I/O, f-strings, variadic fns,
 //        list/map unpack, line numbers, import, enumerate/zip,
 //        ?? operator, mutable closures, multi-line REPL
-//  v1.4: std/ library infrastructure, module path resolution
+//  v1.4: native stdlib embedding, module path resolution
 // Lexer only relies on standard datatypes
 // ================================================================
 

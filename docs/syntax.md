@@ -127,5 +127,5 @@ try {
 ## Modules
 Ferrite handles modules simply via `import`. It searches local files first or instantly loads statically compiled internal standard library scripts.
 ```ferrite
-import "std/mathutils";
+import "mathutils";
 ```

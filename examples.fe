@@ -84,10 +84,10 @@ print("All errors now show 'line N:' prefix automatically");
 # let x = undefined_var;
 
 # ── 7. import (v1.4 stdlib) ───────────────────────────
-import "std/mathutils";
-import "std/strings";
-import "std/collections";
-import "std/functional";
+import "mathutils";
+import "strings";
+import "collections";
+import "functional";
 
 print("--- mathutils ---");
 print(square(5));
