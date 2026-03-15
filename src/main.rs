@@ -6,12 +6,10 @@ pub mod runtime;
 pub mod semantic;
 pub mod stdlib;
 
-use crate::runtime::Interp;
 use std::io::{self, Write};
 
 fn run_main() {
     let args: Vec<String> = std::env::args().collect();
-    let mut vm = Interp::new();
 
     if args.len() > 1 {
         let path = &args[1];
@@ -19,8 +17,8 @@ fn run_main() {
             eprintln!("ferrite: {}", e);
             std::process::exit(1);
         });
-        vm.import_base = std::path::Path::new(path).parent().map(|p| p.to_path_buf());
-        if let Err(e) = vm.run(&src) {
+        let import_base = std::path::Path::new(path).parent().map(|p| p.to_path_buf());
+        if let Err(e) = crate::runtime::run(&src, import_base) {
             eprintln!("\x1b[31mError:\x1b[0m {}", e);
             std::process::exit(1);
         }
@@ -70,7 +68,7 @@ fn run_main() {
                 if src.is_empty() {
                     continue;
                 }
-                if let Err(e) = vm.run(&src) {
+                if let Err(e) = crate::runtime::run(&src, None) {
                     eprintln!("\x1b[31m  Error: {}\x1b[0m", e);
                 }
             }

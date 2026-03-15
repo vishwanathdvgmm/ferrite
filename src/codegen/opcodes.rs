@@ -8,16 +8,21 @@ pub enum Opcode {
     False,
 
     Pop,
-    
+    Swap,
+    Dup,
+
     // Variables
     DefineGlobal(usize),
     GetGlobal(usize),
     SetGlobal(usize),
     GetLocal(usize),
     SetLocal(usize),
+    CaptureLocal,
 
     // Control Flow
     JumpIfFalse(usize),
+    JumpIfTrue(usize),
+    JumpIfNull(usize),
     Jump(usize),
     Loop(usize),
 
@@ -52,6 +57,11 @@ pub enum Opcode {
 
     Print,
     Throw,
+
+    // Exception Handling
+    BeginTry(usize), // Offset to jump to if an exception occurs
+    EndTry,          // Pops the exception handler
+    Import,
 }
 
 #[derive(Debug, Clone)]
