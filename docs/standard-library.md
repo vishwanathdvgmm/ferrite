@@ -67,7 +67,8 @@ import "functional";
 These are natively registered in the interpreter environment:
 
 ### I/O
-* **`print(val)`** - Prints to stdout.
+* **`print(val)`** - Prints to stdout with a newline.
+* **`write(val)`** - Prints to stdout *without* a newline.
 * **`input(prompt?)`** - Reads input line from stdin.
 * **`read_file(path)`** - Returns the string contents of a file.
 * **`write_file(path, content)`** - Overwrites path with content.
@@ -77,6 +78,7 @@ These are natively registered in the interpreter environment:
 ### Casts & Meta
 * **`len(x)`** - Length of string/list/map.
 * **`int(x)`**, **`float(x)`**, **`str(x)`**, **`type(x)`**.
+* **`assert(condition, message?)`** - Throws error if condition is false.
 
 ### Math
 * **`range(start, end)`** - Returns a list of ints.

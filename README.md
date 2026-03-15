@@ -175,10 +175,10 @@ Ferrite includes a powerful global standard library available natively:
 
 | Category    | Functions                                                                                                  |
 | ----------- | ---------------------------------------------------------------------------------------------------------- |
-| **Core**    | `len(x)`, `print(x)`, `type(x)`, `input(prompt?)`                                                          |
-| **Math**    | `range(a,b,step)`, `sqrt`, `abs`, `floor`, `ceil`, `round`, `max`, `min`, `pow`, `log`, `sin`, `cos`       |
+| **Core**    | `len(x)`, `print(x)`, `write(x)`, `type(x)`, `input(p?)`, `assert(c, m?)`                                 |
+| **Math**    | `range(a,b,s)`, `sqrt`, `abs`, `floor`, `ceil`, `round`, `max`, `min`, `pow`, `log`, `sin`, `cos`          |
 | **Lists**   | `push`, `pop`, `contains`, `map`, `filter`, `reduce`, `sort`, `reverse`, `enumerate`, `zip`                |
-| **Strings** | `str`, `split`, `join`, `replace`, `trim`, `upper`, `lower`, `chars`, `substr`, `starts_with`, `ends_with` |
+| **Strings** | `str`, `split`, `join`, `replace`, `trim`, `upper`, `lower`, `chars`, `substr`, `starts_with`              |
 | **Maps**    | `keys(m)`, `values(m)`, `has_key(m, k)`, `delete(m, k)`                                                    |
 | **Files**   | `read_file`, `write_file`, `append_file`, `file_exists`                                                    |
 
@@ -186,9 +186,10 @@ Ferrite includes a powerful global standard library available natively:
 
 ## 💡 Implementation Details
 
-- **Modularized, idiomatic Rust** — zero external dependencies
-- **Lexer** — hand-written character-level scanner
-- **Parser** — recursive-descent with Pratt-style precedence climbing
-- **Interpreter** — tree-walking with lexical scoping via environment chains
-- **Closures** — captured by cloning the environment at definition time (`Rc<RefCell<HashMap>>`)
-- **No unsafe** — pure safe Rust throughout
+- **Modularized Rust** — Zero external dependencies.
+- **Hand-written Lexer** — Fast, UTF-8 aware character scanner.
+- **Recursive Descent Parser** — Pratt-style precedence for clean expression handling.
+- **Semantic Resolver** — Static pass for variable resolution and control flow validation.
+- **Bytecode VM** — High-performance stack-based Virtual Machine.
+- **Stateful Closures** — Reference-counted capture mechanism for persistent mutable state.
+- **Pure Safe Rust** — No `unsafe` code used in the compiler or runtime.

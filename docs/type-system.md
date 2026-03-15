@@ -1,6 +1,6 @@
 # Ferrite Type System
 
-Ferrite is dynamically and strongly typed. Variables do not have intrinsic types; values do. Types are resolved securely at runtime during the AST walking phase (`src/runtime/mod.rs`), and invalid operations across arbitrary types (like `5 + "apple"`) will throw a cohesive `Error: Cannot add int and string`, rather than implicitly coercing.
+Ferrite is dynamically and strongly typed. Variables do not have intrinsic types; values do. Types are resolved securely at runtime during the VM execution phase (`src/runtime/vm.rs`), and invalid operations across arbitrary types (like `5 + "apple"`) will throw a cohesive `Error: Invalid operands for +`, rather than implicitly coercing.
 
 ## Primitive Types
 
@@ -19,7 +19,7 @@ At its core, all memory and objects are backed by a single Rust `Value` Enum con
 
 ## Functional Type
 
-- **Fn**: Represents either a User-Defined Function (with its captured closure environment, AST body, and parameter list) or a Native Rust Builtin function (like `len` or `print`).
+- **Fn**: Represents either a User-Defined Function (with its captured closure environment, bytecode chunk, and parameter list) or a Native Rust Builtin function (like `len` or `print`). User functions capture state via a shared `Rc<RefCell<HashMap>>` to support persistent closures.
 
 ## Type Conversion & Builtins
 

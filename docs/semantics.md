@@ -9,7 +9,9 @@ Ferrite is compiled using a multi-stage pipeline:
 1. **Lexical Analysis (`src/lexer/mod.rs`)**: Scans UTF-8 source code into token streams.
 2. **Parsing (`src/parser/mod.rs`)**: A recursive descent + Pratt parser that transforms tokens into an Abstract Syntax Tree (AST).
 3. **AST (`src/ast/mod.rs`)**: Strongly typed intermediate nodes representing expressions and statements.
-4. **Execution (`src/runtime/mod.rs`)**: A tree-walking evaluator that dynamically executes the AST. _Note: Future versions will compile AST to a Bytecode VM._
+4. **Semantic Analysis (`src/semantic/mod.rs`)**: Performs static variable resolution, constant folding, and control flow validation.
+5. **Compilation (`src/codegen/compiler.rs`)**: Translates the validated AST into a linear stream of optimized bytecode instructions (Opcodes).
+6. **Execution (`src/runtime/vm.rs`)**: A high-performance stack-based Virtual Machine that executes bytecode.
 
 ## Everything is an Expression
 
@@ -30,10 +32,10 @@ let x = 42;
 x = "Now I am a string";
 ```
 
-## Lexical Scoping and Closures
+### Scoping and Closures
 
-Ferrite uses static (lexical) scoping via environment chains. Environments are stored using `Rc<RefCell<HashMap>>`, allowing true mutable closures.
-When a function is defined, it captures its surrounding scope. Variables inside the closure can be modified, and the changes are reflected across multiple invocations.
+Ferrite uses lexical scoping. Local variables are managed on the VM's main stack, while global variables reside in a dedicated heap-allocated Map. 
+Stateful closures are implemented by capturing active locals at the time of function definition into an `Rc<RefCell<HashMap>>`. This allows functions to persist and share mutable state between multiple invocations across different execution contexts.
 
 ```ferrite
 fn make_counter() {
