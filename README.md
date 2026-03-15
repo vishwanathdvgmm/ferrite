@@ -54,8 +54,8 @@ As of v1.4.0, Ferrite has transitioned from a single-file interpreter into a str
 └── 📄 examples.fe
 ```
 
-> **Note on `stdlib/`:**
-> As of v1.4.0, you do not need to distribute an external `std/` folder alongside the binary. All standard library scripts (such as `mathutils`, `strings`, `collections`) are statically embedded directly into the Rust executable at compile time via `include_str!`.
+> **Note on src/stdlib/:**
+> As of v1.4.0, you do not need to distribute an external `std/` or `stdlib/` folder alongside the binary. All standard library scripts (such as `mathutils`, `strings`, `collections`) are statically embedded directly into the Rust executable from `src/stdlib/` at compile time via `include_str!`.
 
 ---
 
