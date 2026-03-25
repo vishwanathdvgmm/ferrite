@@ -8,3 +8,4 @@ release/
 release_notes.md
 *.bak
 *.py
+*.json
