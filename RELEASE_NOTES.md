@@ -165,6 +165,22 @@ ferrite compile program.fe
 
 ---
 
+## ⬇️ Executable
+
+| File                         | Platform    | Size    |
+| :--------------------------- | :---------- | :------ |
+| `ferrite-v2.0.0-windows.exe` | Windows x64 | ~471 KB |
+
+**Single binary, zero dependencies.** Just download and run:
+
+```bash
+ferrite-v2.0.0-windows.exe check your_program.fe
+```
+
+> **Note:** This binary ships with the compiler frontend (`check` subcommand). The `compile` subcommand (LLVM native codegen) requires building from source with `cargo build --release --features llvm` and LLVM 15 installed on your system.
+
+---
+
 ## 📚 Documentation
 
 - [docs/syntax.md](docs/syntax.md) — Language syntax reference
