@@ -1,195 +1,221 @@
 # 🦀 Ferrite
 
-A clean, expressive scripting language — written entirely in Rust.
+A statically-typed, ahead-of-time compiled ML programming language — built in Rust.
 
 ---
 
-## 🚀 Quick Start (v1.4.0)
+## 🚀 Quick Start (v2.0)
 
 ```bash
-# Build
+# Build the compiler
 cargo build --release
 
-# Run a file
-./target/release/ferrite examples.fe
+# Type-check a Ferrite program
+./target/release/ferrite check program.fe
 
-# Start the Multi-line REPL
-./target/release/ferrite
+# Compile to native LLVM IR (requires --features llvm)
+cargo build --release --features llvm
+./target/release/ferrite compile program.fe
+```
+
+---
+
+## 📖 Language Tour
+
+### Variables & Types
+
+```ferrite
+keep x: int = 42;
+keep name: string = "Ferrite";
+keep pi: float = 3.14159;
+keep flag: bool = true;
+```
+
+All variables require explicit type annotations. There is no `null`, no dynamic typing, and no implicit coercion.
+
+### Functions
+
+```ferrite
+fun add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fun greet(name: string) {
+    // Returns Unit (no return type annotation)
+}
+```
+
+### Control Flow
+
+```ferrite
+if score > 90 {
+    keep grade: string = "A";
+} elif score > 80 {
+    keep grade: string = "B";
+} else {
+    keep grade: string = "F";
+}
+
+keep i: int = 0;
+while i < 10 {
+    if i == 5 { stop; }   // break
+    if i == 3 { skip; }   // continue
+    i = i + 1;
+}
+```
+
+### Groups (Structs)
+
+```ferrite
+group Point {
+    x: float;
+    y: float;
+
+    fun distance(self) -> float {
+        return self.x;
+    }
+}
+
+keep p: Point = Point { x: 1.0, y: 2.0 };
+```
+
+### Enums & Pattern Matching
+
+```ferrite
+enum Option<T> {
+    Some(T);
+    None;
+}
+
+match value {
+    case 0 => { return "zero"; }
+    case 1 => { return "one"; }
+    default => { return "other"; }
+}
+```
+
+### Tensor Types
+
+```ferrite
+param weights: Tensor<float, (784, 128)> = init();
+param bias: Tensor<float, (128)> = init();
+// Symbolic dimensions for batch processing
+param input: Tensor<float, (B, 784)> = fetch();
+```
+
+Shape mismatches are caught at compile time. No implicit broadcasting or reshaping.
+
+### ML Blocks & Effects
+
+```ferrite
+infer fun predict(x: int) -> int {
+    return x;
+}
+
+train {
+    keep loss: float = compute_loss();
+}
+```
+
+### Generics & Trait Bounds
+
+```ferrite
+fun identity<T>(x: T) -> T {
+    return x;
+}
+
+fun bounded<T: Add + Mul>(a: T, b: T) -> T {
+    return a;
+}
+
+fun constrained<N: shape>(size: int) -> int
+    where N > 0 {
+    return size;
+}
+```
+
+### Constants & Imports
+
+```ferrite
+constant PI: float = 3.14159;
+constant MAX_EPOCHS: int = 100;
+
+import "module_path";
+from "path" take function_name;
 ```
 
 ---
 
 ## 🏗️ Compiler Architecture
 
-As of v1.4.0, Ferrite has transitioned from a single-file interpreter into a structured compiler pipeline.
-
-```text
-├── 📁 docs
-│   ├── 📄 grammar.ebnf
-│   ├── 📝 semantics.md
-│   ├── 📝 standard-library.md
-│   ├── 📝 syntax.md
-│   └── 📝 type-system.md
-├── 📁 src
-│   ├── 📁 ast
-│   │   └── 🦀 mod.rs
-│   ├── 📁 codegen
-│   ├── 📁 lexer
-│   │   └── 🦀 mod.rs
-│   ├── 📁 parser
-│   │   └── 🦀 mod.rs
-│   ├── 📁 runtime
-│   │   └── 🦀 mod.rs
-│   ├── 📁 semantic
-│   ├── 📁 stdlib
-│   │   ├── 📄 collections.fe
-│   │   ├── 📄 functional.fe
-│   │   ├── 📄 mathutils.fe
-│   │   ├── 🦀 mod.rs
-│   │   └── 📄 strings.fe
-│   └── 🦀 main.rs
-├── ⚙️ .gitignore
-├── ⚙️ Cargo.toml
-├── 📝 README.md
-└── 📄 examples.fe
+```
+Source (.fe) → Lexer → Parser → ImportResolver → TypeEnv → SemanticAnalyzer → LLVM Codegen
 ```
 
-> **Note on src/stdlib/:**
-> As of v1.4.0, you do not need to distribute an external `std/` or `stdlib/` folder alongside the binary. All standard library scripts (such as `mathutils`, `strings`, `collections`) are statically embedded directly into the Rust executable from `src/stdlib/` at compile time via `include_str!`.
+```
+ferrite/
+├── src/
+│   ├── main.rs          # CLI driver (check / compile)
+│   ├── ast/             # AST node definitions
+│   ├── codegen/         # LLVM IR emission (feature-gated)
+│   ├── errors/          # Span, Diagnostic, DiagnosticBag
+│   ├── imports/         # Module resolution with cycle detection
+│   ├── lexer/           # UTF-8 tokenizer (34 keywords)
+│   ├── parser/          # Recursive descent with panic-mode recovery
+│   ├── semantic/        # Two-pass type-checking AST walker
+│   └── types/           # Static type system & tensor shape validation
+├── tests/               # 22-test verification suite
+├── docs/                # Language documentation
+├── ARCHITECTURE.md      # Detailed compiler architecture
+├── CHANGELOG.md         # Version history
+└── MIGRATION.md         # v1.4 → v2.0 migration guide
+```
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed breakdown of each compiler phase.
 
 ---
 
-## 📖 Language Tour
+## 🧪 Testing
 
-### Variables & F-Strings
-
-```ferrite
-let x = 42;
-let name = "Ferrite";
-let msg = f"Hello {name}, you are version {x / 30.0}!";
-let nothing = null;
-let default_val = config_port ?? 8080; # Null coalescing
+```bash
+# Run the full 22-test verification suite
+bash tests/run_tests.sh
 ```
 
-### Lists, Maps & Unpacking
-
-```ferrite
-let nums = [1, 2, 3, 4, 5];
-let user = {"name": "Alice", "age": 30};
-
-# Array and Object Destructuring
-let [first, second, ...rest] = nums;
-let { name, age } = user;
-```
-
-### Control Flow
-
-```ferrite
-# if/else as expressions
-let grade = if score >= 90 { "A" } else { "B" };
-
-# Match patterns (Literals, Ranges, Bindings)
-match grade {
-    "A" => print("Excellent!"),
-    "B" => print("Good job!"),
-    other => print(f"You got {other}")
-}
-```
-
-### Loops (with Range & Destructuring)
-
-```ferrite
-# Standard loops
-let i = 0;
-while i < 10 { print(i); i += 1; }
-
-# For-loops over ranges and lists
-for n in range(0, 10, 2) { print(n); } # 0, 2, 4, 6, 8
-
-# Enumerate and Zip Destructuring
-for [i, fruit] in enumerate(["apple", "banana"]) {
-    print(f"{i}: {fruit}");
-}
-```
-
-### Functions & Closures
-
-```ferrite
-# Variadic functions
-fn log_msg(level, ...messages) {
-    print(level + ": " + join(messages, " "));
-}
-log_msg("INFO", "Server", "started.");
-
-# Mutable closures
-fn make_counter() {
-    let count = 0;
-    return fn() {
-        count += 1;
-        return count;
-    };
-}
-```
-
-### Error Handling
-
-```ferrite
-try {
-    let danger = 1 / 0;
-    throw "This shouldn't be reached";
-} catch err {
-    print(f"Caught an error gracefully: {err}");
-}
-```
-
-### Standard Library (Module System)
-
-Ferrite v1.4.0 automatically embeds a robust standard module system directly into the compiler.
-
-```ferrite
-import "mathutils";
-import "strings";
-import "collections";
-import "functional";
-
-print(square(5));
-print(pad_left("42", 5, "0"));
-print(chunk([1,2,3,4,5], 2));
-```
-
-### File I/O
-
-```ferrite
-write_file("test.txt", "Hello World");
-append_file("test.txt", "!");
-if file_exists("test.txt") {
-    print(read_file("test.txt"));
-}
-```
+The test suite includes:
+- **10 pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions
+- **12 fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, operator type errors
 
 ---
 
-## 🛠️ Built-in Functions
+## 💡 Design Principles
 
-Ferrite includes a powerful global standard library available natively:
-
-| Category    | Functions                                                                                                  |
-| ----------- | ---------------------------------------------------------------------------------------------------------- |
-| **Core**    | `len(x)`, `print(x)`, `write(x)`, `type(x)`, `input(p?)`, `assert(c, m?)`                                 |
-| **Math**    | `range(a,b,s)`, `sqrt`, `abs`, `floor`, `ceil`, `round`, `max`, `min`, `pow`, `log`, `sin`, `cos`          |
-| **Lists**   | `push`, `pop`, `contains`, `map`, `filter`, `reduce`, `sort`, `reverse`, `enumerate`, `zip`                |
-| **Strings** | `str`, `split`, `join`, `replace`, `trim`, `upper`, `lower`, `chars`, `substr`, `starts_with`              |
-| **Maps**    | `keys(m)`, `values(m)`, `has_key(m, k)`, `delete(m, k)`                                                    |
-| **Files**   | `read_file`, `write_file`, `append_file`, `file_exists`                                                    |
+- **ML-First** — Tensor types, training/inference effects, and shape validation are built into the language core
+- **Strict Typing** — Zero implicit coercion, zero broadcasting, zero runtime reflection
+- **AOT Compiled** — Targets native code via LLVM; no interpreter, no VM
+- **Portable Frontend** — The compiler frontend builds on any Rust target without requiring LLVM installed
+- **Pure Safe Rust** — No `unsafe` code in the compiler
 
 ---
 
-## 💡 Implementation Details
+## 📚 Documentation
 
-- **Modularized Rust** — Zero external dependencies.
-- **Hand-written Lexer** — Fast, UTF-8 aware character scanner.
-- **Recursive Descent Parser** — Pratt-style precedence for clean expression handling.
-- **Semantic Resolver** — Static pass for variable resolution and control flow validation.
-- **Bytecode VM** — High-performance stack-based Virtual Machine.
-- **Stateful Closures** — Reference-counted capture mechanism for persistent mutable state.
-- **Pure Safe Rust** — No `unsafe` code used in the compiler or runtime.
+| Document                                        | Description                          |
+|:------------------------------------------------|:-------------------------------------|
+| [docs/syntax.md](docs/syntax.md)                | Language syntax reference            |
+| [docs/semantics.md](docs/semantics.md)          | Compiler pipeline & semantics        |
+| [docs/type-system.md](docs/type-system.md)      | Static type system specification     |
+| [docs/grammar.ebnf](docs/grammar.ebnf)          | Formal EBNF grammar                  |
+| [ARCHITECTURE.md](ARCHITECTURE.md)              | Compiler architecture                |
+| [MIGRATION.md](MIGRATION.md)                    | v1.4 → v2.0 migration guide         |
+| [CHANGELOG.md](CHANGELOG.md)                    | Version history                      |
+
+---
+
+## 📦 Releases
+
+| Version | Tag       | Description                            |
+|:--------|:----------|:---------------------------------------|
+| v2.0.0  | `v2.0.0`  | AOT compiled ML language               |
+| v1.4.0  | `v1.4.0-final` | Bytecode VM (on `v1-legacy` branch) |
+| v1.0.0  | `v1.0.0`  | Initial tree-walking interpreter        |

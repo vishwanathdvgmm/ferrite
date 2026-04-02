@@ -1,52 +1,65 @@
-# Ferrite Syntax
+# Ferrite v2.0 — Syntax Reference
 
-Ferrite uses a clean, C-style syntax designed for expressiveness and readability while remaining extremely easy to parse.
+Ferrite v2.0 is a statically-typed, AOT-compiled ML language. All code is type-checked at compile time before any native execution.
 
 ## Basic Structure
-Statements must end with a semicolon `;`, except for block-level expressions like `if`, `while`, `for`, `match`, and `fn` definitions, which optionally do not require semicolons.
+
+Statements end with a semicolon `;`. Block-level constructs (`if`, `while`, `for`, `match`, `fun`) use braces and do **not** require trailing semicolons.
 
 ```ferrite
-let a = 10;
-if a > 5 {
-    print("Large");
+keep x: int = 10;
+if x > 5 {
+    keep y: int = x + 1;
 }
 ```
 
 ## Comments
-Ferrite uses Python-style `#` for comments. There are no block comments.
+
+Ferrite uses `//` for single-line comments.
 
 ```ferrite
-# This is a comment
-let x = 5; # In-line comment
+// This is a comment
+keep x: int = 5; // Inline comment
 ```
 
-## Variables
-Variables are declared using the `let` keyword and are dynamically typed.
+## Variable Declarations
+
+Variables are declared with `keep` (local immutable-intent binding) or `param` (trainable parameter).
 
 ```ferrite
-let name = "Ferrite";
-let version = 1.4;
-let is_fast = true;
+keep name: string = "Ferrite";
+keep version: float = 2.0;
+keep is_compiled: bool = true;
+
+param weights: Tensor<float, (784, 128)> = init();
 ```
 
-## Data Types (Literals)
-Ferrite supports the following primitive literals:
+> **Note:** There is no `let`, no `null`, and no dynamic typing in v2.0.
 
-- **Integers:** `42`, `-10`
-- **Floats:** `3.14`, `-0.5`
-- **Booleans:** `true`, `false`
-- **Strings:** `"Hello"` (Double quotes only)
-- **F-Strings:** `f"Value: {x + 1}"` (Python style)
-- **Null:** `null`
+## Primitive Types
 
-### Composite Types
-- **Lists:** `[1, 2, "three", true]`
-- **Maps (Dicts):** `{"key": "value", "count": 42}`
+| Type     | Description              | Example         |
+|:---------|:-------------------------|:----------------|
+| `int`    | 64-bit signed integer    | `42`, `-10`     |
+| `float`  | 64-bit floating point    | `3.14`, `-0.5`  |
+| `bool`   | Boolean                  | `true`, `false`  |
+| `string` | UTF-8 string             | `"Hello"`       |
+
+## Tensor Types
+
+Tensors carry element type and shape information at the type level:
+
+```ferrite
+param w: Tensor<float, (784, 128)> = init();
+param x: Tensor<float, (B, 784)> = input();   // Symbolic dimension B
+```
+
+Shape dimensions can be constant integers or symbolic identifiers.
 
 ## Operators
 
 ### Arithmetic
-`+`, `-`, `*`, `//` (integer division), `/` (float division), `%` (modulo), `**` (exponentiation)
+`+`, `-`, `*`, `/`, `%`
 
 ### Comparison
 `==`, `!=`, `<`, `>`, `<=`, `>=`
@@ -54,78 +67,181 @@ Ferrite supports the following primitive literals:
 ### Logical
 `&&` (AND), `||` (OR), `!` (NOT)
 
-### Null Coalescing
-`??` (Returns right side if left side is `null`)
-```ferrite
-let port = config["port"] ?? 8080;
-```
+### Unary
+`-` (negation), `!` (logical not), `await` (async)
 
 ## Control Flow
 
-### If / Else If / Else
-`if` statements are expressions and return the value of their evaluated block.
+### If / Elif / Else
 
 ```ferrite
-let grade = if score >= 90 { 
-    "A" 
-} else if score >= 80 { 
-    "B" 
-} else { 
-    "F" 
-};
-```
-
-### Match
-A powerful pattern-matching construct.
-
-```ferrite
-match score {
-    100 => print("Perfect"),
-    90..99 => print("A"),
-    _ => print("Other")
+if score > 90 {
+    keep grade: string = "A";
+} elif score > 80 {
+    keep grade: string = "B";
+} else {
+    keep grade: string = "F";
 }
 ```
 
-### Loops
-**While Loop:**
+### While Loop
+
 ```ferrite
-while condition { ... }
+keep i: int = 0;
+while i < 10 {
+    i = i + 1;
+}
 ```
 
-**For Loop (Iterators):**
-Can iterate over lists, strings, or dynamically. Destructuring `[a, b]` is natively supported.
+### For Loop
+
 ```ferrite
-for x in [1, 2, 3] { print(x); }
-for [i, v] in enumerate(["a", "b"]) { ... }
+for x in items {
+    process(x);
+}
+```
+
+### Loop Control
+- `stop;` — exits the loop (equivalent to `break`)
+- `skip;` — skips to next iteration (equivalent to `continue`)
+
+```ferrite
+while true {
+    if done {
+        stop;
+    }
+    skip;
+}
 ```
 
 ## Functions
-Functions are declared with `fn`. They support variadic arguments (`...args`).
+
+Functions are declared with `fun` and have explicit typed parameters and return types.
 
 ```ferrite
-fn greet(name, ...titles) {
-    return "Hello " + name;
+fun add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fun greet(name: string) {
+    // No return type means Unit
 }
 ```
 
-Lambdas are anonymous functions:
-```ferrite
-let add = fn(a, b) { return a + b; };
-```
-
-## Error Handling
-Exceptions are caught beautifully without panicking the host process.
+### Effect-Annotated Functions
 
 ```ferrite
-try {
-    throw "Error occurred";
-} catch err {
-    print("Caught: " + err);
+infer fun predict(input: Tensor<float, (B, 784)>) -> Tensor<float, (B, 10)> {
+    return forward(input);
+}
+
+train fun optimize(loss: float) -> float {
+    return loss;
 }
 ```
 
-## Modules
-Ferrite handles modules simply via `import`. It searches local files first or instantly loads statically compiled internal standard library scripts.
+## Groups (Structs)
+
 ```ferrite
-import "mathutils";
+group Point {
+    x: float;
+    y: float;
+
+    fun distance(self) -> float {
+        return self.x;
+    }
+}
+
+// Group literals
+keep p: Point = Point { x: 1.0, y: 2.0 };
+```
+
+## Enums (Algebraic Data Types)
+
+```ferrite
+enum Color {
+    Red;
+    Green;
+    Blue;
+}
+
+enum Option<T> {
+    Some(T);
+    None;
+}
+```
+
+## Pattern Matching
+
+```ferrite
+match value {
+    case 0 => {
+        return "zero";
+    }
+    case 1 => {
+        return "one";
+    }
+    default => {
+        return "other";
+    }
+}
+```
+
+Patterns support: literals, wildcards (`_`), variable bindings, constructor patterns (`Some(x)`), and struct patterns (`Point { x, y }`).
+
+## Constants
+
+```ferrite
+constant PI: float = 3.14159;
+constant MAX: int = 1024;
+```
+
+## Generics & Trait Bounds
+
+```ferrite
+fun identity<T>(x: T) -> T {
+    return x;
+}
+
+fun bounded<T: Add + Mul>(a: T, b: T) -> T {
+    return a;
+}
+
+fun shaped<N: shape>(size: int) -> int
+    where N > 0 {
+    return size;
+}
+```
+
+## ML Blocks
+
+```ferrite
+infer {
+    keep output: int = predict(input);
+}
+
+train {
+    keep loss: float = compute_loss();
+}
+```
+
+## Imports
+
+```ferrite
+import "module_path";
+import name as alias;
+from "path" take function_name;
+```
+
+## Select (Structured Concurrency)
+
+```ferrite
+select {
+    case result = fetch_data() => {
+        process(result);
+    }
+    default => {
+        handle_timeout();
+    }
+}
 ```

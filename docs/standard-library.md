@@ -1,100 +1,35 @@
-# Ferrite Standard Library
+# Ferrite v2.0 — Standard Library
 
-Ferrite natively includes many builtins inside the core evaluator and comes bundled with a powerful statically embedded module system for advanced routines.
+> **Status: Placeholder**
+>
+> The Ferrite v2.0 standard library has not yet been migrated to the new statically-typed AOT compiler. The v1.4.0 standard library modules (`mathutils`, `strings`, `collections`, `functional`) remain available on the [`v1-legacy`](https://github.com/vishwanathdvgmm/ferrite/tree/v1-legacy) branch.
 
-## System Imports
+## What Changed
 
-Using the `import` statement checks locally first, and if not found, automatically loads the embedded standard library right from the compiler's own memory. The `.fe` extension is optional.
+In v1.4.0, the standard library consisted of `.fe` scripts embedded at compile time via `include_str!` and executed by the bytecode VM. This approach is incompatible with v2.0's ahead-of-time compilation model.
 
-```ferrite
-import "mathutils";
-import "strings";
-import "collections";
-import "functional";
+The v2.0 stdlib will need to:
+
+1. Be written in Ferrite v2.0 syntax (typed `fun` declarations with `keep`/`param`)
+2. Pass the static type checker
+3. Be compiled to native code alongside user programs
+
+## Planned Modules
+
+| Module         | Description                                      | Status      |
+|:---------------|:-------------------------------------------------|:------------|
+| `math`         | Numeric utilities: `sqrt`, `abs`, `pow`, `clamp` | 🔲 Planned  |
+| `strings`      | String manipulation: `split`, `join`, `trim`     | 🔲 Planned  |
+| `collections`  | List utilities: `map`, `filter`, `reduce`, `sort`| 🔲 Planned  |
+| `tensor_ops`   | Tensor operations: `matmul`, `reshape`, `zeros`  | 🔲 Planned  |
+| `io`           | File and console I/O                             | 🔲 Planned  |
+
+## Using the Legacy Standard Library
+
+If you need the v1.4 standard library, switch to the legacy branch:
+
+```bash
+git checkout v1-legacy
+cargo build --release
+./target/release/ferrite examples.fe
 ```
-
----
-
-## The Embedded Official Modules
-
-### `mathutils`
-* **`square(x)`** - Squares the value.
-* **`cube(x)`** - Cubes the value.
-* **`hyp(a, b)`** - Hypotenuse `sqrt(a^2 + b^2)`.
-* **`clamp(val, min, max)`** - Clamps a value within `[min, max]`.
-* **`lerp(a, b, t)`** - Linear interpolation between `a` and `b`.
-* **`fibonacci(n)`** - Nth Fibonacci output.
-* **`is_prime(n)`** - Tests primality.
-* **`gcd(a, b)`** - Greatest Common Divisor.
-* **`factorial(n)`** - Computes `n!`.
-* **`TAU`** - Evaluates to `2.0 * PI`.
-
-### `strings`
-* **`repeat_str(s, n)`** - Repeats string `s` n-times.
-* **`pad_left(s, length, pad_char)`**
-* **`pad_right(s, length, pad_char)`**
-* **`capitalize(s)`** - Capitalizes the first letter.
-* **`title_case(s)`** - Capitalizes the first letter of every word.
-* **`is_numeric(s)`** - Checks if a string only contains digits, `.`, or `-`.
-* **`char_at(s, index)`**
-* **`index_of(s, search)`**
-
-### `collections`
-* **`flatten(list)`** - Flattens an array of arrays into a 1D list.
-* **`chunk(list, size)`** - Separates arrays into chunks.
-* **`unique(list)`** - Deduplicates array elements.
-* **`group_by(list, key_fn)`**
-* **`count_by(list, key_fn)`**
-* **`sum_list(list)`** - Computes the total using `reduce`.
-* **`product(list)`**
-* **`take(list, n)`** / **`drop(list, n)`**
-* **`find(list, predicate)`** - Finds the first element matching `predicate` closure.
-* **`find_index(list, predicate)`**
-* **`any(list, predicate)`** / **`all(...)`**
-
-### `functional`
-* **`compose(f, g)`** - Executes `f(g(arg))`.
-* **`pipe(f, g)`** - Executes `g(f(arg))`.
-* **`partial(f, bound_arg)`** - Partially applies single argument to `f`.
-* **`memoize(f)`** - Caches the results of pure functions given an argument.
-* **`identity(x)`**
-* **`constant(x)`**
-
----
-
-## Core Built-ins (No import needed)
-
-These are natively registered in the interpreter environment:
-
-### I/O
-* **`print(val)`** - Prints to stdout with a newline.
-* **`write(val)`** - Prints to stdout *without* a newline.
-* **`input(prompt?)`** - Reads input line from stdin.
-* **`read_file(path)`** - Returns the string contents of a file.
-* **`write_file(path, content)`** - Overwrites path with content.
-* **`append_file(path, content)`** - Appends content.
-* **`file_exists(path)`** - Boolean check.
-
-### Casts & Meta
-* **`len(x)`** - Length of string/list/map.
-* **`int(x)`**, **`float(x)`**, **`str(x)`**, **`type(x)`**.
-* **`assert(condition, message?)`** - Throws error if condition is false.
-
-### Math
-* **`range(start, end)`** - Returns a list of ints.
-* **`sqrt`, `abs`, `max`, `min`, `floor`, `ceil`, `round`**, **`pow`, `log`, `sin`, `cos`, `tan`, `atan2`**.
-
-### Collections
-* **`push(list, val)`** - Returns new list with pushed value.
-* **`pop(list)`** - Returns the last item.
-* **`contains(list/str, val)`**
-* **`map(list, fn)`**, **`filter(list, fn)`**, **`reduce(list, fn, init)`**
-* **`sort(list)`**, **`reverse(list)`**
-* **`enumerate(list)`**, **`zip(list1, list2)`** 
-* **`keys(map)`**, **`values(map)`**, **`has_key(map, key)`**, **`delete(map, key)`**.
-
-### Strings
-* **`split(str, delim)`** - Generates Array of substrings.
-* **`join(list, delim)`** - Builds String from an Array of substrings.
-* **`replace(str, a, b)`**, **`starts_with`**, **`ends_with`**, **`trim`**.
-* **`upper`**, **`lower`**, **`chars`**, **`substr(s, index, len)`**.

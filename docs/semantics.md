@@ -1,86 +1,155 @@
-# Ferrite Semantics
+# Ferrite v2.0 — Semantics
 
-This document describes the operational semantics of the Ferrite language.
+This document describes the operational semantics and compiler pipeline of Ferrite v2.0.
 
-## Compiler Architecture (v1.4.0)
+## Compiler Pipeline
 
-Ferrite is compiled using a multi-stage pipeline:
+Ferrite v2.0 is an ahead-of-time (AOT) compiled language. Source code passes through the following stages:
 
-1. **Lexical Analysis (`src/lexer/mod.rs`)**: Scans UTF-8 source code into token streams.
-2. **Parsing (`src/parser/mod.rs`)**: A recursive descent + Pratt parser that transforms tokens into an Abstract Syntax Tree (AST).
-3. **AST (`src/ast/mod.rs`)**: Strongly typed intermediate nodes representing expressions and statements.
-4. **Semantic Analysis (`src/semantic/mod.rs`)**: Performs static variable resolution, constant folding, and control flow validation.
-5. **Compilation (`src/codegen/compiler.rs`)**: Translates the validated AST into a linear stream of optimized bytecode instructions (Opcodes).
-6. **Execution (`src/runtime/vm.rs`)**: A high-performance stack-based Virtual Machine that executes bytecode.
-
-## Everything is an Expression
-
-In Ferrite, almost everything returns a value.
-
-- `if`/`else` blocks return the value of their final evaluated statement.
-- Blocks `{ ... }` evaluate to the result of their last statement.
-- Functions explicitly require the `return` keyword to pass back a value.
-- Assignment operations (`=`, `+=`) evaluate to `null`.
-- Empty blocks `{}` evaluate to `null`.
-
-## Mutability and Variables
-
-All variables defined with `let` are fully mutable dynamically typed. Reassignment can change the type of the variable entirely.
-
-```ferrite
-let x = 42;
-x = "Now I am a string";
+```
+Source (.fe)
+    │
+    ▼
+┌─────────┐
+│  Lexer  │  src/lexer/     Tokenizes UTF-8 source into span-annotated tokens
+└────┬────┘
+     ▼
+┌─────────┐
+│ Parser  │  src/parser/    Recursive descent parser with panic-mode recovery
+└────┬────┘
+     ▼
+┌──────────┐
+│   AST    │  src/ast/      Strongly typed syntax tree (34+ node types)
+└────┬─────┘
+     ▼
+┌───────────────┐
+│ ImportResolver│  src/imports/  DAG-based module resolution with cycle detection
+└────┬──────────┘
+     ▼
+┌───────────┐
+│  TypeEnv  │  src/types/   Structural type unification, tensor shape validation
+└────┬──────┘
+     ▼
+┌──────────────────┐
+│ SemanticAnalyzer │  src/semantic/  Scoped type checking, invariant enforcement
+└────┬─────────────┘
+     ▼
+┌──────────────┐
+│ LLVM Codegen │  src/codegen/  Native code emission via inkwell (feature-gated)
+└──────────────┘
 ```
 
-### Scoping and Closures
+## Static Typing
 
-Ferrite uses lexical scoping. Local variables are managed on the VM's main stack, while global variables reside in a dedicated heap-allocated Map. 
-Stateful closures are implemented by capturing active locals at the time of function definition into an `Rc<RefCell<HashMap>>`. This allows functions to persist and share mutable state between multiple invocations across different execution contexts.
+Ferrite v2.0 is **statically and strictly typed**. All type errors are caught at compile time.
+
+### No Implicit Coercion
 
 ```ferrite
-fn make_counter() {
-    let count = 0;
-    return fn() {
-        count += 1;
-        return count;
-    };
+keep x: int = 3.14;    // ❌ Error: Type mismatch: expected 'int', found 'float'
+keep y: float = 42;    // ❌ Error: no implicit int → float promotion
+```
+
+### No Runtime Reflection
+
+Type introspection functions like `typeof()` or dynamic casting do not exist. The `SemanticAnalyzer` actively rejects any attempt at runtime type inspection.
+
+## Scoping Rules
+
+Ferrite uses **lexical scoping** with a stack of hash maps in the `TypeEnv`:
+
+- `enter_scope()` pushes a new frame
+- `exit_scope()` pops it
+- Variable lookup walks the scope stack from innermost to outermost
+- Redeclaring a variable in the same scope is a compile error
+- Shadowing across scopes is allowed
+
+```ferrite
+fun example() {
+    keep x: int = 1;          // Scope 1
+    if true {
+        keep x: int = 2;      // Scope 2 — shadows, allowed
+        keep y: int = x + 1;  // y = 3
+    }
+    // y is not accessible here
 }
-let c = make_counter();
-c(); # returns 1
-c(); # returns 2
 ```
 
-## Pass-by-Value (Primitives) vs Pass-by-Reference (Collections)
+## Variable Declarations
 
-- **Primitives** (`int`, `float`, `bool`, `string`, `null`) are copied when passed into functions or assigned to new variables.
-- **Collections** (`list`, `map`) are passed by reference. Mutating a list or map inside a function mutates the original object.
+### `keep` — Local Immutable-Intent Binding
 
 ```ferrite
-fn modify_list(lst) {
-    lst[0] = 99;
-}
-let my_list = [1, 2, 3];
-modify_list(my_list);
-# my_list is now [99, 2, 3]
+keep x: int = 42;
 ```
 
-## First-Class Functions
+Declares a typed local variable. The name, type, and initializer are all mandatory. Reassignment is allowed for now (mutability enforcement planned for future versions).
 
-Functions in Ferrite are first-class values (Type `Fn`). They can be:
+### `param` — Trainable Parameter
 
-1. Assigned to variables (`let add = fn(x) { ... };`).
-2. Passed as arguments to other functions (`list.map(f)`).
-3. Returned from other functions.
+```ferrite
+param w: Tensor<float, (784, 128)> = init();
+```
 
-## Error Handling
+Semantically identical to `keep` at the type level, but signals to the ML runtime that this value participates in gradient computation during `train` blocks.
 
-Errors in Ferrite gracefully unwind the stack rather than crashing the interpreter. They can be triggered manually via `throw <expr>` or produced by the core interpreter (e.g., division by zero). These errors propagate up the call stack unless caught by a `try / catch` boundary.
+## Function Semantics
 
-## Variadic Evaluation
+- Functions are declared with `fun` and have explicitly typed parameters
+- Return type is mandatory if the function returns a value
+- Functions without `-> type` return `Unit`
+- `return` outside a function body is a compile error
+- All top-level functions are forward-declared in Pass 1, allowing mutual recursion
 
-When defining a variadic function (`fn my_func(a, ...rest)`), the trailing arguments are collected into a native array and passed precisely as the argument `rest`.
-Conversely, Ferrite does NOT currently support "spread" syntax when _calling_ a function.
+## Effect System
 
-## Module Import
+Functions can be annotated with effects that constrain their execution context:
 
-The `import` statement reads, lexes, parses, and evaluates a file's expressions inline, executing them within the scope of the calling environment. `import "module"` automatically resolves relative to the current file, stopping further imports of the same path if already loaded.
+| Effect  | Meaning                                    |
+|:--------|:-------------------------------------------|
+| `infer` | Function runs in inference-only mode       |
+| `train` | Function participates in training/gradient |
+| `async` | Function is asynchronous                   |
+
+## Tensor Shape Semantics
+
+Tensor shapes use **exact structural matching**:
+
+```ferrite
+// These are DIFFERENT types:
+Tensor<float, (784, 128)>
+Tensor<float, (128, 784)>
+
+// Symbolic dimensions match by name:
+Tensor<float, (B, 784)> == Tensor<float, (B, 784)>  // ✅
+Tensor<float, (B, 784)> == Tensor<float, (N, 784)>  // ❌ B ≠ N
+```
+
+**No implicit broadcasting. No implicit reshaping.** Shape mismatches are compile errors.
+
+## Pattern Matching
+
+The `match` statement evaluates a subject expression and checks each `case` arm's pattern:
+
+- **Literal patterns**: matched by value equality
+- **Wildcard `_`**: matches anything, binds nothing
+- **Binding**: matches anything, binds the value to a name in the case scope
+- **Constructor**: e.g., `Some(x)` — matches ADT variants
+- **Struct**: e.g., `Point { x, y }` — matches group fields
+
+## Error Recovery
+
+The parser uses **panic-mode recovery**:
+
+1. On encountering a syntax error, it enters panic mode
+2. Suppresses further errors until a synchronization point is found
+3. Synchronization tokens: `fun`, `keep`, `param`, `constant`, `group`, `enum`, `import`, `if`, `while`, `for`, `match`, `return`, `stop`, `skip`, or `;`
+4. This prevents cascading phantom errors from a single typo
+
+## Diagnostics
+
+All errors are collected in a `DiagnosticBag` and emitted after each compilation phase:
+
+- ANSI-colored output with `error:`, `warning:`, `note:` prefixes
+- Source line display with caret (`^`) pointing to the exact token
+- Error count summary: `"compilation failed with N errors and M warnings"`

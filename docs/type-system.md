@@ -1,45 +1,132 @@
-# Ferrite Type System
+# Ferrite v2.0 — Type System
 
-Ferrite is dynamically and strongly typed. Variables do not have intrinsic types; values do. Types are resolved securely at runtime during the VM execution phase (`src/runtime/vm.rs`), and invalid operations across arbitrary types (like `5 + "apple"`) will throw a cohesive `Error: Invalid operands for +`, rather than implicitly coercing.
+Ferrite v2.0 is **statically and strictly typed**. All types are resolved at compile time by the `TypeEnv` (type environment) and enforced by the `SemanticAnalyzer`. There is no runtime type information, no implicit coercion, and no dynamic dispatch.
 
 ## Primitive Types
 
-At its core, all memory and objects are backed by a single Rust `Value` Enum containing these types:
+| Type     | Rust Backing | Description              |
+|:---------|:-------------|:-------------------------|
+| `int`    | `i64`        | 64-bit signed integer    |
+| `float`  | `f64`        | 64-bit floating point    |
+| `bool`   | `bool`       | `true` or `false`        |
+| `string` | `String`     | UTF-8 heap-allocated     |
 
-- **Int (`i64`)**: A 64-bit signed integer.
-- **Float (`f64`)**: A 64-bit floating point number.
-- **String (`String`)**: A standard UTF-8 string heap-allocated in memory.
-- **Bool (`bool`)**: `true` or `false`.
-- **Null**: Represents the absence of a value. Always evaluates to false in truthy contexts.
+## Tensor Type
 
-## Compound Types
+```
+Tensor<element_type, (dim1, dim2, ...)>
+```
 
-- **List (`Vec<Value>`)**: A dynamically sized array of mixed types `[1, "two", true]`.
-- **Map (`HashMap<String, Value>`)**: Dictionary storage allowing associative `key: value` pairs using string keys. `{"name": "Ferrite"}`.
+Tensors are parameterized by their element type and shape tuple:
 
-## Functional Type
+```ferrite
+Tensor<float, (784, 128)>     // Constant shape
+Tensor<float, (B, C, H, W)>  // Symbolic dimensions
+Tensor<int, (64)>             // 1D integer tensor
+```
 
-- **Fn**: Represents either a User-Defined Function (with its captured closure environment, bytecode chunk, and parameter list) or a Native Rust Builtin function (like `len` or `print`). User functions capture state via a shared `Rc<RefCell<HashMap>>` to support persistent closures.
+### Element Type Restriction
 
-## Type Conversion & Builtins
+Only `int` and `float` are valid tensor element types. Using any other type (e.g., `bool`, `string`, a named type) produces a compile error:
 
-Ferrite does not silently coerce types (with the exception of truthy evaluations). You must manually cast using the standard built-ins:
+```
+error: Tensors can only contain 'int' or 'float', not 'bool'
+```
 
-- `int(val)` : Cast to integer.
-- `float(val)`: Cast to float.
-- `str(val)` : Cast to a string representation.
-- `type(val)` : Returns the type of the value as a string (`"int"`, `"float"`, `"string"`, `"bool"`, `"list"`, `"map"`, `"fn"`, `"builtin"`, `"null"`).
+### Shape Matching
 
-### Truthiness
+Shape matching is **exact and structural**:
+- Constant dimensions match by value: `784 == 784`
+- Symbolic dimensions match by name: `B == B`, but `B ≠ N`
+- No implicit broadcasting or reshaping — mismatches are errors
 
-When evaluating `if` conditions or `while` loops, the following rules apply for deciding if an expression is `true`:
+## Composite Types
 
-- Int `0` is `false`. All other ints are `true`.
-- Float `0.0` is `false`. All other floats are `true`.
-- `null` is `false`.
-- Empty strings `""`, lists `[]`, and maps `{}` are `true` (standard Rust object evaluation).
-- `true` is `true`, `false` is `false`.
+### Named Types
 
-## String Interpolation
+User-defined types created via `group` or `enum` declarations:
 
-During evaluation of an F-String `f"Value: {expr}"`, the expression evaluates normally, and its result is implicitly wrapped by an equivalent `str(expr)` conversion before concatenation into the final string.
+```ferrite
+group Point { x: float; y: float; }   // Type: Point
+enum Color { Red; Green; Blue; }       // Type: Color
+```
+
+### Generic Types
+
+Parameterized types with type arguments:
+
+```ferrite
+enum Option<T> { Some(T); None; }     // Type: Option
+group Container<T> { value: T; }       // Type: Container
+```
+
+## Special Types
+
+| Type    | Description                                            |
+|:--------|:-------------------------------------------------------|
+| `Unit`  | Return type of functions with no `-> type` annotation  |
+| `Never` | Type of divergent expressions (`stop`, `skip`)         |
+| `Error` | Internal sentinel for failed type checks; suppresses cascading errors |
+
+## Type Unification
+
+The `unify(expected, actual)` function enforces structural equality:
+
+```
+unify(int, int)       → ✅ OK
+unify(int, float)     → ❌ "Type mismatch: expected 'int', found 'float'. Implicit coercion is forbidden."
+unify(Error, _)       → ✅ Suppressed (prevents cascade)
+unify(Never, _)       → ✅ Never unifies with everything
+```
+
+### Tensor Unification
+
+Tensor unification checks both element type and shape:
+
+```
+unify(Tensor<float, (784, 128)>, Tensor<float, (784, 128)>)  → ✅
+unify(Tensor<float, (784, 128)>, Tensor<float, (128, 784)>)  → ❌ Shape mismatch
+unify(Tensor<float, (B, 784)>,   Tensor<int,   (B, 784)>)    → ❌ Element mismatch
+```
+
+## Operator Type Rules
+
+### Arithmetic (`+`, `-`, `*`, `/`, `%`)
+
+Both operands must be the **same** numeric type:
+- `int OP int → int`
+- `float OP float → float`
+- `int OP float → ❌ Error` (no promotion)
+
+### Comparison (`<`, `>`, `<=`, `>=`, `==`, `!=`)
+
+Both operands must be the same type. Result is always `bool`.
+
+### Logical (`&&`, `||`)
+
+Both operands must be `bool`. Result is `bool`.
+
+### Unary (`-`, `!`)
+
+- `-expr` requires `int` or `float`
+- `!expr` requires `bool`
+
+## Type Resolution
+
+The `TypeEnv.resolve_ast_type()` function converts AST type nodes into resolved `Type` values:
+
+| AST Type                          | Resolved Type                    |
+|:----------------------------------|:---------------------------------|
+| `Primitive(Int)`                  | `Type::Int`                      |
+| `Named("Point")`                 | `Type::Named("Point")`          |
+| `Tensor { elem, shape }`         | `Type::Tensor(elem, TensorShape)` |
+| `Generic { name: "Option", .. }` | `Type::Named("Option")`         |
+
+## Scope-Based Symbol Table
+
+The `TypeEnv` maintains a stack of scopes (`Vec<HashMap<String, Type>>`):
+
+- **Declaring** a variable adds it to the current (top) scope
+- **Looking up** a variable searches from innermost scope outward
+- **Redeclaration** in the same scope is an error
+- **Shadowing** across scopes is permitted

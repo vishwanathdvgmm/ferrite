@@ -1,11 +1,6 @@
 target/
 *.lock
-*.txt
-implementation_plan.md
-*.exe
-validation_report.md
+_legacy/
 release/
-release_notes.md
 *.bak
 *.py
-*.json
