@@ -1,0 +1,34 @@
+// ── PASS TEST 03: Control flow: if/elif/else, while, for, stop, skip ──
+// Expected: ferrite check → ✅
+
+fun check_sign(n: int) -> int {
+    if n > 0 {
+        return 1;
+    } elif n == 0 {
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
+fun countdown(start: int) -> int {
+    keep i: int = start;
+    while i > 0 {
+        i = i - 1;
+    }
+    return i;
+}
+
+fun loop_with_control() {
+    keep i: int = 0;
+    while i < 100 {
+        if i == 50 {
+            stop;
+        }
+        if i == 3 {
+            i = i + 1;
+            skip;
+        }
+        i = i + 1;
+    }
+}

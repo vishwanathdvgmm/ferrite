@@ -1,0 +1,13 @@
+// ── PASS TEST 06: Top-level constants ──
+// Expected: ferrite check → ✅
+
+constant PI: float = 3.14159;
+constant MAX_SIZE: int = 1024;
+constant GREETING: string = "Hello Ferrite";
+constant DEBUG: bool = false;
+
+fun use_constants() -> float {
+    keep radius: float = 5.0;
+    keep area: float = PI * radius * radius;
+    return area;
+}

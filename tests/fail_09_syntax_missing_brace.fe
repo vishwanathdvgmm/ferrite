@@ -1,0 +1,6 @@
+// ── FAIL TEST 09: Syntax error — missing brace ──
+// Expected: parse error "Expected '}'"
+
+fun main() {
+    keep x: int = 1;
+

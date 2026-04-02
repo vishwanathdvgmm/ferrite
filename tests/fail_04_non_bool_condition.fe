@@ -1,0 +1,9 @@
+// ── FAIL TEST 04: Boolean required where int is given ──
+// Expected: "Type mismatch: expected 'bool'"
+
+fun bad_condition() {
+    keep x: int = 42;
+    if x {
+        keep y: int = 1;
+    }
+}

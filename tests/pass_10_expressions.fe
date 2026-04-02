@@ -1,0 +1,31 @@
+// ── PASS TEST 10: Expressions: unary, binary, comparisons, logical ──
+// Expected: ferrite check → ✅
+
+fun expressions() {
+    keep a: int = 10;
+    keep b: int = 20;
+
+    // Arithmetic
+    keep sum: int = a + b;
+    keep diff: int = a - b;
+    keep prod: int = a * b;
+    keep quot: int = a / b;
+    keep rem: int = a % b;
+
+    // Unary
+    keep neg: int = -a;
+    keep flag: bool = true;
+    keep not_flag: bool = !flag;
+
+    // Comparison
+    keep lt: bool = a < b;
+    keep gt: bool = a > b;
+    keep le: bool = a <= b;
+    keep ge: bool = a >= b;
+    keep eq: bool = a == b;
+    keep ne: bool = a != b;
+
+    // Logical
+    keep and_result: bool = flag && !flag;
+    keep or_result: bool = flag || !flag;
+}

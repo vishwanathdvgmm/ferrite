@@ -1,358 +1,444 @@
-use crate::ast::{Expr, Lhs, MatchPat, Stmt, UnpackItem};
-use std::collections::HashSet;
+use crate::ast::*;
 
-pub struct Resolver {
-    scopes: Vec<HashSet<String>>,
-    loop_depth: usize,
-    fn_depth: usize,
+use crate::types::{Type, TypeEnv};
+
+pub struct SemanticAnalyzer<'a, 'b> {
+    env: &'b mut TypeEnv<'a>,
+    in_loop: bool,
+    in_func: bool,
+    current_return_type: Option<Type>,
 }
 
-impl Resolver {
-    pub fn new() -> Self {
-        let mut globals = HashSet::new();
-        // Register builtins
-        for n in &[
-            "len",
-            "push",
-            "pop",
-            "str",
-            "int",
-            "float",
-            "type",
-            "range",
-            "input",
-            "sqrt",
-            "abs",
-            "max",
-            "min",
-            "floor",
-            "ceil",
-            "round",
-            "assert",
-            "keys",
-            "values",
-            "has_key",
-            "delete",
-            "sort",
-            "reverse",
-            "contains",
-            "map",
-            "filter",
-            "reduce",
-            "split",
-            "join",
-            "replace",
-            "starts_with",
-            "ends_with",
-            "trim",
-            "upper",
-            "lower",
-            "chars",
-            "substr",
-            "pow",
-            "log",
-            "log2",
-            "log10",
-            "sin",
-            "cos",
-            "tan",
-            "atan",
-            "atan2",
-            "pi",
-            "e",
-            "inf",
-            "format",
-            "write",
-            "exit",
-            "enumerate",
-            "zip",
-            "read_file",
-            "write_file",
-            "append_file",
-            "file_exists",
-            "PI",
-            "E",
-            "INF",
-            "print",
-        ] {
-            globals.insert(n.to_string());
-        }
-
-        Resolver {
-            scopes: vec![globals],
-            loop_depth: 0,
-            fn_depth: 0,
+impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
+    pub fn new(env: &'b mut TypeEnv<'a>) -> Self {
+        Self {
+            env,
+            in_loop: false,
+            in_func: false,
+            current_return_type: None,
         }
     }
 
-    pub fn resolve(&mut self, stmts: &[Stmt]) -> Result<(), String> {
-        for s in stmts {
-            self.resolve_stmt(s)?;
-        }
-        Ok(())
-    }
-
-    fn begin_scope(&mut self) {
-        self.scopes.push(HashSet::new());
-    }
-
-    fn end_scope(&mut self) {
-        self.scopes.pop();
-    }
-
-    fn declare(&mut self, name: &str) {
-        if let Some(scope) = self.scopes.last_mut() {
-            scope.insert(name.to_string());
-        }
-    }
-
-    fn check_var(&self, name: &str) -> Result<(), String> {
-        for scope in self.scopes.iter().rev() {
-            if scope.contains(name) {
-                return Ok(());
+    pub fn analyze_program(&mut self, program: &Program) {
+        // Pass 1: Declare all top-level types (Groups, Enums) and Functions
+        for decl in &program.decls {
+            match decl {
+                TopDecl::Group(g) => {
+                    self.env
+                        .declare_type(g.name.clone(), Type::Named(g.name.clone()), &g.span);
+                }
+                TopDecl::Enum(e) => {
+                    self.env
+                        .declare_type(e.name.clone(), Type::Named(e.name.clone()), &e.span);
+                }
+                TopDecl::Constant(c) => {
+                    let ty = self.env.resolve_ast_type(&c.ty);
+                    self.env.declare_var(c.name.clone(), ty, &c.span);
+                }
+                TopDecl::Func(f) => {
+                    // Register the function name in the variable scope so calls can resolve.
+                    // In Phase 1, we use Type::Error as a stub for the function's type
+                    // since we don't have full function pointer types yet.
+                    let ret_ty = match &f.return_type {
+                        Some(t) => self.env.resolve_ast_type(t),
+                        None => Type::Unit,
+                    };
+                    self.env.declare_var(f.name.clone(), ret_ty, &f.span);
+                }
+                TopDecl::Import(_) => {}
             }
         }
-        // In Ferrite, previously undeclared variables could be injected at runtime (e.g. by `import`).
-        // To prevent breaking dynamic imports, we might emit a warning or just let it pass for now.
-        // For strict semantic analysis of v1.4.0, we will enforce it!
-        // Wait, imported items are not known at compile time.
-        // Let's just allow global resolution to fallback to dynamic for now to not break `import "mathutils"` which defines things like `square`.
-        // Actually, preventing variable reads is too strict for a dynamic language with `import` unless we parse imports during resolution.
-        // For Phase 2a, we will just focus on control flow validation (`break`, `continue`, `return`) and local variable usage.
-        Ok(())
+
+        // Pass 2: Analyze bodies
+        for decl in &program.decls {
+            self.analyze_decl(decl);
+        }
     }
 
-    fn resolve_stmt(&mut self, stmt: &Stmt) -> Result<(), String> {
+    fn analyze_decl(&mut self, decl: &TopDecl) {
+        match decl {
+            TopDecl::Import(_) => {}
+            TopDecl::Constant(c) => {
+                let expr_ty = self.analyze_expr(&c.value);
+                let decl_ty = self.env.resolve_ast_type(&c.ty);
+                self.env.unify(&decl_ty, &expr_ty, &c.span);
+            }
+            TopDecl::Group(g) => {
+                self.env.enter_scope();
+                for method in &g.methods {
+                    self.analyze_method(method, &g.name);
+                }
+                self.env.exit_scope();
+            }
+            TopDecl::Enum(_) => {}
+            TopDecl::Func(f) => {
+                let prev_func = self.in_func;
+                let prev_ret = self.current_return_type.clone();
+                self.in_func = true;
+
+                self.current_return_type = match &f.return_type {
+                    Some(t) => Some(self.env.resolve_ast_type(t)),
+                    None => Some(Type::Unit),
+                };
+
+                self.env.enter_scope();
+                for param in &f.params {
+                    let pty = self.env.resolve_ast_type(&param.ty);
+                    self.env.declare_var(param.name.clone(), pty, &param.span);
+                }
+
+                self.analyze_block(&f.body);
+                self.env.exit_scope();
+
+                self.in_func = prev_func;
+                self.current_return_type = prev_ret;
+            }
+        }
+    }
+
+    fn analyze_method(&mut self, method: &MethodDecl, parent_name: &str) {
+        let prev_func = self.in_func;
+        let prev_ret = self.current_return_type.clone();
+        self.in_func = true;
+
+        self.current_return_type = match &method.return_type {
+            Some(t) => Some(self.env.resolve_ast_type(t)),
+            None => Some(Type::Unit),
+        };
+
+        self.env.enter_scope();
+        if method.has_self {
+            self.env.declare_var(
+                "self".to_string(),
+                Type::Named(parent_name.to_string()),
+                &method.span,
+            );
+        }
+        for param in &method.params {
+            let pty = self.env.resolve_ast_type(&param.ty);
+            self.env.declare_var(param.name.clone(), pty, &param.span);
+        }
+
+        self.analyze_block(&method.body);
+        self.env.exit_scope();
+
+        self.in_func = prev_func;
+        self.current_return_type = prev_ret;
+    }
+
+    fn analyze_block(&mut self, block: &Block) {
+        self.env.enter_scope();
+        for stmt in &block.stmts {
+            self.analyze_stmt(stmt);
+        }
+        self.env.exit_scope();
+    }
+
+    fn analyze_stmt(&mut self, stmt: &Stmt) {
         match stmt {
-            Stmt::Expr(e) | Stmt::Print(e) | Stmt::Write(e) | Stmt::Throw(e) => {
-                self.resolve_expr(e)?;
-            }
-            Stmt::Let { name, value } => {
-                self.resolve_expr(value)?;
-                self.declare(name);
-            }
-            Stmt::LetList { items, value } => {
-                self.resolve_expr(value)?;
-                for item in items {
-                    match item {
-                        UnpackItem::Name(n) | UnpackItem::Rest(n) => self.declare(n),
-                    }
-                }
-            }
-            Stmt::LetMap { names, value } => {
-                self.resolve_expr(value)?;
-                for n in names {
-                    self.declare(n);
-                }
-            }
-            Stmt::Assign { target, value } => {
-                self.resolve_expr(value)?;
-                self.resolve_lhs(target)?;
-            }
-            Stmt::CompoundAssign { target, value, .. } => {
-                self.resolve_expr(value)?;
-                self.resolve_lhs(target)?;
-            }
-            Stmt::Return(opt_expr) => {
-                if self.fn_depth == 0 {
-                    return Err("'return' expression outside of function".to_string());
-                }
-                if let Some(e) = opt_expr {
-                    self.resolve_expr(e)?;
-                }
-            }
-            Stmt::Break => {
-                if self.loop_depth == 0 {
-                    return Err("'break' outside of loop".to_string());
-                }
-            }
-            Stmt::Continue => {
-                if self.loop_depth == 0 {
-                    return Err("'continue' outside of loop".to_string());
-                }
-            }
-            Stmt::While { cond, body } => {
-                self.resolve_expr(cond)?;
-                self.loop_depth += 1;
-                self.begin_scope();
-                self.resolve(body)?;
-                self.end_scope();
-                self.loop_depth -= 1;
-            }
-            Stmt::For { var, iter, body } => {
-                self.resolve_expr(iter)?;
-                self.loop_depth += 1;
-                self.begin_scope();
-                self.declare(var);
-                self.resolve(body)?;
-                self.end_scope();
-                self.loop_depth -= 1;
-            }
-            Stmt::FnDef {
+            Stmt::Keep {
                 name,
-                params,
-                variadic,
-                body,
+                ty,
+                value,
+                span,
             } => {
-                self.declare(name); // Function is available in current scope (allows recursion)
-                self.begin_scope();
-                self.fn_depth += 1;
-                for p in params {
-                    self.declare(p);
-                }
-                if let Some(v) = variadic {
-                    self.declare(v);
-                }
-                self.resolve(body)?;
-                self.fn_depth -= 1;
-                self.end_scope();
+                let expr_ty = self.analyze_expr(value);
+                let decl_ty = self.env.resolve_ast_type(ty);
+                self.env.unify(&decl_ty, &expr_ty, span);
+                self.env.declare_var(name.clone(), decl_ty, span);
             }
-            Stmt::Match { subject, arms } => {
-                self.resolve_expr(subject)?;
-                for arm in arms {
-                    self.begin_scope();
-                    match &arm.pattern {
-                        MatchPat::Binding(name) => self.declare(name),
-                        MatchPat::Literal(e) => {
-                            self.resolve_expr(e)?;
-                        }
-                        MatchPat::Range(s, e) => {
-                            self.resolve_expr(s)?;
-                            self.resolve_expr(e)?;
-                        }
-                        MatchPat::Wildcard => {}
+            Stmt::Param {
+                name,
+                ty,
+                value,
+                span,
+            } => {
+                let expr_ty = self.analyze_expr(value);
+                let decl_ty = self.env.resolve_ast_type(ty);
+                self.env.unify(&decl_ty, &expr_ty, span);
+                self.env.declare_var(name.clone(), decl_ty, span);
+            }
+            Stmt::ExprStmt(expr) => {
+                self.analyze_expr(expr);
+            }
+            Stmt::Return { value, span } => {
+                if !self.in_func {
+                    self.env
+                        .diag
+                        .error(span.clone(), "Cannot return outside of a function.");
+                } else {
+                    let ret_ty = value
+                        .as_ref()
+                        .map(|e| self.analyze_expr(e))
+                        .unwrap_or(Type::Unit);
+                    if let Some(expected) = &self.current_return_type {
+                        self.env.unify(expected, &ret_ty, span);
                     }
-                    self.resolve(&arm.body)?;
-                    self.end_scope();
                 }
             }
-            Stmt::TryCatch {
-                body,
-                catch_var,
-                catch_body,
+            Stmt::If {
+                condition,
+                then_block,
+                elif_branches,
+                else_block,
+                span: _,
             } => {
-                self.begin_scope();
-                self.resolve(body)?;
-                self.end_scope();
-
-                self.begin_scope();
-                self.declare(catch_var);
-                self.resolve(catch_body)?;
-                self.end_scope();
+                let cond_ty = self.analyze_expr(condition);
+                self.env.unify(&Type::Bool, &cond_ty, &condition.span());
+                self.analyze_block(then_block);
+                for (cond, blk) in elif_branches {
+                    let ct = self.analyze_expr(cond);
+                    self.env.unify(&Type::Bool, &ct, &cond.span());
+                    self.analyze_block(blk);
+                }
+                if let Some(blk) = else_block {
+                    self.analyze_block(blk);
+                }
             }
-            Stmt::Import { path: _ } => {
-                // Cannot statically resolve dynamic imports here without a real module system
+            Stmt::While {
+                condition,
+                body,
+                span: _,
+            } => {
+                let cond_ty = self.analyze_expr(condition);
+                self.env.unify(&Type::Bool, &cond_ty, &condition.span());
+
+                let prev_loop = self.in_loop;
+                self.in_loop = true;
+                self.analyze_block(body);
+                self.in_loop = prev_loop;
+            }
+            Stmt::For {
+                var,
+                iterable,
+                body,
+                span,
+            } => {
+                // Iteration logic checks can go here
+                let _iter_ty = self.analyze_expr(iterable);
+
+                let prev_loop = self.in_loop;
+                self.in_loop = true;
+
+                self.env.enter_scope();
+                self.env.declare_var(var.clone(), Type::Error, span); // stub until traits are fully evaluated
+                self.analyze_block(body);
+                self.env.exit_scope();
+
+                self.in_loop = prev_loop;
+            }
+            Stmt::Match {
+                subject,
+                cases,
+                span: _,
+            } => {
+                let subject_ty = self.analyze_expr(subject);
+                for case in cases {
+                    self.env.enter_scope();
+                    self.analyze_pattern(&case.pattern, &subject_ty);
+                    self.analyze_block(&case.body);
+                    self.env.exit_scope();
+                }
+            }
+            Stmt::Select { cases, span: _ } => {
+                for case in cases {
+                    self.env.enter_scope();
+                    if let Some((name, expr)) = &case.assignment {
+                        let ty = self.analyze_expr(expr);
+                        if name != "_" {
+                            self.env.declare_var(name.clone(), ty, &expr.span());
+                        }
+                    }
+                    self.analyze_block(&case.body);
+                    self.env.exit_scope();
+                }
+            }
+            Stmt::InferBlock(block) | Stmt::TrainBlock(block) => {
+                self.analyze_block(block);
+            }
+            Stmt::Stop(span) | Stmt::Skip(span) => {
+                if !self.in_loop {
+                    self.env.diag.error(
+                        span.clone(),
+                        "Cannot break/continue ('stop'/'skip') outside of a loop.",
+                    );
+                }
             }
         }
-        Ok(())
     }
 
-    fn resolve_expr(&mut self, expr: &Expr) -> Result<(), String> {
+    fn analyze_pattern(&mut self, pat: &Pattern, subject_ty: &Type) {
+        match pat {
+            Pattern::Literal(lit) => {
+                let lit_ty = match lit {
+                    Literal::Int(_) => Type::Int,
+                    Literal::Float(_) => Type::Float,
+                    Literal::Bool(_) => Type::Bool,
+                    Literal::String(_) => Type::String,
+                };
+                self.env.unify(&lit_ty, subject_ty, &pat.span());
+            }
+            Pattern::Wildcard(_) => {}
+            Pattern::Binding(name, span) => {
+                // Create variable for the match
+                self.env.declare_var(name.clone(), subject_ty.clone(), span);
+            }
+            Pattern::Constructor { .. } => {} // Validate variant exists
+            Pattern::Struct { .. } => {}      // Validate struct fields
+        }
+    }
+
+    fn analyze_expr(&mut self, expr: &Expr) -> Type {
         match expr {
-            Expr::Int(_) | Expr::Float(_) | Expr::Str(_) | Expr::Bool(_) | Expr::Null => Ok(()),
-            Expr::Ident(name) => {
-                self.check_var(name)?;
-                Ok(())
-            }
-            Expr::List(items) => {
-                for item in items {
-                    self.resolve_expr(item)?;
-                }
-                Ok(())
-            }
-            Expr::Map(pairs) => {
-                for (k, v) in pairs {
-                    self.resolve_expr(k)?;
-                    self.resolve_expr(v)?;
-                }
-                Ok(())
-            }
-            Expr::FStr(parts) => {
-                for p in parts {
-                    if let crate::lexer::FsPart::Code(src) = p {
-                        let toks = crate::lexer::Lexer::new(src)
-                            .tokenize()
-                            .map_err(|e| format!("In f-string: {}", e))?;
-                        let mut parser = crate::parser::Parser::new(toks);
-                        let expr = parser
-                            .parse_expr()
-                            .map_err(|e| format!("In f-string: {}", e))?;
-                        self.resolve_expr(&expr)?;
+            Expr::Lit(lit, _) => match lit {
+                Literal::Int(_) => Type::Int,
+                Literal::Float(_) => Type::Float,
+                Literal::Bool(_) => Type::Bool,
+                Literal::String(_) => Type::String,
+            },
+            Expr::Ident(name, span) => self.env.lookup_var(name, span),
+            Expr::BinOp {
+                left,
+                op,
+                right,
+                span,
+            } => {
+                let lty = self.analyze_expr(left);
+                let rty = self.analyze_expr(right);
+
+                // No introspection rules!
+                // e.g., typeof(x) isn't in grammar, but if it were we'd reject it.
+                // Binary ops verify identically matching primitives unless operator is overloaded.
+
+                match op {
+                    BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod => {
+                        // Numeric operation requires uniformity or trait implementations
+                        if lty == Type::Float || rty == Type::Float {
+                            self.env.unify(&Type::Float, &lty, span);
+                            self.env.unify(&Type::Float, &rty, span);
+                            Type::Float
+                        } else {
+                            self.env.unify(&Type::Int, &lty, span);
+                            self.env.unify(&Type::Int, &rty, span);
+                            Type::Int
+                        }
+                    }
+                    BinOp::Lt | BinOp::Gt | BinOp::LtEq | BinOp::GtEq => {
+                        // For phase 1, assume identical types
+                        self.env.unify(&lty, &rty, span);
+                        Type::Bool
+                    }
+                    BinOp::Eq | BinOp::NotEq => {
+                        self.env.unify(&lty, &rty, span);
+                        Type::Bool
+                    }
+                    BinOp::And | BinOp::Or => {
+                        self.env.unify(&Type::Bool, &lty, span);
+                        self.env.unify(&Type::Bool, &rty, span);
+                        Type::Bool
                     }
                 }
-                Ok(())
             }
-            Expr::BinOp { left, right, .. } => {
-                self.resolve_expr(left)?;
-                self.resolve_expr(right)?;
-                Ok(())
+            Expr::UnaryOp { op, operand, span } => {
+                let ty = self.analyze_expr(operand);
+                match op {
+                    UnaryOp::Neg => {
+                        if ty != Type::Float && ty != Type::Int {
+                            self.env
+                                .diag
+                                .error(span.clone(), "Negation requires a numeric type.");
+                        }
+                        ty
+                    }
+                    UnaryOp::Not => {
+                        self.env.unify(&Type::Bool, &ty, span);
+                        Type::Bool
+                    }
+                    UnaryOp::Await => ty, // Extract inner type from future/async
+                }
             }
-            Expr::Unary { expr, .. } => {
-                self.resolve_expr(expr)?;
-                Ok(())
-            }
-            Expr::Call { func, args } => {
-                self.resolve_expr(func)?;
+            Expr::Call {
+                callee,
+                args,
+                span: _,
+            } => {
+                let _callee_ty = self.analyze_expr(callee);
+                // Would normally check that callee_ty is a Function and unify args
                 for arg in args {
-                    self.resolve_expr(arg)?;
+                    self.analyze_expr(arg);
                 }
-                Ok(())
+                // Return type is loosely checked for phase 1 via assignments usually
+                Type::Error // Stub for arbitrary function return for now
             }
-            Expr::Index { obj, idx } => {
-                self.resolve_expr(obj)?;
-                self.resolve_expr(idx)?;
-                Ok(())
+            Expr::FieldAccess {
+                object,
+                field: _,
+                span: _,
+            } => {
+                let _obj_ty = self.analyze_expr(object);
+                // Look up field in struct definition
+                Type::Error
             }
-            Expr::Field { obj, .. } => {
-                self.resolve_expr(obj)?;
-                Ok(())
-            }
-            Expr::If { cond, then, else_ } => {
-                self.resolve_expr(cond)?;
-                self.begin_scope();
-                self.resolve(then)?;
-                self.end_scope();
-                if let Some(e) = else_ {
-                    self.begin_scope();
-                    self.resolve(e)?;
-                    self.end_scope();
+            Expr::IndexAccess {
+                object,
+                index,
+                span,
+            } => {
+                let obj_ty = self.analyze_expr(object);
+                let idx_ty = self.analyze_expr(index);
+                self.env.unify(&Type::Int, &idx_ty, span); // indices must be ints
+
+                match obj_ty {
+                    Type::Tensor(elem, _) => *elem,
+                    _ => Type::Error,
                 }
-                Ok(())
             }
             Expr::Lambda {
                 params,
-                variadic,
                 body,
+                span: _,
             } => {
-                self.begin_scope();
-                self.fn_depth += 1;
-                for p in params {
-                    self.declare(p);
+                self.env.enter_scope();
+                for param in params {
+                    let resolved = self.env.resolve_ast_type(&param.ty);
+                    self.env
+                        .declare_var(param.name.clone(), resolved, &param.span);
                 }
-                if let Some(v) = variadic {
-                    self.declare(v);
-                }
-                self.resolve(body)?;
-                self.fn_depth -= 1;
-                self.end_scope();
-                Ok(())
-            }
-        }
-    }
 
-    fn resolve_lhs(&mut self, lhs: &Lhs) -> Result<(), String> {
-        match lhs {
-            Lhs::Ident(name) => {
-                self.check_var(name)?;
+                let prev_ret = self.current_return_type.clone();
+                let prev_func = self.in_func;
+                self.in_func = true;
+                self.current_return_type = Some(Type::Error); // Stub lambda return type inference
+
+                let _body_ty = self.analyze_expr(body);
+
+                self.in_func = prev_func;
+                self.current_return_type = prev_ret;
+
+                self.env.exit_scope();
+
+                Type::Error // Needs Function trait type mapping
             }
-            Lhs::Index { obj, idx } => {
-                self.resolve_expr(obj)?;
-                self.resolve_expr(idx)?;
+            Expr::GroupLiteral {
+                name,
+                fields,
+                span: _,
+            } => {
+                for (_, expr) in fields {
+                    self.analyze_expr(expr);
+                }
+                Type::Named(name.clone())
             }
-            Lhs::Field { obj, .. } => {
-                self.resolve_expr(obj)?;
+            Expr::Assign {
+                target,
+                value,
+                span,
+            } => {
+                let target_ty = self.analyze_expr(target);
+                let val_ty = self.analyze_expr(value);
+                self.env.unify(&target_ty, &val_ty, span);
+                val_ty
             }
         }
-        Ok(())
     }
 }

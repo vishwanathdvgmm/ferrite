@@ -1,6 +1,6 @@
 [package]
 name    = "ferrite"
-version = "1.4.0"
+version = "2.0.0"
 edition = "2021"
 authors = ["You"]
 description = "The Ferrite programming language – fast, friendly, built in Rust."
@@ -8,3 +8,9 @@ description = "The Ferrite programming language – fast, friendly, built in Rus
 [[bin]]
 name = "ferrite"
 path = "src/main.rs"
+
+[dependencies]
+inkwell = { version = "0.8.0", features = ["llvm15-0"], optional = true }
+
+[features]
+llvm = ["inkwell"]

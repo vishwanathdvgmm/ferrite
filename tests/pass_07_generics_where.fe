@@ -1,0 +1,24 @@
+// ── PASS TEST 07: Generics, trait bounds, where clauses ──
+// Expected: ferrite check → ✅
+
+group Container<T> {
+    value: T;
+}
+
+fun identity<T>(x: T) -> T {
+    return x;
+}
+
+fun bounded<T: Add + Mul>(a: T, b: T) -> T {
+    return a;
+}
+
+fun with_shape<N: shape>(size: int) -> int
+    where N > 0 {
+    return size;
+}
+
+fun multi_constraint<T: Serialize, U>(a: T, b: U) -> T
+    where T: Clone {
+    return a;
+}

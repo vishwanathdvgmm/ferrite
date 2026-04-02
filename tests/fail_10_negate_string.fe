@@ -1,0 +1,7 @@
+// ── FAIL TEST 10: Negation on non-numeric type ──
+// Expected: "Negation requires a numeric type"
+
+fun main() {
+    keep s: string = "hello";
+    keep neg_s: string = -s;
+}

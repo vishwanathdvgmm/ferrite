@@ -1,0 +1,17 @@
+// ── PASS TEST 08: Tensor types with shape annotations ──
+// Expected: ferrite check → ✅
+
+// A stub initializer so the semantic pass doesn't complain
+fun zeros() -> int {
+    return 0;
+}
+
+fun linear_layer() {
+    param w: Tensor<float, (784, 128)> = zeros();
+    param b: Tensor<float, (128)> = zeros();
+}
+
+fun symbolic_shapes() {
+    param x: Tensor<float, (B, 784)> = zeros();
+    param weights: Tensor<int, (64, 64)> = zeros();
+}

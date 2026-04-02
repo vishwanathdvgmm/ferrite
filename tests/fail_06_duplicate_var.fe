@@ -1,0 +1,7 @@
+// ── FAIL TEST 06: Duplicate variable in same scope ──
+// Expected: "Variable 'x' is already defined in this scope"
+
+fun main() {
+    keep x: int = 1;
+    keep x: int = 2;
+}

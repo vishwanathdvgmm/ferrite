@@ -1,0 +1,18 @@
+// ── PASS TEST 02: Functions, parameters, return types ──
+// Expected: ferrite check → ✅
+
+fun add(a: int, b: int) -> int {
+    return a + b;
+}
+
+fun greet(name: string) -> string {
+    return name;
+}
+
+fun noop() {
+    keep x: int = 1;
+}
+
+fun multiply(x: float, y: float) -> float {
+    return x * y;
+}

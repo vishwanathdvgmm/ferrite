@@ -1,0 +1,17 @@
+// ── PASS TEST 01: Primitive types, keep declarations, arithmetic ──
+// Expected: ferrite check → ✅
+
+fun main() -> int {
+    keep x: int = 42;
+    keep y: int = 10;
+    keep z: int = x + y;
+
+    keep pi: float = 3.14159;
+    keep r: float = 2.0;
+    keep area: float = pi * r * r;
+
+    keep flag: bool = true;
+    keep name: string = "ferrite";
+
+    return z;
+}

@@ -1,0 +1,6 @@
+// ── FAIL TEST 01: Type mismatch — assigning string to int ──
+// Expected: "Type mismatch"
+
+fun main() {
+    keep x: int = "hello";
+}

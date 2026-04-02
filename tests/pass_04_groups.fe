@@ -1,0 +1,28 @@
+// ── PASS TEST 04: Groups (structs) with fields and methods ──
+// Expected: ferrite check → ✅
+
+group Point {
+    x: float;
+    y: float;
+
+    fun distance(self) -> float {
+        return self.x;
+    }
+}
+
+group Counter {
+    count: int;
+
+    fun increment(self) {
+        self.count = self.count + 1;
+    }
+
+    fun get(self) -> int {
+        return self.count;
+    }
+}
+
+fun make_point() -> Point {
+    keep p: Point = Point { x: 1.0, y: 2.0 };
+    return p;
+}

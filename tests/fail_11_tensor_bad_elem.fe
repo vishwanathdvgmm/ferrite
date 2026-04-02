@@ -1,0 +1,6 @@
+// ── FAIL TEST 11: Tensor with invalid element type ──
+// Expected: "Tensors can only contain 'int' or 'float', not 'bool'"
+
+fun bad_tensor() {
+    param t: Tensor<bool, (64)> = t;
+}

@@ -1,0 +1,7 @@
+// ── FAIL TEST 08: Syntax error — missing semicolon ──
+// Expected: parse error "Expected ';'"
+
+fun main() {
+    keep x: int = 42
+    return x;
+}

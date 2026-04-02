@@ -1,0 +1,10 @@
+// ── FAIL TEST 05: stop/skip outside loop ──
+// Expected: "Cannot break/continue ('stop'/'skip') outside of a loop"
+
+fun bad_stop() {
+    stop;
+}
+
+fun bad_skip() {
+    skip;
+}

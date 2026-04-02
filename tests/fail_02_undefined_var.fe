@@ -1,0 +1,7 @@
+// ── FAIL TEST 02: Undefined variable ──
+// Expected: "Undefined variable 'z'"
+
+fun main() -> int {
+    keep x: int = 10;
+    return z;
+}

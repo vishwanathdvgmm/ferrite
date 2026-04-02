@@ -1,0 +1,8 @@
+// ── FAIL TEST 12: Logical AND/OR with non-bool operands ──
+// Expected: "Type mismatch: expected 'bool', found 'int'"
+
+fun bad_logic() {
+    keep a: int = 1;
+    keep b: int = 2;
+    keep result: bool = a && b;
+}

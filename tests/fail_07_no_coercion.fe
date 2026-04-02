@@ -1,0 +1,7 @@
+// ── FAIL TEST 07: Implicit int-float coercion forbidden ──
+// Expected: "Type mismatch: expected 'int', found 'float'. Implicit coercion is forbidden."
+
+fun coerce() -> int {
+    keep x: int = 3.14;
+    return x;
+}

@@ -1,0 +1,6 @@
+// ── FAIL TEST 03: Return type mismatch ──
+// Expected: "Type mismatch: expected 'int', found 'string'"
+
+fun compute() -> int {
+    return "not an int";
+}

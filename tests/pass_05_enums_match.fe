@@ -1,0 +1,27 @@
+// ── PASS TEST 05: Enums and pattern matching ──
+// Expected: ferrite check → ✅
+
+enum Color {
+    Red;
+    Green;
+    Blue;
+}
+
+enum Option<T> {
+    Some(T);
+    None;
+}
+
+fun describe(x: int) -> int {
+    match x {
+        case 0 => {
+            return 0;
+        }
+        case 1 => {
+            return 1;
+        }
+        default => {
+            return -1;
+        }
+    }
+}
