@@ -4,3 +4,4 @@ _legacy/
 release/
 *.bak
 *.py
+implementation_plan.md
