@@ -2,6 +2,28 @@
 
 All notable changes to Ferrite are documented here.
 
+## [2.1.0] — 2026-04-08
+
+### 📚 Standard Library & Compiled Built-ins
+
+Ferrite v2.1 re-introduces the standard library and core built-in functions, now correctly integrated into the AOT compiler pipeline via embedded asset bundling and refined type unification.
+
+### Added
+- **Embedded Standard Library** — `math`, `strings`, **collections** (`List`, `Map`), and `io` modules are now built into the binary.
+- **Improved Import Resolution** — `import "name"` now resolves both from the filesystem and embedded standard library assets.
+- **Refined Type Unification** — Support for `GenericInst` vs `Named` matches, allowing `List<int>` to be initialized by `List { ... }` group literals.
+- **Tracked Generic substitutions** — Properly verifies call-site type consistency for generic functions like `push<T>(l: List<T>, item: T)`.
+- **Collection Indexing** — Native support for `m[key]` indexing for `Map<K, V>` and `List<T>` types in the semantic analyzer.
+- **Expanded Built-ins** — `print`, `println`, `input`, `len`, `str`, `int`, `float`, `assert`, `exit`, and `zeros`.
+- **25-Test Suite** — Expanded verification covering built-ins, stdlib imports, and argument arity checking.
+
+### Changed
+- **Binary Distribution** — The release binary is now named simply `ferrite.exe` for easier system PATH integration.
+- **`init()` → `zeros()`** — Consistent naming for tensor zero-initialization stub.
+- **`ImportResolver`** — Now uses an internal virtual path system `<stdlib::name>` to prevent collisions with user files.
+
+---
+
 ## [2.0.0] — 2026-04-02
 
 ### 🚀 Complete Rewrite: AOT Compiled ML Language

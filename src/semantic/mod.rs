@@ -36,14 +36,33 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                     self.env.declare_var(c.name.clone(), ty, &c.span);
                 }
                 TopDecl::Func(f) => {
-                    // Register the function name in the variable scope so calls can resolve.
-                    // In Phase 1, we use Type::Error as a stub for the function's type
-                    // since we don't have full function pointer types yet.
+                    // Register the function name in the variable scope with its parameter types.
+                    let generic_names: Vec<String> = f
+                        .generics
+                        .iter()
+                        .map(|g| match g {
+                            GenericParam::Type { name, .. } => name.clone(),
+                            GenericParam::Shape { name, .. } => name.clone(),
+                            GenericParam::Bounded { name, .. } => name.clone(),
+                        })
+                        .collect();
+
+                    self.env.push_generics(generic_names.clone());
+
                     let ret_ty = match &f.return_type {
                         Some(t) => self.env.resolve_ast_type(t),
                         None => Type::Unit,
                     };
-                    self.env.declare_var(f.name.clone(), ret_ty, &f.span);
+                    let param_tys: Vec<Type> = f
+                        .params
+                        .iter()
+                        .map(|p| self.env.resolve_ast_type(&p.ty))
+                        .collect();
+
+                    self.env.pop_generics(generic_names.len());
+
+                    let func_ty = Type::Func(param_tys, Box::new(ret_ty));
+                    self.env.declare_var(f.name.clone(), func_ty, &f.span);
                 }
                 TopDecl::Import(_) => {}
             }
@@ -76,6 +95,17 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 let prev_ret = self.current_return_type.clone();
                 self.in_func = true;
 
+                let generic_names: Vec<String> = f
+                    .generics
+                    .iter()
+                    .map(|g| match g {
+                        GenericParam::Type { name, .. } => name.clone(),
+                        GenericParam::Shape { name, .. } => name.clone(),
+                        GenericParam::Bounded { name, .. } => name.clone(),
+                    })
+                    .collect();
+                self.env.push_generics(generic_names.clone());
+
                 self.current_return_type = match &f.return_type {
                     Some(t) => Some(self.env.resolve_ast_type(t)),
                     None => Some(Type::Unit),
@@ -90,6 +120,7 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 self.analyze_block(&f.body);
                 self.env.exit_scope();
 
+                self.env.pop_generics(generic_names.len());
                 self.in_func = prev_func;
                 self.current_return_type = prev_ret;
             }
@@ -357,18 +388,50 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                     UnaryOp::Await => ty, // Extract inner type from future/async
                 }
             }
-            Expr::Call {
-                callee,
-                args,
-                span: _,
-            } => {
-                let _callee_ty = self.analyze_expr(callee);
-                // Would normally check that callee_ty is a Function and unify args
-                for arg in args {
-                    self.analyze_expr(arg);
+            Expr::Call { callee, args, span } => {
+                let callee_ty = self.analyze_expr(callee);
+                let mut ret_ty = Type::Error;
+
+                if let Type::Func(param_tys, func_ret_ty) = &callee_ty {
+                    if args.len() != param_tys.len() {
+                        self.env.diag.error(
+                            span.clone(),
+                            format!(
+                                "Function expects {} arguments, but got {}",
+                                param_tys.len(),
+                                args.len()
+                            ),
+                        );
+                        for arg in args {
+                            self.analyze_expr(arg);
+                        }
+                    } else {
+                        let mut subst = std::collections::HashMap::new();
+                        for (i, arg) in args.iter().enumerate() {
+                            let arg_ty = self.analyze_expr(arg);
+                            self.env.unify_recursive(
+                                &param_tys[i],
+                                &arg_ty,
+                                &arg.span(),
+                                &mut subst,
+                            );
+                        }
+                        ret_ty = func_ret_ty.substitute(&subst);
+                    }
+                } else if callee_ty != Type::Error {
+                    self.env.diag.error(
+                        span.clone(),
+                        format!("Cannot call non-function type '{}'", callee_ty),
+                    );
+                    for arg in args {
+                        self.analyze_expr(arg);
+                    }
+                } else {
+                    for arg in args {
+                        self.analyze_expr(arg);
+                    }
                 }
-                // Return type is loosely checked for phase 1 via assignments usually
-                Type::Error // Stub for arbitrary function return for now
+                ret_ty
             }
             Expr::FieldAccess {
                 object,
@@ -389,8 +452,27 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 self.env.unify(&Type::Int, &idx_ty, span); // indices must be ints
 
                 match obj_ty {
-                    Type::Tensor(elem, _) => *elem,
-                    _ => Type::Error,
+                    Type::Tensor(elem, _) => {
+                        self.env.unify(&Type::Int, &idx_ty, span);
+                        *elem
+                    }
+                    Type::GenericInst(name, args) if name == "Map" && args.len() == 2 => {
+                        self.env.unify(&args[0], &idx_ty, span);
+                        args[1].clone()
+                    }
+                    Type::GenericInst(name, args) if name == "List" && args.len() == 1 => {
+                        self.env.unify(&Type::Int, &idx_ty, span);
+                        args[0].clone()
+                    }
+                    _ => {
+                        if obj_ty != Type::Error {
+                            self.env.diag.error(
+                                span.clone(),
+                                format!("Indexing not supported for type '{}'", obj_ty),
+                            );
+                        }
+                        Type::Error
+                    }
                 }
             }
             Expr::Lambda {

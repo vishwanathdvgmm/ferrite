@@ -16,7 +16,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 3 {
-        println!("Ferrite v2.0 Compiler (AOT ML Language)");
+        println!("Ferrite v2.1 Compiler (AOT ML Language)");
         println!("Usage:");
         println!("  ferrite check   <file.fe>   # Parse and Type-check only");
         println!("  ferrite compile <file.fe>   # Compile to native LLVM IR / Object");
@@ -33,11 +33,19 @@ fn main() {
         let modules = resolver.into_modules();
         let entry_module = &modules[&entry_path];
 
+        // Merge all module ASTs into one contiguous program
+        let mut merged_ast = entry_module.ast.clone();
+        for (module_path, module) in &modules {
+            if module_path != &entry_path {
+                merged_ast.decls.extend(module.ast.decls.clone());
+            }
+        }
+
         // Semantic Analysis Pass
         let mut type_env = types::TypeEnv::new(&mut diag);
         let mut semantic = semantic::SemanticAnalyzer::new(&mut type_env);
 
-        semantic.analyze_program(&entry_module.ast);
+        semantic.analyze_program(&merged_ast);
         if diag.has_errors() {
             diag.emit_all();
             std::process::exit(1);

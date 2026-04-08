@@ -1,6 +1,31 @@
-# Ferrite v2.0 — Compiler Architecture
+# Ferrite v2.1 — Compiler Architecture
 
-This document describes the internal architecture of the Ferrite v2.0 AOT compiler.
+This document describes the internal architecture of the Ferrite v2.1 AOT compiler.
+
+---
+
+## What's New in v2.1
+
+### 📚 Embedded Standard Library
+
+Starting with v2.1, the Ferrite standard library (`math`, `strings`, `collections`, `io`) is embedded directly into the compiler binary using Rust's `include_str!` macro. This ensures that the compiler is fully self-contained and does not require external files to be present during compilation.
+
+### 🔗 Refined Import Resolution
+
+The `ImportResolver` has been enhanced to support virtual paths. When an `import` statement is encountered:
+
+1. The resolver first checks if the module name matches an embedded standard library module.
+2. If matched, it returns a virtual path prefixed with `<stdlib::>`.
+3. If not matched, it proceeds with standard filesystem resolution relative to the current module.
+
+### 🧩 Structural Type Unification
+
+The `unify` engine in `types/mod.rs` has been upgraded to a recursive implementation that supports:
+
+- **Base-Type Matching**: Allowing `GenericInst` (e.g., `List<int>`) to be initialized by `Named` group literals (`List { ... }`).
+- **Call-Site Binding**: Tracking generic substitutions via a local `subst` map during function call validation.
+
+---
 
 ## Source Tree
 

@@ -1,3 +1,56 @@
+# Ferrite v2.1.0 Release Notes
+
+Welcome to **Ferrite v2.1.0** 🚀 — The **"Standard Library & Builtins"** update. This release brings back the core programming utilities and standard modules, fully integrated into the high-performance AOT compiler pipeline.
+
+---
+
+## 📚 Standard Library Re-introduced
+
+Ferrite v2.1 features a statically-embedded standard library. All modules are bundled within the binary using asset-embedding, meaning zero external dependencies are required to use these features.
+
+### Available Modules
+
+| Module        | Documentation                                                                                    | Highlights                                                                |
+| :------------ | :----------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| `math`        | [math.fe](https://github.com/vishwanathdvgmm/ferrite/blob/main/src/stdlib/math.fe)               | `PI`, `E`, `sin`, `cos`, `tan`, `log`, `sqrt`, `pow`                      |
+| `strings`     | [strings.fe](https://github.com/vishwanathdvgmm/ferrite/blob/main/src/stdlib/strings.fe)         | `split`, `join`, `trim`, `upper`, `lower`, `contains`, `replace`          |
+| `collections` | [collections.fe](https://github.com/vishwanathdvgmm/ferrite/blob/main/src/stdlib/collections.fe) | `push`, `pop`, `get`, `set` for `List<T>`; `map_get`, `map_set` for `Map` |
+| `io`          | [io.fe](https://github.com/vishwanathdvgmm/ferrite/blob/main/src/stdlib/io.fe)                   | `read_file`, `write_file`, `file_exists`                                  |
+
+---
+
+## ✨ New Built-in Functions
+
+We've registered several globally available functions that bridge the gap between high-level logic and the compiler runtime:
+
+- **`print` / `println`** — Standard output utilities.
+- **`input`** — Read user input from the terminal.
+- **`len`** — Canonical length utility for strings and collections.
+- **`str` / `int` / `float`** — Type conversion built-ins.
+- **`assert`** — Runtime verification with descriptive error messages.
+- **`zeros()`** — Canonical tensor initialization (returns zeroed tensors for any shape).
+
+---
+
+## 🧩 Type System Refinements
+
+The type system has been significantly hardened to support the standard library's generic patterns:
+
+- **Refined Unification**: The compiler now supports structural matching between generic instantiations (`List<int>`) and base group constructors (`List {}`).
+- **Call-Site Binding**: Fixed a critical issue where generic placeholders (like `T` or `K`) were not being correctly substituted during function call validation.
+- **Indexed Access**: `Map<K, V>` and `List<T>` now support standard `[]` indexing in the semantic analyzer.
+
+---
+
+## 📦 Simplified Distribution
+
+Starting with v2.1, the release binary is named simply `ferrite.exe`.
+
+- **Easy PATH Setup**: Add the folder to your `PATH` once, and subsequent updates will just work without needing separate environment variables or `cmd` wrappers.
+- **Legacy Preservation**: Previous versioned binaries (e.g., `ferrite-v2.0.0-windows.exe`) remain available for compatibility.
+
+---
+
 # Ferrite v2.0.0 Release Notes
 
 Welcome to **Ferrite v2.0.0** 🚀 — A complete ground-up rewrite from a dynamically-typed bytecode VM interpreter to a **statically-typed, ahead-of-time compiled ML programming language**.

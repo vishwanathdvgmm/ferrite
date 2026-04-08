@@ -4,12 +4,12 @@ A statically-typed, ahead-of-time compiled ML programming language — built in 
 
 ---
 
-## 🚀 Quick Start (v2.0)
+## 🚀 Quick Start (v2.1)
 
-1. Download the files from releases.
-2. Create a folder named `Ferrite/bin` in `C:Program Files/`
-3. Add the downloaded files to the `bin` folder.
-4. Add that folder to your system `PATH`
+1. Download the `ferrite.exe` from releases.
+2. Create a folder named `Ferrite` in your preferred location (e.g., `C:\Ferrite`).
+3. Add `ferrite.exe` to that folder.
+4. Add that folder to your system `PATH`.
 5. Done — use `ferrite` from anywhere:
 
 ```bash
@@ -31,15 +31,16 @@ keep flag: bool = true;
 
 All variables require explicit type annotations. There is no `null`, no dynamic typing, and no implicit coercion.
 
-### Functions
+### Functions & Standard Library
 
 ```ferrite
-fun add(a: int, b: int) -> int {
-    return a + b;
-}
+import "math";
+import "strings";
 
-fun greet(name: string) {
-    // Returns Unit (no return type annotation)
+fun test() {
+    keep s: float = math.sin(math.PI / 2.0);
+    keep upper: string = strings.upper("ferrite");
+    println(upper); // Built-in function
 }
 ```
 
@@ -95,10 +96,10 @@ match value {
 ### Tensor Types
 
 ```ferrite
-param weights: Tensor<float, (784, 128)> = init();
-param bias: Tensor<float, (128)> = init();
+param weights: Tensor<float, (784, 128)> = zeros();
+param bias: Tensor<float, (128)> = zeros();
 // Symbolic dimensions for batch processing
-param input: Tensor<float, (B, 784)> = fetch();
+param input: Tensor<float, (B, 784)> = zeros();
 ```
 
 Shape mismatches are caught at compile time. No implicit broadcasting or reshaping.
@@ -147,7 +148,7 @@ from "path" take function_name;
 ## 🏗️ Compiler Architecture
 
 ```
-Source (.fe) → Lexer → Parser → ImportResolver → TypeEnv → SemanticAnalyzer → LLVM Codegen
+Source (.fe) → Lexer → Parser → ImportResolver (Asset Bundling) → TypeEnv (Built-ins) → SemanticAnalyzer → LLVM Codegen
 ```
 
 ```
@@ -180,10 +181,10 @@ See [ARCHITECTURE.md](https://github.com/vishwanathdvgmm/ferrite/blob/main/ARCHI
 
 ## 🧪 Testing
 
-The test suite includes:
+The v2.1 test suite includes **25 exhaustive tests**:
 
-- **10 pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions
-- **12 fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, operator type errors
+- **Pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions, **built-ins**, **stdlib**.
+- **Fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, **argument count errors**.
 
 ---
 
@@ -206,8 +207,9 @@ The test suite includes:
 | [Type System](https://github.com/vishwanathdvgmm/ferrite/blob/main/docs/type-system.md) | Static type system specification |
 | [Grammar](https://github.com/vishwanathdvgmm/ferrite/blob/main/docs/grammar.ebnf)       | Formal EBNF grammar              |
 | [Architecture](https://github.com/vishwanathdvgmm/ferrite/blob/main/ARCHITECTURE.md)    | Compiler architecture            |
-| [Migration](https://github.com/vishwanathdvgmm/ferrite/blob/main/MIGRATION.md)          | v1.4 → v2.0 migration guide      |
-| [Changelog](https://github.com/vishwanathdvgmm/ferrite/blob/main/CHANGELOG.md)          | Version history                  |
+| [Release Notes](https://github.com/vishwanathdvgmm/ferrite/blob/main/RELEASE_NOTES.md)  | Version history                  |
+| [Migration](https://github.com/vishwanathdvgmm/ferrite/blob/main/MIGRATION.md)          | Upgrade guides                   |
+| [Changelog](https://github.com/vishwanathdvgmm/ferrite/blob/main/CHANGELOG.md)          | Timeline of changes              |
 
 ---
 
@@ -215,6 +217,7 @@ The test suite includes:
 
 | Version | Tag            | Description                         |
 | :------ | :------------- | :---------------------------------- |
+| v2.1.0  | `v2.1.0`       | Standard Library & Builtins         |
 | v2.0.0  | `v2.0.0`       | AOT compiled ML language            |
 | v1.4.0  | `v1.4.0-final` | Bytecode VM (on `v1-legacy` branch) |
 | v1.0.0  | `v1.0.0`       | Initial tree-walking interpreter    |

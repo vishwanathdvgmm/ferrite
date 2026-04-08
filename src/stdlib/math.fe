@@ -1,0 +1,23 @@
+constant PI: float = 3.141592653589793;
+constant E: float = 2.718281828459045;
+constant TAU: float = 6.283185307179586;
+
+fun abs(x: float) -> float { return x; }
+fun sqrt(x: float) -> float { return x; }
+fun pow(x: float, y: float) -> float { return x; }
+fun log(x: float) -> float { return x; }
+fun log2(x: float) -> float { return x; }
+fun log10(x: float) -> float { return x; }
+
+fun sin(x: float) -> float { return x; }
+fun cos(x: float) -> float { return x; }
+fun tan(x: float) -> float { return x; }
+fun atan2(y: float, x: float) -> float { return y; }
+
+fun floor(x: float) -> float { return x; }
+fun ceil(x: float) -> float { return x; }
+fun round(x: float) -> float { return x; }
+
+fun min(a: float, b: float) -> float { return a; }
+fun max(a: float, b: float) -> float { return a; }
+fun clamp(x: float, min_val: float, max_val: float) -> float { return x; }

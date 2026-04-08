@@ -1,8 +1,8 @@
 [package]
 name    = "ferrite"
-version = "2.0.0"
+version = "2.1.0"
 edition = "2021"
-authors = ["You"]
+authors = ["Vishwanath M M"]
 description = "The Ferrite programming language – fast, friendly, built in Rust."
 
 [[bin]]

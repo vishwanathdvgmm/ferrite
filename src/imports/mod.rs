@@ -80,15 +80,25 @@ impl<'a> ImportResolver<'a> {
         self.visiting.insert(canonical_path.clone());
 
         // 1. Read the source file
-        let src = match std::fs::read_to_string(canonical_path) {
-            Ok(s) => s,
-            Err(e) => {
-                self.diag.error(
-                    Span::dummy(),
-                    format!("Failed to read {}: {}", canonical_path.display(), e),
-                );
-                self.visiting.remove(canonical_path);
-                return None;
+        let is_stdlib = canonical_path.to_string_lossy().starts_with("<stdlib::");
+
+        let src = if is_stdlib {
+            let name = canonical_path
+                .to_string_lossy()
+                .replace("<stdlib::", "")
+                .replace(">", "");
+            crate::stdlib::get_stdlib_module(&name).unwrap().to_string()
+        } else {
+            match std::fs::read_to_string(canonical_path) {
+                Ok(s) => s,
+                Err(e) => {
+                    self.diag.error(
+                        Span::dummy(),
+                        format!("Failed to read {}: {}", canonical_path.display(), e),
+                    );
+                    self.visiting.remove(canonical_path);
+                    return None;
+                }
             }
         };
 
@@ -156,27 +166,22 @@ impl<'a> ImportResolver<'a> {
                 };
 
                 // Check if it's a standard library import
-                let resolved_path = if raw_path.starts_with("stdlib/") {
-                    // Temporarily load from src/stdlib/ relative to project root for the rewrite
-                    // Ultimately this would use embedded assets but for Phase 1 we read from disk
-                    let current_exe_dir =
-                        std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-                    current_exe_dir.join("src").join(format!("{}.fe", raw_path))
+                let canonical_target = if crate::stdlib::get_stdlib_module(raw_path).is_some() {
+                    PathBuf::from(format!("<stdlib::{}>", raw_path))
                 } else {
-                    // Relative to current file
                     let mut p = parent_dir.join(raw_path);
                     if p.extension().is_none() {
                         p.set_extension("fe");
                     }
-                    p
-                };
-
-                let canonical_target = match resolved_path.canonicalize() {
-                    Ok(p) => p,
-                    Err(_) => {
-                        self.diag
-                            .error(span.clone(), format!("Cannot resolve import: {}", raw_path));
-                        continue; // Keep trying other imports to collect errors
+                    match p.canonicalize() {
+                        Ok(p) => p,
+                        Err(_) => {
+                            self.diag.error(
+                                span.clone(),
+                                format!("Cannot resolve import: {}", raw_path),
+                            );
+                            continue; // Keep trying other imports to collect errors
+                        }
                     }
                 };
 

@@ -1,4 +1,46 @@
-# Migrating from Ferrite v1.4 to v2.0
+# Ferrite Migration Guide
+
+This document covers major changes and migration steps between Ferrite versions.
+
+---
+
+## Migrating from Ferrite v2.0 to v2.1
+
+Ferrite v2.1 introduces the standard library and built-ins. While largely additive, it changes how certain core utilities are accessed.
+
+### 1. Standard Library Access
+Standard library modules (`math`, `strings`, `collections`, `io`) are now available via the `import` statement.
+
+**v2.0 Approach:**
+You had to define your own math constants or string helpers.
+
+**v2.1 Approach:**
+```ferrite
+import "math";
+import "strings";
+
+keep p: float = math.PI;
+keep s: string = strings.upper("ferrite");
+```
+
+### 2. Initialization Helpers
+The `init()` stub for tensors has been renamed to `zeros()` to better reflect its behavior and align with ML conventions.
+
+**v2.0:** `param w: Tensor<float, (10)> = init();`
+**v2.1:** `param w: Tensor<float, (10)> = zeros();`
+
+### 3. Collection Indexing
+You can now use `[]` indexing on `Map` and `List` types (previously reserved for Tensors).
+
+```ferrite
+import "collections";
+keep m: Map<string, int> = Map { ignore: 0 };
+keep val: int = m["key"];
+```
+
+---
+
+## Migrating from Ferrite v1.4 to v2.0
 
 Ferrite v2.0 is a **complete rewrite**. The language has changed from a dynamically-typed scripting language to a statically-typed, ahead-of-time compiled ML language. This guide covers every breaking change.
 

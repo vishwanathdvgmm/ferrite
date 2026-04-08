@@ -1,0 +1,4 @@
+fun read_file(path: string) -> string { return ""; }
+fun write_file(path: string, content: string) {}
+fun append_file(path: string, content: string) {}
+fun file_exists(path: string) -> bool { return true; }

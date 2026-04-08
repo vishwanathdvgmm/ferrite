@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-//  Ferrite v2.0 — Complete Feature Showcase
+//  Ferrite v2.1 — Complete Feature Showcase
 // ═══════════════════════════════════════════════════════════
 
 // ── Top-level Constants ─────────────────────────────────────
@@ -63,9 +63,7 @@ train fun optimize(loss: float) -> float {
 }
 
 // ── Tensor Types with Shape Validation ──────────────────────
-fun zeros() -> int {
-    return 0;
-}
+// A built-in array stub `zeros()` is provided by the compiler
 
 fun build_model() {
     param weights: Tensor<float, (784, 128)> = zeros();

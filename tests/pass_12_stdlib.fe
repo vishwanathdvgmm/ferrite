@@ -1,0 +1,41 @@
+import "math";
+import "strings";
+import "collections";
+import "io";
+
+fun test_math() {
+    keep angle: float = PI / 4.0;
+    keep s: float = sin(angle);
+    keep limit: float = clamp(s, 0.0, 1.0);
+}
+
+fun test_strings() {
+    keep hello: string = "hello world";
+    keep upper_str: string = upper(hello);
+    keep has_world: bool = contains(upper_str, "WORLD");
+    
+    // Test collections with strings
+    keep parts: List<string> = split(hello, " ");
+}
+
+fun test_collections() {
+    keep nums: List<int> = List { ignore: 0 };
+    push(nums, 42);
+    
+    keep map: Map<string, int> = Map { ignore: 0 };
+    map_set(map, "key", 100);
+}
+
+fun test_io() {
+    keep exists: bool = file_exists("test.txt");
+    if exists {
+        keep data: string = read_file("test.txt");
+    }
+}
+
+fun main() {
+    test_math();
+    test_strings();
+    test_collections();
+    test_io();
+}

@@ -1,10 +1,7 @@
 // ── PASS TEST 08: Tensor types with shape annotations ──
 // Expected: ferrite check → ✅
 
-// A stub initializer so the semantic pass doesn't complain
-fun zeros() -> int {
-    return 0;
-}
+// A built-in array stub `zeros()` is injected by TypeEnv in v2.1 for tensor initialization
 
 fun linear_layer() {
     param w: Tensor<float, (784, 128)> = zeros();

@@ -1,115 +1,13 @@
-# Ferrite Standard Library: Collections
+fun push<T>(l: List<T>, item: T) {}
+fun pop<T>(l: List<T>) -> T { return l[0]; }
+fun get<T>(l: List<T>, index: int) -> T { return l[0]; }
+fun set<T>(l: List<T>, index: int, item: T) {}
+fun is_empty<T>(l: List<T>) -> bool { return true; }
 
-fn flatten(lst) {
-    let result = [];
-    for item in lst {
-        result = result + item;
-    }
-    return result;
-}
+fun reverse<T>(l: List<T>) {}
+fun concat<T>(a: List<T>, b: List<T>) -> List<T> { return a; }
 
-fn chunk(lst, size) {
-    if size <= 0 { return []; }
-    let result = [];
-    let current = [];
-    for item in lst {
-        current = current + [item];
-        if len(current) == size {
-            result = result + [current];
-            current = [];
-        }
-    }
-    if len(current) > 0 {
-        result = result + [current];
-    }
-    return result;
-}
-
-fn unique(lst) {
-    let result = [];
-    for item in lst {
-        if !contains(result, item) {
-            result = result + [item];
-        }
-    }
-    return result;
-}
-
-fn group_by(lst, key_fn) {
-    let result = {};
-    for item in lst {
-        let key = key_fn(item);
-        if !has_key(result, key) {
-            result[key] = [];
-        }
-        result[key] = result[key] + [item];
-    }
-    return result;
-}
-
-fn count_by(lst, key_fn) {
-    let result = {};
-    for item in lst {
-        let key = key_fn(item);
-        if !has_key(result, key) {
-            result[key] = 0;
-        }
-        result[key] = result[key] + 1;
-    }
-    return result;
-}
-
-fn sum_list(lst) {
-    return reduce(lst, fn(a, b) { return a + b; }, 0);
-}
-
-fn product(lst) {
-    return reduce(lst, fn(a, b) { return a * b; }, 1);
-}
-
-fn take(lst, n) {
-    let result = [];
-    let i = 0;
-    while i < n && i < len(lst) {
-        result = result + [lst[i]];
-        i += 1;
-    }
-    return result;
-}
-
-fn drop(lst, n) {
-    let result = [];
-    let i = n;
-    while i < len(lst) {
-        result = result + [lst[i]];
-        i += 1;
-    }
-    return result;
-}
-
-fn find(lst, predicate) {
-    for item in lst {
-        if predicate(item) {
-            return item;
-        }
-    }
-    return null;
-}
-
-fn find_index(lst, predicate) {
-    for [i, item] in enumerate(lst) {
-        if predicate(item) { return i; }
-    }
-    return -1;
-}
-
-fn any(lst, predicate) {
-    return find_index(lst, predicate) != -1;
-}
-
-fn all(lst, predicate) {
-    for item in lst {
-        if !predicate(item) { return false; }
-    }
-    return true;
-}
+fun map_get<K, V>(m: Map<K, V>, key: K) -> V { return m[key]; }
+fun map_set<K, V>(m: Map<K, V>, key: K, value: V) {}
+fun has_key<K, V>(m: Map<K, V>, key: K) -> bool { return true; }
+fun delete_key<K, V>(m: Map<K, V>, key: K) {}

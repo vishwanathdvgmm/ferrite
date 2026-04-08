@@ -1,0 +1,17 @@
+fun test_builtins() {
+    print("Hello builtins!");
+    println("This is Ferrite.");
+    
+    keep name: string = input("What is your name? ");
+    keep length: int = len(name);
+    
+    assert(length > 0, "Name cannot be empty");
+    
+    keep n: int = int("42");
+    keep f: float = float("3.14");
+    keep s: string = str(100);
+}
+
+fun main() {
+    test_builtins();
+}

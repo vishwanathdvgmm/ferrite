@@ -14,7 +14,7 @@ ERRORS=()
 
 echo ""
 echo "══════════════════════════════════════════════════════════════"
-echo "  Ferrite v2.0 — Compiler Verification Suite"
+echo "  Ferrite v2.1 — Compiler Verification Suite"
 echo "══════════════════════════════════════════════════════════════"
 echo ""
 
@@ -66,6 +66,7 @@ declare -A EXPECTED_ERRORS=(
     ["fail_10_negate_string"]="Negation requires a numeric type"
     ["fail_11_tensor_bad_elem"]="Tensors can only contain"
     ["fail_12_logic_non_bool"]="Type mismatch"
+    ["fail_13_call_args"]="Function expects"
 )
 
 for test_file in "$TESTS_DIR"/fail_*.fe; do
@@ -109,7 +110,7 @@ if [ "$FAIL" -gt 0 ]; then
     exit 1
 else
     echo ""
-    echo "  🎉 ALL $TOTAL TESTS PASSED — Ferrite v2.0 is verified!"
+    echo "  🎉 ALL $TOTAL TESTS PASSED — Ferrite v2.1 is verified!"
     echo ""
     exit 0
 fi
