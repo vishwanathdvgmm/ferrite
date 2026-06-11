@@ -2,6 +2,33 @@
 
 This document covers major changes and migration steps between Ferrite versions.
 
+## Migrating from Ferrite v2.1 to v2.2
+
+Ferrite v2.2 introduces full trait support and strict trait bound enforcement.
+
+### 1. Operator Overloading
+
+Operators (`+`, `-`, `*`, `/`, `%`) on user-defined types now strictly require the implementation of corresponding traits (`Add`, `Sub`, `Mul`, `Div`, `Mod`).
+
+**v2.1 Approach:** Implicit coercion or errors depending on context.
+**v2.2 Approach:** You must implement the trait.
+
+```ferrite
+trait Add { fun add(self, other: Self) -> Self; }
+
+impl Add for Point {
+    fun add(self, other: Self) -> Self { ... }
+}
+```
+
+### 2. Match Exhaustiveness
+
+`match` statements on `enum` types will now generate a compiler warning if not all cases are covered. To migrate, ensure you have a case for every enum variant or a `default` fallback.
+
+### 3. Trait Bounds
+
+Generic functions that specify trait bounds (e.g., `<T: Add>`) will now strictly reject any types passed to them that do not have a registered `impl` for that trait.
+
 ---
 
 ## Migrating from Ferrite v2.0 to v2.1
@@ -9,12 +36,14 @@ This document covers major changes and migration steps between Ferrite versions.
 Ferrite v2.1 introduces the standard library and built-ins. While largely additive, it changes how certain core utilities are accessed.
 
 ### 1. Standard Library Access
+
 Standard library modules (`math`, `strings`, `collections`, `io`) are now available via the `import` statement.
 
 **v2.0 Approach:**
 You had to define your own math constants or string helpers.
 
 **v2.1 Approach:**
+
 ```ferrite
 import "math";
 import "strings";
@@ -24,12 +53,14 @@ keep s: string = strings.upper("ferrite");
 ```
 
 ### 2. Initialization Helpers
+
 The `init()` stub for tensors has been renamed to `zeros()` to better reflect its behavior and align with ML conventions.
 
 **v2.0:** `param w: Tensor<float, (10)> = init();`
 **v2.1:** `param w: Tensor<float, (10)> = zeros();`
 
 ### 3. Collection Indexing
+
 You can now use `[]` indexing on `Map` and `List` types (previously reserved for Tensors).
 
 ```ferrite

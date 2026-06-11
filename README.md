@@ -4,7 +4,7 @@ A statically-typed, ahead-of-time compiled ML programming language — built in 
 
 ---
 
-## 🚀 Quick Start (v2.1)
+## 🚀 Quick Start (v2.2)
 
 1. Download the `ferrite.exe` from releases.
 2. Create a folder named `Ferrite` in your preferred location (e.g., `C:\Ferrite`).
@@ -116,20 +116,37 @@ train {
 }
 ```
 
-### Generics & Trait Bounds
+### Generics, Traits & Impl Blocks
 
 ```ferrite
-fun identity<T>(x: T) -> T {
-    return x;
+trait Add {
+    fun add(self, other: Self) -> Self;
 }
 
+group Point {
+    x: float;
+    y: float;
+}
+
+impl Add for Point {
+    fun add(self, other: Self) -> Self {
+        return Point {
+            x: self.x + other.x,
+            y: self.y + other.y
+        };
+    }
+}
+
+// Operators automatically dispatch to traits
+fun test_add() {
+    keep p1: Point = Point { x: 1.0, y: 1.0 };
+    keep p2: Point = Point { x: 2.0, y: 2.0 };
+    keep p3: Point = p1 + p2;
+}
+
+// Trait bounds on generic functions
 fun bounded<T: Add + Mul>(a: T, b: T) -> T {
-    return a;
-}
-
-fun constrained<N: shape>(size: int) -> int
-    where N > 0 {
-    return size;
+    return a + b;
 }
 ```
 
@@ -181,10 +198,10 @@ See [ARCHITECTURE.md](https://github.com/vishwanathdvgmm/ferrite/blob/main/ARCHI
 
 ## 🧪 Testing
 
-The v2.1 test suite includes **25 exhaustive tests**:
+The v2.2 test suite includes **32 exhaustive tests**:
 
-- **Pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions, **built-ins**, **stdlib**.
-- **Fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, **argument count errors**.
+- **Pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions, built-ins, stdlib, **traits**, **impl blocks**, **exhaustive matches**, **field access**.
+- **Fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, argument count errors, **missing trait methods**, **trait bound violations**, **undefined traits**.
 
 ---
 
@@ -217,6 +234,7 @@ The v2.1 test suite includes **25 exhaustive tests**:
 
 | Version | Tag            | Description                         |
 | :------ | :------------- | :---------------------------------- |
+| v2.2.0  | `v2.2.0`       | Type System Hardening & Traits      |
 | v2.1.0  | `v2.1.0`       | Standard Library & Builtins         |
 | v2.0.0  | `v2.0.0`       | AOT compiled ML language            |
 | v1.4.0  | `v1.4.0-final` | Bytecode VM (on `v1-legacy` branch) |

@@ -1,6 +1,27 @@
-# Ferrite v2.1 — Compiler Architecture
+# Ferrite v2.2 — Compiler Architecture
 
 This document describes the internal architecture of the Ferrite v2.1 AOT compiler.
+
+---
+
+## What's New in v2.2
+
+### 🛠️ Trait and Impl Registries
+
+The `TypeEnv` has been heavily expanded to act as the single source of truth for semantic rules. It now includes:
+
+- **Trait Registry**: Stores trait definitions and required method signatures.
+- **Impl Registry**: Stores implementations of traits and inherent methods for specific types.
+- **Group Fields Registry**: Maps group names to their exact field types for perfect `lookup_field` resolution.
+- **Enum Variants Registry**: Maps variant names to their parent enums, allowing variants to be used as global constructor functions.
+
+### 🔄 Operator Dispatch
+
+The semantic analyzer now converts binary expressions (e.g., `+`) into trait method dispatch (`Add.add`). It queries the `TypeEnv` to ensure the type implements the required trait before allowing the operation.
+
+### 🧩 Match Exhaustiveness
+
+Pass 2 of the semantic analyzer now cross-references `match` cases against the `enum_variants` registry. If cases are missing and no wildcard is present, it emits a non-fatal warning using the `DiagnosticBag`.
 
 ---
 
@@ -61,9 +82,9 @@ ferrite/
 │       ├── mod.rs           # TypeEnv, Type enum, unification
 │       └── tensor.rs        # TensorShape, ShapeDim, exact_match()
 ├── tests/
-│   ├── run_tests.sh         # Automated 22-test verification suite
-│   ├── pass_01..10.fe       # Valid programs (must compile)
-│   └── fail_01..12.fe       # Invalid programs (must be rejected)
+│   ├── run_tests.sh         # Automated 32-test verification suite
+│   ├── pass_01..16.fe       # Valid programs (must compile)
+│   └── fail_01..16.fe       # Invalid programs (must be rejected)
 ├── docs/
 │   ├── grammar.ebnf         # Formal EBNF grammar
 │   ├── syntax.md            # Language syntax reference
