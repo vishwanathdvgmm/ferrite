@@ -13,7 +13,11 @@ A statically-typed, ahead-of-time compiled ML programming language — built in 
 5. Done — use `ferrite` from anywhere:
 
 ```bash
-ferrite check program.fe
+# Execute your script directly using the built-in interpreter
+ferrite run program.fe
+
+# Or compile to native code (requires LLVM)
+ferrite compile program.fe
 ```
 
 ---
@@ -165,7 +169,7 @@ from "path" take function_name;
 ## 🏗️ Compiler Architecture
 
 ```
-Source (.fe) → Lexer → Parser → ImportResolver (Asset Bundling) → TypeEnv (Built-ins) → SemanticAnalyzer → LLVM Codegen
+Source (.fe) → Lexer → Parser → ImportResolver (Asset Bundling) → TypeEnv (Built-ins) → SemanticAnalyzer → LLVM Codegen / Tree-Walk Interpreter
 ```
 
 ```
@@ -209,7 +213,7 @@ The v2.2 test suite includes **32 exhaustive tests**:
 
 - **ML-First** — Tensor types, training/inference effects, and shape validation are built into the language core
 - **Strict Typing** — Zero implicit coercion, zero broadcasting, zero runtime reflection
-- **AOT Compiled** — Targets native code via LLVM; no interpreter, no VM
+- **Dual Execution Modes** — Execute scripts immediately via the built-in pure-Rust **Tree-Walk Interpreter**, or compile them ahead-of-time to native binaries via LLVM.
 - **Portable Frontend** — The compiler frontend builds on any Rust target without requiring LLVM installed
 - **Pure Safe Rust** — No `unsafe` code in the compiler
 

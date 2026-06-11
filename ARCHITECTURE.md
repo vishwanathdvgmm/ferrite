@@ -23,6 +23,10 @@ The semantic analyzer now converts binary expressions (e.g., `+`) into trait met
 
 Pass 2 of the semantic analyzer now cross-references `match` cases against the `enum_variants` registry. If cases are missing and no wildcard is present, it emits a non-fatal warning using the `DiagnosticBag`.
 
+### 🚀 Tree-Walk Interpreter
+
+A pure-Rust Tree-Walk interpreter has been added in `src/runtime/` to allow executing AST directly without LLVM. The `ferrite run` command now bypasses LLVM codegen entirely and instead instantiates an `Interpreter` which traverses the checked AST.
+
 ---
 
 ## What's New in v2.1
@@ -69,7 +73,10 @@ ferrite/
 │   ├── parser/
 │   │   └── mod.rs           # Recursive descent parser (~1300 lines)
 │   ├── runtime/
-│   │   └── mod.rs           # Legacy runtime (preserved, unused in v2.0)
+│   │   ├── mod.rs           # Runtime exports
+│   │   ├── value.rs         # Runtime Value Enum
+│   │   ├── environment.rs   # Lexical Scoping
+│   │   └── interpreter.rs   # Recursive AST evaluator
 │   ├── semantic/
 │   │   └── mod.rs           # Scoped AST walker with type enforcement
 │   ├── stdlib/
@@ -157,18 +164,17 @@ ferrite/
               └──────────┬────────────┘
                          │
            ┌─────────────┴─────────────┐
-           │ ferrite check             │ ferrite compile
-           │ → "✅ Type-checking       │ (requires --features llvm)
-           │    successful."           │
-           │                           ▼
-           │              ┌───────────────────────┐
-           │              │  6. LLVM Codegen      │
-           │              │  src/codegen/llvm.rs  │
-           │              │                       │
-           │              │  AST → LLVM IR        │
-           │              │  inkwell bindings     │
-           │              │  Output: .ll file     │
-           │              └───────────────────────┘
+           │ ferrite check             │ ferrite run                 │ ferrite compile
+           │ → "✅ Type-checking       │ → Runs Interpreter          │ (requires --features llvm)
+           │    successful."           │                             │
+           │                           ▼                             ▼
+           │             ┌─────────────────────────┐    ┌───────────────────────┐
+           │             │ 6a. Tree-Walk Runtime   │    │ 6b. LLVM Codegen      │
+           │             │ src/runtime/            │    │ src/codegen/llvm.rs   │
+           │             │                         │    │                       │
+           │             │ AST Evaluator           │    │ AST → LLVM IR         │
+           │             │ Pure Rust               │    │ inkwell bindings      │
+           │             └─────────────────────────┘    └───────────────────────┘
            │
            ▼
          Done

@@ -8,8 +8,13 @@ All notable changes to Ferrite are documented here.
 
 Ferrite v2.2.1 introduces the core architectural shift necessary for robust code reusability: Trait definitions, `impl` blocks, and operator overloading via trait dispatch.
 
+### 🚀 Tree-Walk Interpreter (`ferrite run`)
+
+Because compiling Ferrite ahead-of-time to native binaries requires complex LLVM 15 C++ development libraries, we've introduced a built-in pure-Rust tree-walk interpreter! You can now execute `.fe` scripts immediately without needing a local C++ toolchain via `ferrite run <file.fe>`.
+
 ### Added
-- **`trait` declarations** — Define expected methods and signatures for generic types (`trait Add { fun add(self, other: Self) -> Self; }`).
+
+- **`ferrite run` Interpreter** — Evaluates the checked AST directly in a pure Rust runtime environment.
 - **`impl` blocks** — Standalone implementation blocks for both traits (`impl Add for Point`) and inherent methods (`impl Point`).
 - **Operator Overloading** — `+`, `-`, `*`, `/`, `%` now automatically dispatch to `Add`, `Sub`, `Mul`, `Div`, `Mod` traits respectively for user-defined types.
 - **Match Exhaustiveness** — The semantic analyzer now issues warnings for `match` statements on `enum` types that do not cover all variants.
@@ -27,6 +32,7 @@ Ferrite v2.2.1 introduces the core architectural shift necessary for robust code
 Ferrite v2.1 re-introduces the standard library and core built-in functions, now correctly integrated into the AOT compiler pipeline via embedded asset bundling and refined type unification.
 
 ### Added
+
 - **Embedded Standard Library** — `math`, `strings`, **collections** (`List`, `Map`), and `io` modules are now built into the binary.
 - **Improved Import Resolution** — `import "name"` now resolves both from the filesystem and embedded standard library assets.
 - **Refined Type Unification** — Support for `GenericInst` vs `Named` matches, allowing `List<int>` to be initialized by `List { ... }` group literals.
@@ -36,6 +42,7 @@ Ferrite v2.1 re-introduces the standard library and core built-in functions, now
 - **25-Test Suite** — Expanded verification covering built-ins, stdlib imports, and argument arity checking.
 
 ### Changed
+
 - **Binary Distribution** — The release binary is now named simply `ferrite.exe` for easier system PATH integration.
 - **`init()` → `zeros()`** — Consistent naming for tensor zero-initialization stub.
 - **`ImportResolver`** — Now uses an internal virtual path system `<stdlib::name>` to prevent collisions with user files.
@@ -49,6 +56,7 @@ Ferrite v2.1 re-introduces the standard library and core built-in functions, now
 Ferrite v2.0 is a ground-up rewrite from a dynamically-typed bytecode VM interpreter to a statically-typed, ahead-of-time compiled ML programming language.
 
 ### Added
+
 - **Static Type System** — `int`, `float`, `bool`, `string`, `Tensor<T, shape>`, generics, `Unit`, `Never`
 - **Tensor Types** — `Tensor<float, (784, 128)>` with compile-time shape validation
 - **Structural Unification** — strict `unify(expected, actual)` with zero implicit coercion
@@ -66,6 +74,7 @@ Ferrite v2.0 is a ground-up rewrite from a dynamically-typed bytecode VM interpr
 - **ANSI Diagnostics** — colored error output with source line display and carets
 
 ### Changed
+
 - **`fn` → `fun`** for function declarations
 - **`let` → `keep`** for local variable declarations
 - **`break` → `stop`**, **`continue` → `skip`** for loop control
@@ -73,6 +82,7 @@ Ferrite v2.0 is a ground-up rewrite from a dynamically-typed bytecode VM interpr
 - **All variables require type annotations** — `keep x: int = 5;`
 
 ### Removed
+
 - Bytecode VM (`src/runtime/vm.rs`, `src/codegen/compiler.rs`, `src/codegen/opcodes.rs`)
 - Dynamic typing — no `null`, no truthiness, no runtime type checks
 - F-strings and string interpolation
@@ -92,6 +102,7 @@ Ferrite v2.0 is a ground-up rewrite from a dynamically-typed bytecode VM interpr
 Complete transition from tree-walking interpreter to stack-based bytecode VM.
 
 ### Added
+
 - Bytecode compiler and stack-based VM
 - Semantic resolver for static variable resolution
 - Embedded standard library (no external files needed)
@@ -113,6 +124,7 @@ Complete transition from tree-walking interpreter to stack-based bytecode VM.
 Single-file tree-walking interpreter.
 
 ### Added
+
 - Dynamically-typed scripting language
 - Recursive descent parser with Pratt expression parsing
 - `if`/`else if`/`else`, `while`, `for`, `match` control flow

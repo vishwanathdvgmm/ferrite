@@ -1,1 +1,3 @@
-// Ferrite v2.0 — Runtime (placeholder, will be fully rewritten in Step 9)
+pub mod environment;
+pub mod interpreter;
+pub mod value;

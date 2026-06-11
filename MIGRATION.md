@@ -2,11 +2,15 @@
 
 This document covers major changes and migration steps between Ferrite versions.
 
-## Migrating from Ferrite v2.1 to v2.2
+## Migrating from Ferrite v2.1 to v2.2.1
 
-Ferrite v2.2 introduces full trait support and strict trait bound enforcement.
+Ferrite v2.2.1 introduces full trait support, strict trait bound enforcement, and a new tree-walk interpreter.
 
-### 1. Operator Overloading
+### 1. Tree-Walk Interpreter
+
+You can now use `ferrite run script.fe` to execute your programs without needing the LLVM C++ toolchain installed on your machine. This is a massive shift for Windows users who may not have Visual Studio C++ libraries installed.
+
+### 2. Operator Overloading
 
 Operators (`+`, `-`, `*`, `/`, `%`) on user-defined types now strictly require the implementation of corresponding traits (`Add`, `Sub`, `Mul`, `Div`, `Mod`).
 

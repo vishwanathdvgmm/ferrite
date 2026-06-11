@@ -17,6 +17,7 @@ fn main() {
 
     let version_str = "Ferrite v2.2.1 Compiler (AOT ML Language)";
     let usage_str = "Usage:
+  ferrite run     <file.fe>   # Execute via Tree-Walk Interpreter
   ferrite check   <file.fe>   # Parse and Type-check only
   ferrite compile <file.fe>   # Compile to native LLVM IR / Object
   ferrite --version           # Print compiler version
@@ -69,6 +70,19 @@ fn main() {
         if cmd == "check" {
             println!("✅ Type-checking successful.");
             return;
+        } else if cmd == "run" {
+            let mut interpreter = runtime::interpreter::Interpreter::new();
+            match interpreter.run_program(&merged_ast) {
+                Ok(val) => {
+                    if val != runtime::value::Value::Unit {
+                        println!("{}", val);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Runtime Error: {}", e);
+                    std::process::exit(1);
+                }
+            }
         } else if cmd == "compile" {
             #[cfg(feature = "llvm")]
             {

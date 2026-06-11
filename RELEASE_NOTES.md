@@ -4,6 +4,14 @@ Welcome to **Ferrite v2.2.1** 🚀 — The **"Type System Hardening & Traits"** 
 
 ---
 
+## 🚀 Tree-Walk Interpreter (`ferrite run`)
+
+Because compiling Ferrite ahead-of-time to native binaries requires complex LLVM 15 C++ development libraries, we've introduced a built-in pure-Rust tree-walk interpreter! You can now execute `.fe` scripts immediately without needing a local C++ toolchain.
+
+```bash
+ferrite run script.fe
+```
+
 ## 🛠️ Traits and `impl` Blocks
 
 Ferrite v2.2 introduces full support for defining and implementing traits, enabling robust generic programming and method dispatch.
@@ -301,32 +309,32 @@ The biggest change is internal. Ferrite now compiles your scripts into optimized
 ## What's New in v1.4.0?
 
 - 📦 **Embedded Standard Library**
-    - **No external files needed!** All standard modules are now statically embedded directly into the Ferrite binary from `src/stdlib/`.
-    - **Unified Module Loading**: `import "mathutils"` or `import "std/mathutils"` works automatically.
-    - **`mathutils`**: `clamp`, `lerp`, `fibonacci`, `is_prime`, `gcd`, `factorial`.
-    - **`strings`**: `repeat_str`, `pad_left`, `capitalize`, `title_case`, `is_numeric`.
-    - **`collections`**: `flatten`, `chunk`, `unique`, `group_by`, `any`, `all`.
-    - **`functional`**: `compose`, `pipe`, `partial`, `memoize`.
+  - **No external files needed!** All standard modules are now statically embedded directly into the Ferrite binary from `src/stdlib/`.
+  - **Unified Module Loading**: `import "mathutils"` or `import "std/mathutils"` works automatically.
+  - **`mathutils`**: `clamp`, `lerp`, `fibonacci`, `is_prime`, `gcd`, `factorial`.
+  - **`strings`**: `repeat_str`, `pad_left`, `capitalize`, `title_case`, `is_numeric`.
+  - **`collections`**: `flatten`, `chunk`, `unique`, `group_by`, `any`, `all`.
+  - **`functional`**: `compose`, `pipe`, `partial`, `memoize`.
 
 - 🛡️ **Robust Error Handling (`try/catch/throw`)**
-    - Scripts no longer panic the Rust runtime. Errors like division by zero or invalid operations are caught and localized.
-    - Deep stack propagation: Errors can be thrown from anywhere and caught at any level.
-    - Custom exceptions: `throw {"code": 404, "msg": "Not Found"}`.
+  - Scripts no longer panic the Rust runtime. Errors like division by zero or invalid operations are caught and localized.
+  - Deep stack propagation: Errors can be thrown from anywhere and caught at any level.
+  - Custom exceptions: `throw {"code": 404, "msg": "Not Found"}`.
 
 - ✨ **F-Strings (String Interpolation)**
-    - Python-style interpolation: `let msg = f"Hello {name}, you are version {v}";`.
+  - Python-style interpolation: `let msg = f"Hello {name}, you are version {v}";`.
 
 - 📂 **File I/O**
-    - Full support for `read_file`, `write_file`, `append_file`, and `file_exists`.
+  - Full support for `read_file`, `write_file`, `append_file`, and `file_exists`.
 
 - 🧩 **Advanced Syntax & Unpacking**
-    - **Variadic Functions**: `fn log(level, ...messages)`.
-    - **Destructuring**: `let [a, b, ...rest] = [1, 2, 3, 4]`.
-    - **Object Unpacking**: `let { name, age } = user`.
-    - **Null Coalescing**: `let port = config["port"] ?? 8080`.
+  - **Variadic Functions**: `fn log(level, ...messages)`.
+  - **Destructuring**: `let [a, b, ...rest] = [1, 2, 3, 4]`.
+  - **Object Unpacking**: `let { name, age } = user`.
+  - **Null Coalescing**: `let port = config["port"] ?? 8080`.
 
 - 🔄 **Stateful Closures**
-    - Functions now capture their environment via `Rc<RefCell<HashMap>>`, allowing counters and complex shared state across calls.
+  - Functions now capture their environment via `Rc<RefCell<HashMap>>`, allowing counters and complex shared state across calls.
 
 ---
 
