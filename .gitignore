@@ -5,3 +5,5 @@ release/
 *.bak
 *.py
 implementation_plan.md
+*.iss
+Output/

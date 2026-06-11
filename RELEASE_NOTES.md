@@ -1,6 +1,6 @@
-# Ferrite v2.2.0 Release Notes
+# Ferrite v2.2.1 Release Notes
 
-Welcome to **Ferrite v2.2.0** 🚀 — The **"Type System Hardening & Traits"** update. This release brings robust code reusability through trait definitions, impl blocks, and operator overloading.
+Welcome to **Ferrite v2.2.1** 🚀 — The **"Type System Hardening & Traits"** update. This release brings robust code reusability through trait definitions, impl blocks, and operator overloading.
 
 ---
 

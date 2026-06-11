@@ -2,11 +2,11 @@
 
 All notable changes to Ferrite are documented here.
 
-## [2.2.0] — 2026-06-11
+## [2.2.1] — 2026-06-11
 
 ### 🛠️ Type System Hardening & Traits
 
-Ferrite v2.2.0 introduces the core architectural shift necessary for robust code reusability: Trait definitions, `impl` blocks, and operator overloading via trait dispatch.
+Ferrite v2.2.1 introduces the core architectural shift necessary for robust code reusability: Trait definitions, `impl` blocks, and operator overloading via trait dispatch.
 
 ### Added
 - **`trait` declarations** — Define expected methods and signatures for generic types (`trait Add { fun add(self, other: Self) -> Self; }`).

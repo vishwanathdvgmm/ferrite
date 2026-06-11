@@ -234,7 +234,7 @@ The v2.2 test suite includes **32 exhaustive tests**:
 
 | Version | Tag            | Description                         |
 | :------ | :------------- | :---------------------------------- |
-| v2.2.0  | `v2.2.0`       | Type System Hardening & Traits      |
+| v2.2.1  | `v2.2.1`       | Type System Hardening & Traits      |
 | v2.1.0  | `v2.1.0`       | Standard Library & Builtins         |
 | v2.0.0  | `v2.0.0`       | AOT compiled ML language            |
 | v1.4.0  | `v1.4.0-final` | Bytecode VM (on `v1-legacy` branch) |

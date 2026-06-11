@@ -15,11 +15,26 @@ use std::path::PathBuf;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
+    let version_str = "Ferrite v2.2.1 Compiler (AOT ML Language)";
+    let usage_str = "Usage:
+  ferrite check   <file.fe>   # Parse and Type-check only
+  ferrite compile <file.fe>   # Compile to native LLVM IR / Object
+  ferrite --version           # Print compiler version
+  ferrite --help              # Print this help message";
+
+    if args.len() == 2 {
+        let arg = &args[1];
+        if arg == "--version" || arg == "-V" || arg == "-v" {
+            println!("{}", version_str);
+            return;
+        } else if arg == "--help" || arg == "-h" {
+            println!("{}\n\n{}", version_str, usage_str);
+            return;
+        }
+    }
+
     if args.len() < 3 {
-        println!("Ferrite v2.1 Compiler (AOT ML Language)");
-        println!("Usage:");
-        println!("  ferrite check   <file.fe>   # Parse and Type-check only");
-        println!("  ferrite compile <file.fe>   # Compile to native LLVM IR / Object");
+        println!("{}\n\n{}", version_str, usage_str);
         return;
     }
 
