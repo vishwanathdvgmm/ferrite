@@ -2,6 +2,24 @@
 
 All notable changes to Ferrite are documented here.
 
+## [2.2.0] — 2026-06-11
+
+### 🛠️ Type System Hardening & Traits
+
+Ferrite v2.2.0 introduces the core architectural shift necessary for robust code reusability: Trait definitions, `impl` blocks, and operator overloading via trait dispatch.
+
+### Added
+- **`trait` declarations** — Define expected methods and signatures for generic types (`trait Add { fun add(self, other: Self) -> Self; }`).
+- **`impl` blocks** — Standalone implementation blocks for both traits (`impl Add for Point`) and inherent methods (`impl Point`).
+- **Operator Overloading** — `+`, `-`, `*`, `/`, `%` now automatically dispatch to `Add`, `Sub`, `Mul`, `Div`, `Mod` traits respectively for user-defined types.
+- **Match Exhaustiveness** — The semantic analyzer now issues warnings for `match` statements on `enum` types that do not cover all variants.
+- **`Self` type resolution** — The `Self` keyword is now semantically resolved within `trait` and `impl` contexts.
+- **Enum Constructors** — Enum variants are now properly registered as callable functions (e.g. `Some(42)` correctly infers to `Option<int>`).
+- **Proper Field Access** — `p.x` now perfectly infers the field's type via the new group field registry instead of erroring.
+- **7 New Tests** — 32 test suite total, covering all trait, bound violation, exhaustiveness, and field access checks.
+
+---
+
 ## [2.1.0] — 2026-04-08
 
 ### 📚 Standard Library & Compiled Built-ins

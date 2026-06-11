@@ -21,6 +21,8 @@ pub enum TopDecl {
     Group(GroupDecl),
     Enum(EnumDecl),
     Func(FuncDecl),
+    Trait(TraitDecl),
+    Impl(ImplBlock),
 }
 
 // ── Imports ──────────────────────────────────────────────────────
@@ -175,6 +177,40 @@ pub struct EnumVariant {
     pub span: Span,
 }
 
+// ── Traits ───────────────────────────────────────────────────────
+// trait Add { fun add(self, other: Self) -> Self; }
+
+#[derive(Debug, Clone)]
+pub struct TraitDecl {
+    pub name: String,
+    pub generics: Vec<GenericParam>,
+    pub methods: Vec<TraitMethodSig>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct TraitMethodSig {
+    pub name: String,
+    pub has_self: bool,
+    pub params: Vec<Param>,
+    pub return_type: Option<Type>,
+    pub span: Span,
+}
+
+// ── Impl Blocks ──────────────────────────────────────────────────
+// impl Add for Point { fun add(self, other: Point) -> Point { ... } }
+// impl Point { fun translate(self, dx: float) -> Point { ... } }
+
+#[derive(Debug, Clone)]
+pub struct ImplBlock {
+    pub trait_name: Option<String>,
+    pub target_type: String,
+    pub generics: Vec<GenericParam>,
+    pub where_clause: Vec<Constraint>,
+    pub methods: Vec<MethodDecl>,
+    pub span: Span,
+}
+
 // ── Functions ────────────────────────────────────────────────────
 // fun add(a: int, b: int) -> int { ... }
 
@@ -219,6 +255,8 @@ pub enum Type {
     },
     /// User-defined type name
     Named(String, Span),
+    /// Self type (used in traits and impl blocks)
+    SelfType(Span),
 }
 
 #[derive(Debug, Clone, PartialEq)]

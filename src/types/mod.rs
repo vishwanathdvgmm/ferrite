@@ -22,6 +22,7 @@ pub enum Type {
     Unit,                           // () function return
     Never,                          // Type of `stop` or `skip` or divergent branches
     Error,                          // Represents a failed type check to prevent cascading errors
+    SelfType,                       // Resolves to implementing type inside trait/impl blocks
 }
 
 impl fmt::Display for Type {
@@ -53,6 +54,7 @@ impl fmt::Display for Type {
             Type::Unit => write!(f, "()"),
             Type::Never => write!(f, "!"),
             Type::Error => write!(f, "<error>"),
+            Type::SelfType => write!(f, "Self"),
         }
     }
 }
@@ -75,6 +77,64 @@ impl Type {
             _ => self.clone(),
         }
     }
+
+    /// Replace `SelfType` with the given concrete type.
+    pub fn resolve_self(&self, concrete: &Type) -> Type {
+        match self {
+            Type::SelfType => concrete.clone(),
+            Type::GenericInst(name, args) => {
+                let new_args = args.iter().map(|a| a.resolve_self(concrete)).collect();
+                Type::GenericInst(name.clone(), new_args)
+            }
+            Type::Tensor(elem, shape) => {
+                Type::Tensor(Box::new(elem.resolve_self(concrete)), shape.clone())
+            }
+            Type::Func(params, ret) => {
+                let new_params = params.iter().map(|p| p.resolve_self(concrete)).collect();
+                Type::Func(new_params, Box::new(ret.resolve_self(concrete)))
+            }
+            _ => self.clone(),
+        }
+    }
+}
+
+// ── Trait Definitions ─────────────────────────────────────────────
+
+#[derive(Debug, Clone)]
+pub struct TraitDef {
+    pub name: String,
+    pub method_sigs: Vec<TraitMethodDef>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TraitMethodDef {
+    pub name: String,
+    pub param_types: Vec<Type>, // excluding self
+    pub return_type: Type,
+    pub has_self: bool,
+}
+
+// ── Impl Definitions ──────────────────────────────────────────────
+
+#[derive(Debug, Clone)]
+pub struct ImplDef {
+    pub trait_name: Option<String>, // None = inherent impl
+    pub target_type: String,
+    pub method_names: Vec<String>,
+}
+
+// ── Operator → Trait Mapping ──────────────────────────────────────
+
+use crate::ast::BinOp;
+
+pub fn operator_trait(op: &BinOp) -> Option<&'static str> {
+    match op {
+        BinOp::Add => Some("Add"),
+        BinOp::Sub => Some("Sub"),
+        BinOp::Mul => Some("Mul"),
+        BinOp::Div => Some("Div"),
+        _ => None,
+    }
 }
 
 // ── Type Environment ─────────────────────────────────────────────
@@ -85,6 +145,11 @@ pub struct TypeEnv<'a> {
     // Global struct/enum declarations for type validation
     pub types: HashMap<String, Type>,
     pub active_generics: Vec<String>,
+    // v2.2: Trait & impl registries
+    pub traits: HashMap<String, TraitDef>,
+    pub impls: Vec<ImplDef>,
+    pub group_fields: HashMap<String, Vec<(String, Type)>>,
+    pub enum_variants: HashMap<String, Vec<(String, Vec<Type>)>>,
 }
 
 impl<'a> TypeEnv<'a> {
@@ -137,6 +202,10 @@ impl<'a> TypeEnv<'a> {
             scopes: vec![globals],
             types: HashMap::new(),
             active_generics: Vec::new(),
+            traits: HashMap::new(),
+            impls: Vec::new(),
+            group_fields: HashMap::new(),
+            enum_variants: HashMap::new(),
         }
     }
 
@@ -190,6 +259,85 @@ impl<'a> TypeEnv<'a> {
         }
     }
 
+    // ── Trait Registry ──────────────────────────────────────────
+
+    pub fn register_trait(&mut self, name: String, def: TraitDef, span: &Span) {
+        if self.traits.contains_key(&name) {
+            self.diag.error(
+                span.clone(),
+                format!("Trait '{}' is already defined.", name),
+            );
+        } else {
+            self.traits.insert(name, def);
+        }
+    }
+
+    pub fn register_impl(&mut self, impl_def: ImplDef, span: &Span) {
+        // Validate trait existence if this is a trait impl
+        if let Some(ref trait_name) = impl_def.trait_name {
+            if let Some(trait_def) = self.traits.get(trait_name).cloned() {
+                // Check that all required methods are implemented
+                for required_method in &trait_def.method_sigs {
+                    if !impl_def.method_names.contains(&required_method.name) {
+                        self.diag.error(
+                            span.clone(),
+                            format!(
+                                "Missing method '{}' required by trait '{}' for type '{}'.",
+                                required_method.name, trait_name, impl_def.target_type
+                            ),
+                        );
+                    }
+                }
+            } else {
+                self.diag.error(
+                    span.clone(),
+                    format!("Trait '{}' is not defined.", trait_name),
+                );
+            }
+        }
+        self.impls.push(impl_def);
+    }
+
+    pub fn has_trait_impl(&self, type_name: &str, trait_name: &str) -> bool {
+        self.impls.iter().any(|imp| {
+            imp.target_type == type_name && imp.trait_name.as_deref() == Some(trait_name)
+        })
+    }
+
+    // ── Group & Enum Registry ───────────────────────────────────
+
+    pub fn register_group_fields(&mut self, name: String, fields: Vec<(String, Type)>) {
+        self.group_fields.insert(name, fields);
+    }
+
+    pub fn register_enum_variants(&mut self, name: String, variants: Vec<(String, Vec<Type>)>) {
+        self.enum_variants.insert(name, variants);
+    }
+
+    pub fn lookup_field(&self, type_name: &str, field_name: &str) -> Option<Type> {
+        // Check group fields
+        if let Some(fields) = self.group_fields.get(type_name) {
+            for (fname, ftype) in fields {
+                if fname == field_name {
+                    return Some(ftype.clone());
+                }
+            }
+        }
+        None
+    }
+
+    /// Look up a method registered on a type via impl blocks or inline group methods.
+    /// Returns the function type if found.
+    pub fn lookup_method(&self, type_name: &str, method_name: &str) -> Option<Type> {
+        // Check variable scope for methods registered as functions like "TypeName::method"
+        // We don't use namespaced names in the current simple model.
+        // Instead, methods are found from impl blocks' method signatures.
+        // For now, return None — the semantic analyzer handles method calls through field access.
+        let _ = type_name;
+        let _ = method_name;
+        None
+    }
+
     // ── AST Resolution ──────────────────────────────────────────
 
     /// Resolves an AST Type into a strictly typed canonical `Type`.
@@ -240,6 +388,7 @@ impl<'a> TypeEnv<'a> {
                 let resolved_args = args.iter().map(|a| self.resolve_ast_type(a)).collect();
                 Type::GenericInst(name.clone(), resolved_args)
             }
+            AstType::SelfType(_) => Type::SelfType,
         }
     }
 
@@ -263,6 +412,10 @@ impl<'a> TypeEnv<'a> {
         }
         if expected == &Type::Never || actual == &Type::Never {
             return true; // Never unifies with everything
+        }
+        // SelfType unifies with anything (will be resolved contextually)
+        if expected == &Type::SelfType || actual == &Type::SelfType {
+            return true;
         }
 
         match (expected, actual) {

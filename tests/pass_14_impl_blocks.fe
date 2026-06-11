@@ -1,0 +1,34 @@
+// Test: Standalone impl blocks (inherent impls) — methods defined outside the group body
+
+group Circle {
+    radius: float;
+}
+
+impl Circle {
+    fun circle_area(self) -> float {
+        return 3.14159 * self.radius * self.radius;
+    }
+
+    fun diameter(self) -> float {
+        return 2.0 * self.radius;
+    }
+}
+
+group Rectangle {
+    width: float;
+    height: float;
+}
+
+impl Rectangle {
+    fun rect_area(self) -> float {
+        return self.width * self.height;
+    }
+}
+
+fun main() {
+    keep c: Circle = Circle { radius: 5.0 };
+    keep r: Rectangle = Rectangle { width: 3.0, height: 4.0 };
+    keep a1: float = circle_area(c);
+    keep a2: float = rect_area(r);
+    keep d: float = diameter(c);
+}

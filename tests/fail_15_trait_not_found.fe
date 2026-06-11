@@ -1,0 +1,14 @@
+// FAIL: Trying to implement a trait that doesn't exist
+// Expected error: "is not defined"
+
+group Foo {
+    x: int;
+}
+
+impl Bar for Foo {
+    fun do_something(self) {}
+}
+
+fun main() {
+    keep f: Foo = Foo { x: 1 };
+}

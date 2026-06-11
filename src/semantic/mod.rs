@@ -1,12 +1,14 @@
 use crate::ast::*;
 
-use crate::types::{Type, TypeEnv};
+use crate::types::{operator_trait, ImplDef, TraitDef, TraitMethodDef, Type, TypeEnv};
 
 pub struct SemanticAnalyzer<'a, 'b> {
     env: &'b mut TypeEnv<'a>,
     in_loop: bool,
     in_func: bool,
     current_return_type: Option<Type>,
+    /// The type being implemented in the current `impl` block (for resolving `Self`)
+    current_self_type: Option<Type>,
 }
 
 impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
@@ -16,20 +18,85 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
             in_loop: false,
             in_func: false,
             current_return_type: None,
+            current_self_type: None,
         }
     }
 
     pub fn analyze_program(&mut self, program: &Program) {
-        // Pass 1: Declare all top-level types (Groups, Enums) and Functions
+        // Pass 1: Declare all top-level types (Groups, Enums), Functions, Traits, Impls
         for decl in &program.decls {
             match decl {
                 TopDecl::Group(g) => {
                     self.env
                         .declare_type(g.name.clone(), Type::Named(g.name.clone()), &g.span);
+
+                    // Register group fields for field access resolution
+                    let fields: Vec<(String, Type)> = g
+                        .fields
+                        .iter()
+                        .map(|f| {
+                            let ty = self.env.resolve_ast_type(&f.ty);
+                            (f.name.clone(), ty)
+                        })
+                        .collect();
+                    self.env.register_group_fields(g.name.clone(), fields);
+
+                    // Register inline group methods as impl methods
+                    for method in &g.methods {
+                        let ret_ty = match &method.return_type {
+                            Some(t) => self.env.resolve_ast_type(t),
+                            None => Type::Unit,
+                        };
+                        let mut param_tys: Vec<Type> = method
+                            .params
+                            .iter()
+                            .map(|p| self.env.resolve_ast_type(&p.ty))
+                            .collect();
+                        if method.has_self {
+                            param_tys.insert(0, Type::Named(g.name.clone()));
+                        }
+                        let func_ty = Type::Func(param_tys, Box::new(ret_ty));
+                        // Register as a global function for now (simple dispatch)
+                        self.env
+                            .declare_var(method.name.clone(), func_ty, &method.span);
+                    }
                 }
                 TopDecl::Enum(e) => {
                     self.env
                         .declare_type(e.name.clone(), Type::Named(e.name.clone()), &e.span);
+
+                    // Register enum variants
+                    let variants: Vec<(String, Vec<Type>)> = e
+                        .variants
+                        .iter()
+                        .map(|v| {
+                            let field_tys: Vec<Type> = v
+                                .fields
+                                .iter()
+                                .map(|t| self.env.resolve_ast_type(t))
+                                .collect();
+                            (v.name.clone(), field_tys)
+                        })
+                        .collect();
+                    self.env
+                        .register_enum_variants(e.name.clone(), variants.clone());
+
+                    // Register each variant as a constructor function
+                    for (vname, vtypes) in &variants {
+                        if vtypes.is_empty() {
+                            // Unit variant — register as a named constant
+                            self.env.declare_var(
+                                vname.clone(),
+                                Type::Named(e.name.clone()),
+                                &e.span,
+                            );
+                        } else {
+                            // Constructor variant — register as a function
+                            let func_ty =
+                                Type::Func(vtypes.clone(), Box::new(Type::Named(e.name.clone())));
+                            self.env.declare_var(vname.clone(), func_ty, &e.span);
+                        }
+                    }
                 }
                 TopDecl::Constant(c) => {
                     let ty = self.env.resolve_ast_type(&c.ty);
@@ -63,6 +130,72 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
 
                     let func_ty = Type::Func(param_tys, Box::new(ret_ty));
                     self.env.declare_var(f.name.clone(), func_ty, &f.span);
+                }
+                TopDecl::Trait(t) => {
+                    // Register trait definition
+                    let method_sigs: Vec<TraitMethodDef> = t
+                        .methods
+                        .iter()
+                        .map(|m| {
+                            let param_types: Vec<Type> = m
+                                .params
+                                .iter()
+                                .map(|p| self.env.resolve_ast_type(&p.ty))
+                                .collect();
+                            let return_type = match &m.return_type {
+                                Some(ty) => self.env.resolve_ast_type(ty),
+                                None => Type::Unit,
+                            };
+                            TraitMethodDef {
+                                name: m.name.clone(),
+                                param_types,
+                                return_type,
+                                has_self: m.has_self,
+                            }
+                        })
+                        .collect();
+                    let trait_def = TraitDef {
+                        name: t.name.clone(),
+                        method_sigs,
+                    };
+                    self.env.register_trait(t.name.clone(), trait_def, &t.span);
+                }
+                TopDecl::Impl(imp) => {
+                    // Register impl definition — validate trait methods are present
+                    let method_names: Vec<String> =
+                        imp.methods.iter().map(|m| m.name.clone()).collect();
+                    let impl_def = ImplDef {
+                        trait_name: imp.trait_name.clone(),
+                        target_type: imp.target_type.clone(),
+                        method_names,
+                    };
+                    self.env.register_impl(impl_def, &imp.span);
+
+                    // Register impl methods as callable functions
+                    let self_type = Type::Named(imp.target_type.clone());
+                    for method in &imp.methods {
+                        let ret_ty = match &method.return_type {
+                            Some(t) => {
+                                let resolved = self.env.resolve_ast_type(t);
+                                resolved.resolve_self(&self_type)
+                            }
+                            None => Type::Unit,
+                        };
+                        let mut param_tys: Vec<Type> = method
+                            .params
+                            .iter()
+                            .map(|p| {
+                                let resolved = self.env.resolve_ast_type(&p.ty);
+                                resolved.resolve_self(&self_type)
+                            })
+                            .collect();
+                        if method.has_self {
+                            param_tys.insert(0, self_type.clone());
+                        }
+                        let func_ty = Type::Func(param_tys, Box::new(ret_ty));
+                        self.env
+                            .declare_var(method.name.clone(), func_ty, &method.span);
+                    }
                 }
                 TopDecl::Import(_) => {}
             }
@@ -124,16 +257,39 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 self.in_func = prev_func;
                 self.current_return_type = prev_ret;
             }
+            TopDecl::Trait(_) => {
+                // Trait method signatures are validated during registration.
+                // No bodies to analyze.
+            }
+            TopDecl::Impl(imp) => {
+                // Analyze each impl method body
+                let prev_self = self.current_self_type.clone();
+                self.current_self_type = Some(Type::Named(imp.target_type.clone()));
+
+                self.env.enter_scope();
+                for method in &imp.methods {
+                    self.analyze_method(method, &imp.target_type);
+                }
+                self.env.exit_scope();
+
+                self.current_self_type = prev_self;
+            }
         }
     }
 
     fn analyze_method(&mut self, method: &MethodDecl, parent_name: &str) {
         let prev_func = self.in_func;
         let prev_ret = self.current_return_type.clone();
+        let prev_self = self.current_self_type.clone();
         self.in_func = true;
+        self.current_self_type = Some(Type::Named(parent_name.to_string()));
 
+        let self_type = Type::Named(parent_name.to_string());
         self.current_return_type = match &method.return_type {
-            Some(t) => Some(self.env.resolve_ast_type(t)),
+            Some(t) => {
+                let resolved = self.env.resolve_ast_type(t);
+                Some(resolved.resolve_self(&self_type))
+            }
             None => Some(Type::Unit),
         };
 
@@ -147,7 +303,9 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
         }
         for param in &method.params {
             let pty = self.env.resolve_ast_type(&param.ty);
-            self.env.declare_var(param.name.clone(), pty, &param.span);
+            let resolved = pty.resolve_self(&self_type);
+            self.env
+                .declare_var(param.name.clone(), resolved, &param.span);
         }
 
         self.analyze_block(&method.body);
@@ -155,6 +313,7 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
 
         self.in_func = prev_func;
         self.current_return_type = prev_ret;
+        self.current_self_type = prev_self;
     }
 
     fn analyze_block(&mut self, block: &Block) {
@@ -261,9 +420,13 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
             Stmt::Match {
                 subject,
                 cases,
-                span: _,
+                span,
             } => {
                 let subject_ty = self.analyze_expr(subject);
+
+                // Exhaustiveness checking for enum types
+                self.check_match_exhaustiveness(&subject_ty, cases, span);
+
                 for case in cases {
                     self.env.enter_scope();
                     self.analyze_pattern(&case.pattern, &subject_ty);
@@ -298,6 +461,81 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
         }
     }
 
+    /// Check if a match statement on an enum type is exhaustive.
+    /// Emits a warning (not error) if variants are missing and no wildcard is present.
+    fn check_match_exhaustiveness(
+        &mut self,
+        subject_ty: &Type,
+        cases: &[MatchCase],
+        span: &crate::errors::Span,
+    ) {
+        let type_name = match subject_ty {
+            Type::Named(name) => name,
+            _ => return, // Only check enums
+        };
+
+        let variants = match self.env.enum_variants.get(type_name) {
+            Some(v) => v.clone(),
+            None => return, // Not an enum type — could be a group, skip
+        };
+
+        // Check if there's a wildcard/default pattern
+        let has_wildcard = cases
+            .iter()
+            .any(|c| matches!(&c.pattern, Pattern::Wildcard(_)));
+        if has_wildcard {
+            return; // Wildcard covers everything
+        }
+
+        // Check if there's a catch-all binding (single variable without constructor)
+        let has_binding_catchall = cases
+            .iter()
+            .any(|c| matches!(&c.pattern, Pattern::Binding(_, _)));
+        if has_binding_catchall {
+            return; // A binding pattern catches everything
+        }
+
+        // Collect matched variant names
+        let matched_variants: Vec<&str> = cases
+            .iter()
+            .filter_map(|c| match &c.pattern {
+                Pattern::Constructor { name, .. } => Some(name.as_str()),
+                Pattern::Binding(name, _) => {
+                    // Check if this binding name is actually a unit variant
+                    if variants.iter().any(|(vn, vf)| vn == name && vf.is_empty()) {
+                        Some(name.as_str())
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            })
+            .collect();
+
+        // Find missing variants
+        let missing: Vec<&String> = variants
+            .iter()
+            .filter(|(vname, _)| !matched_variants.contains(&vname.as_str()))
+            .map(|(vname, _)| vname)
+            .collect();
+
+        if !missing.is_empty() {
+            let missing_list = missing
+                .iter()
+                .map(|s| format!("'{}'", s))
+                .collect::<Vec<_>>()
+                .join(", ");
+            self.env.diag.warning(
+                span.clone(),
+                format!(
+                    "Non-exhaustive match on enum '{}'. Missing variants: {}. \
+                     Consider adding a 'default' case.",
+                    type_name, missing_list
+                ),
+            );
+        }
+    }
+
     fn analyze_pattern(&mut self, pat: &Pattern, subject_ty: &Type) {
         match pat {
             Pattern::Literal(lit) => {
@@ -314,8 +552,67 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 // Create variable for the match
                 self.env.declare_var(name.clone(), subject_ty.clone(), span);
             }
-            Pattern::Constructor { .. } => {} // Validate variant exists
-            Pattern::Struct { .. } => {}      // Validate struct fields
+            Pattern::Constructor { name, fields, span } => {
+                // Validate variant exists and bind inner fields
+                let mut found = false;
+                // Find which enum this variant belongs to
+                for (enum_name, variants) in &self.env.enum_variants.clone() {
+                    for (vname, vtypes) in variants {
+                        if vname == name {
+                            found = true;
+                            // Verify subject type matches enum
+                            self.env
+                                .unify(&Type::Named(enum_name.clone()), subject_ty, span);
+                            // Verify field count
+                            if fields.len() != vtypes.len() {
+                                self.env.diag.error(
+                                    span.clone(),
+                                    format!(
+                                        "Variant '{}' expects {} field(s), but pattern has {}.",
+                                        name,
+                                        vtypes.len(),
+                                        fields.len()
+                                    ),
+                                );
+                            } else {
+                                // Recursively analyze sub-patterns
+                                for (i, field_pat) in fields.iter().enumerate() {
+                                    self.analyze_pattern(field_pat, &vtypes[i]);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    if found {
+                        break;
+                    }
+                }
+                if !found {
+                    self.env
+                        .diag
+                        .error(span.clone(), format!("Unknown enum variant '{}'.", name));
+                }
+            }
+            Pattern::Struct { name, fields, span } => {
+                // Validate struct fields exist
+                self.env.unify(&Type::Named(name.clone()), subject_ty, span);
+                if let Some(group_fields) = self.env.group_fields.get(name).cloned() {
+                    for (fname, fpat) in fields {
+                        let field_ty = group_fields
+                            .iter()
+                            .find(|(n, _)| n == fname)
+                            .map(|(_, t)| t.clone())
+                            .unwrap_or_else(|| {
+                                self.env.diag.error(
+                                    span.clone(),
+                                    format!("Group '{}' has no field '{}'.", name, fname),
+                                );
+                                Type::Error
+                            });
+                        self.analyze_pattern(fpat, &field_ty);
+                    }
+                }
+            }
         }
     }
 
@@ -337,13 +634,29 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 let lty = self.analyze_expr(left);
                 let rty = self.analyze_expr(right);
 
-                // No introspection rules!
-                // e.g., typeof(x) isn't in grammar, but if it were we'd reject it.
-                // Binary ops verify identically matching primitives unless operator is overloaded.
-
                 match op {
                     BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod => {
-                        // Numeric operation requires uniformity or trait implementations
+                        // Check for operator overloading on user-defined types
+                        if let Type::Named(type_name) = &lty {
+                            if let Some(trait_name) = operator_trait(op) {
+                                if self.env.has_trait_impl(type_name, trait_name) {
+                                    // Operator is valid via trait — ensure both operands match
+                                    self.env.unify(&lty, &rty, span);
+                                    return lty;
+                                } else {
+                                    self.env.diag.error(
+                                        span.clone(),
+                                        format!(
+                                            "Type '{}' does not implement trait '{}' required for operator '{}'.",
+                                            type_name, trait_name, op_symbol(op)
+                                        ),
+                                    );
+                                    return Type::Error;
+                                }
+                            }
+                        }
+
+                        // Standard numeric operation
                         if lty == Type::Float || rty == Type::Float {
                             self.env.unify(&Type::Float, &lty, span);
                             self.env.unify(&Type::Float, &rty, span);
@@ -355,7 +668,6 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                         }
                     }
                     BinOp::Lt | BinOp::Gt | BinOp::LtEq | BinOp::GtEq => {
-                        // For phase 1, assume identical types
                         self.env.unify(&lty, &rty, span);
                         Type::Bool
                     }
@@ -435,12 +747,37 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
             }
             Expr::FieldAccess {
                 object,
-                field: _,
-                span: _,
+                field,
+                span,
             } => {
-                let _obj_ty = self.analyze_expr(object);
-                // Look up field in struct definition
-                Type::Error
+                let obj_ty = self.analyze_expr(object);
+
+                match &obj_ty {
+                    Type::Named(type_name) => {
+                        // Look up field in registered group fields
+                        if let Some(field_ty) = self.env.lookup_field(type_name, field) {
+                            field_ty
+                        } else {
+                            // Field not found — might be a method (methods are registered as globals)
+                            // For now, report field not found
+                            if self.env.group_fields.contains_key(type_name) {
+                                self.env.diag.error(
+                                    span.clone(),
+                                    format!("Group '{}' has no field '{}'.", type_name, field),
+                                );
+                            }
+                            Type::Error
+                        }
+                    }
+                    Type::Error => Type::Error,
+                    _ => {
+                        self.env.diag.error(
+                            span.clone(),
+                            format!("Cannot access field '{}' on type '{}'.", field, obj_ty),
+                        );
+                        Type::Error
+                    }
+                }
             }
             Expr::IndexAccess {
                 object,
@@ -522,5 +859,24 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 val_ty
             }
         }
+    }
+}
+
+/// Helper to get the human-readable operator symbol
+fn op_symbol(op: &BinOp) -> &'static str {
+    match op {
+        BinOp::Add => "+",
+        BinOp::Sub => "-",
+        BinOp::Mul => "*",
+        BinOp::Div => "/",
+        BinOp::Mod => "%",
+        BinOp::Eq => "==",
+        BinOp::NotEq => "!=",
+        BinOp::Lt => "<",
+        BinOp::Gt => ">",
+        BinOp::LtEq => "<=",
+        BinOp::GtEq => ">=",
+        BinOp::And => "&&",
+        BinOp::Or => "||",
     }
 }

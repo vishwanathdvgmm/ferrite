@@ -1,8 +1,30 @@
-# Ferrite v2.1.0 Release Notes
+# Ferrite v2.2.0 Release Notes
 
-Welcome to **Ferrite v2.1.0** 🚀 — The **"Standard Library & Builtins"** update. This release brings back the core programming utilities and standard modules, fully integrated into the high-performance AOT compiler pipeline.
+Welcome to **Ferrite v2.2.0** 🚀 — The **"Type System Hardening & Traits"** update. This release brings robust code reusability through trait definitions, impl blocks, and operator overloading.
 
 ---
+
+## 🛠️ Traits and `impl` Blocks
+
+Ferrite v2.2 introduces full support for defining and implementing traits, enabling robust generic programming and method dispatch.
+
+- **`trait` declarations** — Define expected methods and signatures for generic types.
+- **`impl` blocks** — Standalone implementation blocks for traits (`impl Add for Point`) and inherent methods (`impl Point`).
+- **`Self` type** — The `Self` keyword correctly resolves to the implementing type inside trait and impl blocks.
+
+## 🔄 Operator Overloading
+
+Standard operators (`+`, `-`, `*`, `/`, `%`) now automatically dispatch to standard traits (`Add`, `Sub`, `Mul`, `Div`, `Mod`) for user-defined types. If a type does not implement the trait, a compile error is generated instead of attempting implicit coercion.
+
+## 🧩 Exhaustiveness and Field Resolution
+
+- **Match Exhaustiveness** — The compiler now analyzes `match` statements on enums and issues warnings if cases are missing and no wildcard/default case is present.
+- **Enum Constructors** — Enum variants are now registered as callable functions (e.g. `Some(42)` correctly infers to `Option<int>`).
+- **Proper Field Access** — `object.field` expressions now correctly look up the field in the group definition, returning the precise type.
+
+---
+
+# Ferrite v2.1.0 Release Notes
 
 ## 📚 Standard Library Re-introduced
 

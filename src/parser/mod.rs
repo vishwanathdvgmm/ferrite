@@ -150,7 +150,9 @@ impl<'a> Parser<'a> {
                 | TokenKind::Select
                 | TokenKind::Return
                 | TokenKind::Stop
-                | TokenKind::Skip => return,
+                | TokenKind::Skip
+                | TokenKind::Trait
+                | TokenKind::Impl => return,
                 _ => {}
             }
             self.advance();
@@ -168,6 +170,10 @@ impl<'a> Parser<'a> {
             self.parse_group_decl().map(TopDecl::Group)
         } else if self.match_token(&[TokenKind::Enum]) {
             self.parse_enum_decl().map(TopDecl::Enum)
+        } else if self.match_token(&[TokenKind::Trait]) {
+            self.parse_trait_decl().map(TopDecl::Trait)
+        } else if self.match_token(&[TokenKind::Impl]) {
+            self.parse_impl_block().map(TopDecl::Impl)
         } else {
             // Function declaration might start with `<`, `infer`, `train`, `async`, or `fun`
             // Let's rely on fact that func starts with `fun` eventually
@@ -373,6 +379,107 @@ impl<'a> Parser<'a> {
         Some(EnumVariant { name, fields, span })
     }
 
+    // ── Trait & Impl Declarations ────────────────────────────────────
+
+    fn parse_trait_decl(&mut self) -> Option<TraitDecl> {
+        let start_span = self.previous().span.clone();
+        let (name, _) = self.consume_ident("Expected trait name.")?;
+        let generics = self.parse_generic_params_opt();
+        self.consume(TokenKind::LBrace, "Expected '{' before trait body.")?;
+
+        let mut methods = Vec::new();
+        while !self.check(&TokenKind::RBrace) && !self.is_at_end() {
+            methods.push(self.parse_trait_method_sig()?);
+        }
+
+        self.consume(TokenKind::RBrace, "Expected '}' after trait body.")?;
+        let end_span = self.previous().span.clone();
+
+        Some(TraitDecl {
+            name,
+            generics,
+            methods,
+            span: self.merge_span(&start_span, &end_span),
+        })
+    }
+
+    fn parse_trait_method_sig(&mut self) -> Option<TraitMethodSig> {
+        let start_span = self.peek().span.clone();
+        self.consume(TokenKind::Fun, "Expected 'fun' in trait method signature.")?;
+        let (name, _) = self.consume_ident("Expected method name.")?;
+        self.consume(TokenKind::LParen, "Expected '(' after method name.")?;
+
+        let mut has_self = false;
+        let mut params = Vec::new();
+
+        if self.match_token(&[TokenKind::SelfKw]) {
+            has_self = true;
+            if self.match_token(&[TokenKind::Comma]) {
+                params = self.parse_params()?;
+            }
+        } else if !self.check(&TokenKind::RParen) {
+            params = self.parse_params()?;
+        }
+        self.consume(TokenKind::RParen, "Expected ')' after method parameters.")?;
+
+        let mut return_type = None;
+        if self.match_token(&[TokenKind::Arrow]) {
+            return_type = Some(self.parse_type()?);
+        }
+
+        self.consume(
+            TokenKind::Semicolon,
+            "Expected ';' after trait method signature.",
+        )?;
+        let end_span = self.previous().span.clone();
+
+        Some(TraitMethodSig {
+            name,
+            has_self,
+            params,
+            return_type,
+            span: self.merge_span(&start_span, &end_span),
+        })
+    }
+
+    fn parse_impl_block(&mut self) -> Option<ImplBlock> {
+        let start_span = self.previous().span.clone();
+
+        // Parse: impl TraitName for TypeName { ... }
+        // or:    impl TypeName { ... }
+        let (first_name, _) = self.consume_ident("Expected type or trait name after 'impl'.")?;
+        let generics = self.parse_generic_params_opt();
+
+        let (trait_name, target_type) = if self.match_token(&[TokenKind::For]) {
+            // impl TraitName for TypeName
+            let (target, _) = self.consume_ident("Expected type name after 'for'.")?;
+            (Some(first_name), target)
+        } else {
+            // impl TypeName (inherent impl)
+            (None, first_name)
+        };
+
+        let where_clause = self.parse_where_clause();
+        self.consume(TokenKind::LBrace, "Expected '{' before impl body.")?;
+
+        let mut methods = Vec::new();
+        while !self.check(&TokenKind::RBrace) && !self.is_at_end() {
+            methods.push(self.parse_method_decl()?);
+        }
+
+        self.consume(TokenKind::RBrace, "Expected '}' after impl body.")?;
+        let end_span = self.previous().span.clone();
+
+        Some(ImplBlock {
+            trait_name,
+            target_type,
+            generics,
+            where_clause,
+            methods,
+            span: self.merge_span(&start_span, &end_span),
+        })
+    }
+
     fn parse_func_decl(&mut self) -> Option<FuncDecl> {
         let start_span = self.peek().span.clone();
 
@@ -463,7 +570,23 @@ impl<'a> Parser<'a> {
             return Some(Type::Primitive(prim, span_start));
         }
 
+        // Self type — only valid inside trait/impl blocks (enforced by semantic analyzer)
+        if self.match_token(&[TokenKind::SelfKw]) {
+            // Check if the previous consumption was actually "Self" (capitalized) vs "self"
+            // Since the lexer maps both to SelfKw, we need to distinguish.
+            // Actually, the lexer maps lowercase "self" to SelfKw.
+            // "Self" (uppercase) would be parsed as Ident("Self").
+            // So we handle it below in the Ident branch instead.
+            // Revert this consumption.
+            self.pos -= 1;
+        }
+
         let (name, span) = self.consume_ident("Expected type name.")?;
+
+        // Handle "Self" as a type
+        if name == "Self" {
+            return Some(Type::SelfType(span));
+        }
 
         if name == "Tensor" {
             self.consume(TokenKind::Lt, "Expected '<' after Tensor.")?;
