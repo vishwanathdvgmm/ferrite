@@ -4,7 +4,7 @@ A statically-typed, ahead-of-time compiled ML programming language — built in 
 
 ---
 
-## 🚀 Quick Start (v2.2)
+## 🚀 Quick Start (v2.3)
 
 1. Download the `ferrite.exe` from releases.
 2. Create a folder named `Ferrite` in your preferred location (e.g., `C:\Ferrite`).
@@ -91,9 +91,9 @@ enum Option<T> {
 }
 
 match value {
-    case 0 => { return "zero"; }
-    case 1 => { return "one"; }
-    default => { return "other"; }
+    case Some(x) if x > 0 => { return "positive"; }
+    case Some(_) => { return "non-positive"; }
+    case None => { return "missing"; }
 }
 ```
 
@@ -202,10 +202,10 @@ See [ARCHITECTURE.md](https://github.com/vishwanathdvgmm/ferrite/blob/main/ARCHI
 
 ## 🧪 Testing
 
-The v2.2 test suite includes **32 exhaustive tests**:
+The v2.3 test suite includes **35 exhaustive tests**:
 
-- **Pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions, built-ins, stdlib, **traits**, **impl blocks**, **exhaustive matches**, **field access**.
-- **Fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, argument count errors, **missing trait methods**, **trait bound violations**, **undefined traits**.
+- **Pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions, built-ins, stdlib, traits, impl blocks, exhaustive matches, field access, **closures**, **guard clauses**, **interpreter control flow**.
+- **Fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, argument count errors, missing trait methods, trait bound violations, undefined traits.
 
 ---
 
@@ -238,6 +238,7 @@ The v2.2 test suite includes **32 exhaustive tests**:
 
 | Version | Tag            | Description                         |
 | :------ | :------------- | :---------------------------------- |
+| v2.3.0  | `v2.3.0`       | Closures, Guards, Interpreter Flow  |
 | v2.2.1  | `v2.2.1`       | Type System Hardening & Traits      |
 | v2.1.0  | `v2.1.0`       | Standard Library & Builtins         |
 | v2.0.0  | `v2.0.0`       | AOT compiled ML language            |

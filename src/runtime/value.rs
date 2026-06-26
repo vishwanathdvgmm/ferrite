@@ -1,4 +1,5 @@
-use crate::ast::FuncDecl;
+use super::environment::Environment;
+use crate::ast::{Expr, FuncDecl, Param};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -10,9 +11,12 @@ pub enum Value {
     Bool(bool),
     String(String),
     Func(FuncDecl),
+    /// A closure captures its lexical environment at creation time.
+    Closure(Vec<Param>, Box<Expr>, Environment),
     Builtin(String),
     Group(String, HashMap<String, Value>),
     Enum(String, String, Vec<Value>),
+    List(Vec<Value>),
     Tensor(Vec<f64>, Vec<i64>), // basic flat tensor for interpreter fallback
 }
 
@@ -25,6 +29,10 @@ impl fmt::Display for Value {
             Value::Bool(b) => write!(f, "{}", b),
             Value::String(s) => write!(f, "{}", s),
             Value::Func(decl) => write!(f, "<fun {}>", decl.name),
+            Value::Closure(params, _, _) => {
+                let param_names: Vec<&str> = params.iter().map(|p| p.name.as_str()).collect();
+                write!(f, "<closure ({})>", param_names.join(", "))
+            }
             Value::Builtin(name) => write!(f, "<builtin {}>", name),
             Value::Group(name, fields) => {
                 write!(f, "{} {{ ", name)?;
@@ -51,6 +59,16 @@ impl fmt::Display for Value {
                     }
                     write!(f, ")")
                 }
+            }
+            Value::List(items) => {
+                write!(f, "[")?;
+                for (i, v) in items.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", v)?;
+                }
+                write!(f, "]")
             }
             Value::Tensor(data, shape) => {
                 write!(f, "Tensor(shape={:?}, data={:?})", shape, data)

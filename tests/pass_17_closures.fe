@@ -1,0 +1,19 @@
+// ── PASS TEST 17: Closures and Lambda Expressions ──
+// Expected: ferrite run → prints closure results
+
+fun main() {
+    // Test 1: Inline lambda call (immediately invoked)
+    keep result: int = ((x: int) => x * 2)(5);
+    println(str(result));
+
+    // Test 2: Lambda capturing outer variable
+    keep offset: int = 100;
+    keep result2: int = ((x: int) => x + offset)(42);
+    println(str(result2));
+
+    // Test 3: Nested lambda with capture
+    keep a: int = 10;
+    keep b: int = 20;
+    keep result3: int = ((x: int) => a + b + x)(5);
+    println(str(result3));
+}

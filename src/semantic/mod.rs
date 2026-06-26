@@ -430,6 +430,11 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 for case in cases {
                     self.env.enter_scope();
                     self.analyze_pattern(&case.pattern, &subject_ty);
+                    // Type-check guard clause if present
+                    if let Some(ref guard) = case.guard {
+                        let guard_ty = self.analyze_expr(guard);
+                        self.env.unify(&Type::Bool, &guard_ty, &guard.span());
+                    }
                     self.analyze_block(&case.body);
                     self.env.exit_scope();
                 }
@@ -656,6 +661,11 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                             }
                         }
 
+                        // String concatenation: string + string -> string
+                        if *op == BinOp::Add && lty == Type::String && rty == Type::String {
+                            return Type::String;
+                        }
+
                         // Standard numeric operation
                         if lty == Type::Float || rty == Type::Float {
                             self.env.unify(&Type::Float, &lty, span);
@@ -818,8 +828,10 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 span: _,
             } => {
                 self.env.enter_scope();
+                let mut param_types = Vec::new();
                 for param in params {
                     let resolved = self.env.resolve_ast_type(&param.ty);
+                    param_types.push(resolved.clone());
                     self.env
                         .declare_var(param.name.clone(), resolved, &param.span);
                 }
@@ -827,16 +839,16 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 let prev_ret = self.current_return_type.clone();
                 let prev_func = self.in_func;
                 self.in_func = true;
-                self.current_return_type = Some(Type::Error); // Stub lambda return type inference
+                self.current_return_type = None; // Lambda return type is inferred from body
 
-                let _body_ty = self.analyze_expr(body);
+                let body_ty = self.analyze_expr(body);
 
                 self.in_func = prev_func;
                 self.current_return_type = prev_ret;
 
                 self.env.exit_scope();
 
-                Type::Error // Needs Function trait type mapping
+                Type::Func(param_types, Box::new(body_ty))
             }
             Expr::GroupLiteral {
                 name,

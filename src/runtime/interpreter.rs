@@ -3,6 +3,20 @@ use super::value::Value;
 use crate::ast::*;
 use std::collections::HashMap;
 
+/// Control flow signals that propagate up through the interpreter.
+/// These allow `return`, `stop` (break), and `skip` (continue) to
+/// correctly unwind through nested blocks.
+enum Signal {
+    /// Normal execution, no control flow change.
+    None,
+    /// A `return` statement was executed with a value.
+    Return(Value),
+    /// A `stop` (break) statement was executed.
+    Break,
+    /// A `skip` (continue) statement was executed.
+    Continue,
+}
+
 pub struct Interpreter {
     pub env: Environment,
 }
@@ -67,7 +81,6 @@ impl Interpreter {
                 TopDecl::Enum(e) => {
                     for v in &e.variants {
                         // Register enum variant constructors
-                        // For a tree-walk interpreter, we just treat them as generic builtins
                         self.env.declare(
                             v.name.clone(),
                             Value::Builtin(format!("enum_{}::{}", e.name, v.name)),
@@ -80,46 +93,62 @@ impl Interpreter {
 
         // Run main
         if let Ok(Value::Func(main_func)) = self.env.get("main") {
-            self.eval_block(&main_func.body)
+            let (val, _) = self.exec_block(&main_func.body)?;
+            Ok(val)
         } else {
             Err("No main function found.".to_string())
         }
     }
 
-    fn eval_block(&mut self, block: &Block) -> Result<Value, String> {
+    // ── Block & Statement Execution ──────────────────────────────
+
+    /// Execute a block, returning (value, signal).
+    fn exec_block(&mut self, block: &Block) -> Result<(Value, Signal), String> {
         self.env.enter_scope();
-        let mut ret = Value::Unit;
+        let mut last_val = Value::Unit;
         for stmt in &block.stmts {
-            match self.eval_stmt(stmt)? {
-                Some(r) => {
-                    ret = r;
-                    break; // Early return encountered
+            let (val, sig) = self.exec_stmt(stmt)?;
+            match sig {
+                Signal::None => {
+                    last_val = val;
                 }
-                None => {}
+                Signal::Return(v) => {
+                    self.env.exit_scope();
+                    return Ok((Value::Unit, Signal::Return(v)));
+                }
+                Signal::Break => {
+                    self.env.exit_scope();
+                    return Ok((Value::Unit, Signal::Break));
+                }
+                Signal::Continue => {
+                    self.env.exit_scope();
+                    return Ok((Value::Unit, Signal::Continue));
+                }
             }
         }
         self.env.exit_scope();
-        Ok(ret)
+        Ok((last_val, Signal::None))
     }
 
-    /// Returns Some(Value) if a return statement was executed, otherwise None
-    fn eval_stmt(&mut self, stmt: &Stmt) -> Result<Option<Value>, String> {
+    /// Execute a statement, returning (value, signal).
+    fn exec_stmt(&mut self, stmt: &Stmt) -> Result<(Value, Signal), String> {
         match stmt {
             Stmt::Keep { name, value, .. } | Stmt::Param { name, value, .. } => {
                 let val = self.eval_expr(value)?;
                 self.env.declare(name.clone(), val);
-                Ok(None)
+                Ok((Value::Unit, Signal::None))
             }
             Stmt::ExprStmt(expr) => {
                 self.eval_expr(expr)?;
-                Ok(None)
+                Ok((Value::Unit, Signal::None))
             }
             Stmt::Return { value, .. } => {
-                if let Some(expr) = value {
-                    Ok(Some(self.eval_expr(expr)?))
+                let ret_val = if let Some(expr) = value {
+                    self.eval_expr(expr)?
                 } else {
-                    Ok(Some(Value::Unit))
-                }
+                    Value::Unit
+                };
+                Ok((Value::Unit, Signal::Return(ret_val)))
             }
             Stmt::If {
                 condition,
@@ -129,63 +158,183 @@ impl Interpreter {
                 ..
             } => {
                 let cond_val = self.eval_expr(condition)?;
-                if let Value::Bool(true) = cond_val {
-                    let ret = self.eval_block(then_block)?;
-                    // We need a better way to propagate returns through blocks.
-                    // For now, if the block returns something other than unit, we propagate it.
-                    if ret != Value::Unit {
-                        return Ok(Some(ret));
-                    }
-                    return Ok(None);
+                if cond_val == Value::Bool(true) {
+                    return self.exec_block(then_block);
                 }
 
                 for (elif_cond, elif_block) in elif_branches {
                     let elif_cond_val = self.eval_expr(elif_cond)?;
-                    if let Value::Bool(true) = elif_cond_val {
-                        let ret = self.eval_block(elif_block)?;
-                        if ret != Value::Unit {
-                            return Ok(Some(ret));
-                        }
-                        return Ok(None);
+                    if elif_cond_val == Value::Bool(true) {
+                        return self.exec_block(elif_block);
                     }
                 }
 
                 if let Some(else_b) = else_block {
-                    let ret = self.eval_block(else_b)?;
-                    if ret != Value::Unit {
-                        return Ok(Some(ret));
-                    }
+                    return self.exec_block(else_b);
                 }
-                Ok(None)
+                Ok((Value::Unit, Signal::None))
             }
             Stmt::While {
                 condition, body, ..
             } => {
                 loop {
                     let cond_val = self.eval_expr(condition)?;
-                    if let Value::Bool(false) = cond_val {
+                    if cond_val != Value::Bool(true) {
                         break;
                     }
-                    let ret = self.eval_block(body)?;
-                    if ret != Value::Unit {
-                        return Ok(Some(ret));
+                    let (_, sig) = self.exec_block(body)?;
+                    match sig {
+                        Signal::Break => break,
+                        Signal::Continue => continue,
+                        Signal::Return(v) => return Ok((Value::Unit, Signal::Return(v))),
+                        Signal::None => {}
                     }
                 }
-                Ok(None)
+                Ok((Value::Unit, Signal::None))
             }
-            Stmt::For { .. } | Stmt::Match { .. } | Stmt::Select { .. } => {
-                Err("For/Match/Select not yet implemented in Tree-Walk Interpreter".to_string())
-            }
-            Stmt::InferBlock(block) | Stmt::TrainBlock(block) => {
-                let ret = self.eval_block(block)?;
-                if ret != Value::Unit {
-                    return Ok(Some(ret));
+            Stmt::For {
+                var,
+                iterable,
+                body,
+                ..
+            } => {
+                let iter_val = self.eval_expr(iterable)?;
+                let items = match iter_val {
+                    Value::List(items) => items,
+                    Value::String(s) => {
+                        // Iterate over characters
+                        s.chars().map(|c| Value::String(c.to_string())).collect()
+                    }
+                    other => {
+                        return Err(format!(
+                            "Cannot iterate over type '{}'. Expected a List or String.",
+                            other
+                        ))
+                    }
+                };
+
+                for item in items {
+                    self.env.enter_scope();
+                    self.env.declare(var.clone(), item);
+                    let (_, sig) = self.exec_block(body)?;
+                    self.env.exit_scope();
+                    match sig {
+                        Signal::Break => break,
+                        Signal::Continue => continue,
+                        Signal::Return(v) => return Ok((Value::Unit, Signal::Return(v))),
+                        Signal::None => {}
+                    }
                 }
-                Ok(None)
+                Ok((Value::Unit, Signal::None))
             }
-            Stmt::Stop(_) | Stmt::Skip(_) => Err("Stop/Skip not implemented".to_string()),
+            Stmt::Match { subject, cases, .. } => {
+                let subject_val = self.eval_expr(subject)?;
+                for case in cases {
+                    self.env.enter_scope();
+                    if self.match_pattern(&case.pattern, &subject_val)? {
+                        // Check guard clause if present
+                        if let Some(ref guard) = case.guard {
+                            let guard_val = self.eval_expr(guard)?;
+                            if guard_val != Value::Bool(true) {
+                                self.env.exit_scope();
+                                continue;
+                            }
+                        }
+                        let (val, sig) = self.exec_block(&case.body)?;
+                        self.env.exit_scope();
+                        return Ok((val, sig));
+                    }
+                    self.env.exit_scope();
+                }
+                Ok((Value::Unit, Signal::None))
+            }
+            Stmt::Select { cases, .. } => {
+                for case in cases {
+                    self.env.enter_scope();
+                    if case.is_default {
+                        let (val, sig) = self.exec_block(&case.body)?;
+                        self.env.exit_scope();
+                        return Ok((val, sig));
+                    }
+                    if let Some((name, expr)) = &case.assignment {
+                        let val = self.eval_expr(expr)?;
+                        if name != "_" {
+                            self.env.declare(name.clone(), val);
+                        }
+                    }
+                    let (val, sig) = self.exec_block(&case.body)?;
+                    self.env.exit_scope();
+                    return Ok((val, sig));
+                }
+                Ok((Value::Unit, Signal::None))
+            }
+            Stmt::InferBlock(block) | Stmt::TrainBlock(block) => self.exec_block(block),
+            Stmt::Stop(_) => Ok((Value::Unit, Signal::Break)),
+            Stmt::Skip(_) => Ok((Value::Unit, Signal::Continue)),
         }
     }
+
+    // ── Pattern Matching ─────────────────────────────────────────
+
+    /// Try to match a value against a pattern.
+    /// If matched, binds variables in the current scope and returns true.
+    fn match_pattern(&mut self, pat: &Pattern, val: &Value) -> Result<bool, String> {
+        match pat {
+            Pattern::Wildcard(_) => Ok(true),
+            Pattern::Binding(name, _) => {
+                self.env.declare(name.clone(), val.clone());
+                Ok(true)
+            }
+            Pattern::Literal(lit) => {
+                let lit_val = match lit {
+                    Literal::Int(n) => Value::Int(*n),
+                    Literal::Float(n) => Value::Float(*n),
+                    Literal::Bool(b) => Value::Bool(*b),
+                    Literal::String(s) => Value::String(s.clone()),
+                };
+                Ok(lit_val == *val)
+            }
+            Pattern::Constructor { name, fields, .. } => {
+                if let Value::Enum(_, variant, values) = val {
+                    if variant != name {
+                        return Ok(false);
+                    }
+                    if fields.len() != values.len() {
+                        return Ok(false);
+                    }
+                    for (sub_pat, sub_val) in fields.iter().zip(values.iter()) {
+                        if !self.match_pattern(sub_pat, sub_val)? {
+                            return Ok(false);
+                        }
+                    }
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+            }
+            Pattern::Struct { name, fields, .. } => {
+                if let Value::Group(group_name, group_fields) = val {
+                    if group_name != name {
+                        return Ok(false);
+                    }
+                    for (fname, fpat) in fields {
+                        if let Some(fval) = group_fields.get(fname) {
+                            if !self.match_pattern(fpat, fval)? {
+                                return Ok(false);
+                            }
+                        } else {
+                            return Ok(false);
+                        }
+                    }
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+            }
+        }
+    }
+
+    // ── Expression Evaluation ────────────────────────────────────
 
     fn eval_expr(&mut self, expr: &Expr) -> Result<Value, String> {
         match expr {
@@ -207,8 +356,20 @@ impl Interpreter {
                         BinOp::Add => Ok(Value::Int(a + b)),
                         BinOp::Sub => Ok(Value::Int(a - b)),
                         BinOp::Mul => Ok(Value::Int(a * b)),
-                        BinOp::Div => Ok(Value::Int(a / b)),
-                        BinOp::Mod => Ok(Value::Int(a % b)),
+                        BinOp::Div => {
+                            if b == 0 {
+                                Err("Division by zero".to_string())
+                            } else {
+                                Ok(Value::Int(a / b))
+                            }
+                        }
+                        BinOp::Mod => {
+                            if b == 0 {
+                                Err("Modulo by zero".to_string())
+                            } else {
+                                Ok(Value::Int(a % b))
+                            }
+                        }
                         BinOp::Eq => Ok(Value::Bool(a == b)),
                         BinOp::NotEq => Ok(Value::Bool(a != b)),
                         BinOp::Lt => Ok(Value::Bool(a < b)),
@@ -260,7 +421,7 @@ impl Interpreter {
                         Value::Bool(b) => Ok(Value::Bool(!b)),
                         _ => Err("Invalid operand for logical NOT".to_string()),
                     },
-                    UnaryOp::Await => Ok(val), // Dummy await
+                    UnaryOp::Await => Ok(val), // Placeholder for future async support
                 }
             }
             Expr::Call { callee, args, .. } => {
@@ -275,12 +436,34 @@ impl Interpreter {
                     Value::Func(decl) => {
                         self.env.enter_scope();
                         for (i, param) in decl.params.iter().enumerate() {
-                            self.env
-                                .declare(param.name.clone(), evaluated_args[i].clone());
+                            if i < evaluated_args.len() {
+                                self.env
+                                    .declare(param.name.clone(), evaluated_args[i].clone());
+                            }
                         }
-                        let ret = self.eval_block(&decl.body)?;
+                        let (ret, sig) = self.exec_block(&decl.body)?;
                         self.env.exit_scope();
-                        Ok(ret)
+                        match sig {
+                            Signal::Return(v) => Ok(v),
+                            _ => Ok(ret),
+                        }
+                    }
+                    Value::Closure(params, body, captured_env) => {
+                        // Save the current environment and swap in the captured one
+                        let saved_env = self.env.clone();
+                        self.env = captured_env;
+                        self.env.enter_scope();
+                        for (i, param) in params.iter().enumerate() {
+                            if i < evaluated_args.len() {
+                                self.env
+                                    .declare(param.name.clone(), evaluated_args[i].clone());
+                            }
+                        }
+                        let result = self.eval_expr(&body);
+                        self.env.exit_scope();
+                        // Restore the original environment
+                        self.env = saved_env;
+                        result
                     }
                     _ => Err("Attempt to call a non-function".to_string()),
                 }
@@ -290,6 +473,41 @@ impl Interpreter {
                 if let Expr::Ident(name, _) = &**target {
                     self.env.assign(name, val.clone())?;
                     Ok(val)
+                } else if let Expr::FieldAccess { object, field, .. } = &**target {
+                    // Field assignment: obj.field = value
+                    if let Expr::Ident(obj_name, _) = &**object {
+                        let obj = self.env.get(obj_name)?;
+                        if let Value::Group(group_name, mut fields_map) = obj {
+                            fields_map.insert(field.clone(), val.clone());
+                            self.env
+                                .assign(obj_name, Value::Group(group_name, fields_map))?;
+                            Ok(val)
+                        } else {
+                            Err("Field assignment on non-group type".to_string())
+                        }
+                    } else {
+                        Err("Complex field assignment target not supported".to_string())
+                    }
+                } else if let Expr::IndexAccess { object, index, .. } = &**target {
+                    // Index assignment: list[i] = value
+                    if let Expr::Ident(obj_name, _) = &**object {
+                        let idx = self.eval_expr(index)?;
+                        let obj = self.env.get(obj_name)?;
+                        if let (Value::List(mut items), Value::Int(i)) = (obj, idx) {
+                            let i = i as usize;
+                            if i < items.len() {
+                                items[i] = val.clone();
+                                self.env.assign(obj_name, Value::List(items))?;
+                                Ok(val)
+                            } else {
+                                Err(format!("Index {} out of bounds (len {})", i, items.len()))
+                            }
+                        } else {
+                            Err("Index assignment on non-list type".to_string())
+                        }
+                    } else {
+                        Err("Complex index assignment target not supported".to_string())
+                    }
                 } else {
                     Err("Complex assignment not supported in simple interpreter".to_string())
                 }
@@ -314,9 +532,46 @@ impl Interpreter {
                     _ => Err("Field access on non-group type".to_string()),
                 }
             }
-            _ => Err("Expression not supported in simple interpreter".to_string()),
+            Expr::IndexAccess { object, index, .. } => {
+                let obj = self.eval_expr(object)?;
+                let idx = self.eval_expr(index)?;
+                match (obj, idx) {
+                    (Value::List(items), Value::Int(i)) => {
+                        let i = i as usize;
+                        if i < items.len() {
+                            Ok(items[i].clone())
+                        } else {
+                            Err(format!("Index {} out of bounds (len {})", i, items.len()))
+                        }
+                    }
+                    (Value::String(s), Value::Int(i)) => {
+                        let i = i as usize;
+                        if i < s.len() {
+                            Ok(Value::String(s.chars().nth(i).unwrap().to_string()))
+                        } else {
+                            Err(format!(
+                                "String index {} out of bounds (len {})",
+                                i,
+                                s.len()
+                            ))
+                        }
+                    }
+                    _ => Err("Indexing not supported for this type".to_string()),
+                }
+            }
+            Expr::Lambda { params, body, .. } => {
+                // Capture the current environment snapshot for the closure
+                let captured_env = self.env.clone();
+                Ok(Value::Closure(
+                    params.clone(),
+                    Box::new(*body.clone()),
+                    captured_env,
+                ))
+            }
         }
     }
+
+    // ── Builtin Function Dispatch ────────────────────────────────
 
     fn execute_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
         match name {
@@ -343,10 +598,14 @@ impl Interpreter {
                 }
             }
             "len" => {
-                if let Some(Value::String(s)) = args.get(0) {
-                    Ok(Value::Int(s.len() as i64))
+                if let Some(val) = args.get(0) {
+                    match val {
+                        Value::String(s) => Ok(Value::Int(s.len() as i64)),
+                        Value::List(items) => Ok(Value::Int(items.len() as i64)),
+                        _ => Err("len() expects a string or list".to_string()),
+                    }
                 } else {
-                    Err("len() expects a string".to_string())
+                    Err("len() expects an argument".to_string())
                 }
             }
             "str" => {
@@ -354,6 +613,51 @@ impl Interpreter {
                     Ok(Value::String(val.to_string()))
                 } else {
                     Err("str() expects an argument".to_string())
+                }
+            }
+            "int" => {
+                if let Some(val) = args.get(0) {
+                    match val {
+                        Value::String(s) => s
+                            .parse::<i64>()
+                            .map(Value::Int)
+                            .map_err(|_| format!("Cannot parse '{}' as int", s)),
+                        Value::Float(f) => Ok(Value::Int(*f as i64)),
+                        Value::Int(n) => Ok(Value::Int(*n)),
+                        _ => Err("int() expects a string, float, or int".to_string()),
+                    }
+                } else {
+                    Err("int() expects an argument".to_string())
+                }
+            }
+            "float" => {
+                if let Some(val) = args.get(0) {
+                    match val {
+                        Value::String(s) => s
+                            .parse::<f64>()
+                            .map(Value::Float)
+                            .map_err(|_| format!("Cannot parse '{}' as float", s)),
+                        Value::Int(n) => Ok(Value::Float(*n as f64)),
+                        Value::Float(f) => Ok(Value::Float(*f)),
+                        _ => Err("float() expects a string, int, or float".to_string()),
+                    }
+                } else {
+                    Err("float() expects an argument".to_string())
+                }
+            }
+            "assert" => {
+                if let Some(Value::Bool(cond)) = args.get(0) {
+                    if !cond {
+                        let msg = args
+                            .get(1)
+                            .map(|v| v.to_string())
+                            .unwrap_or_else(|| "Assertion failed".to_string());
+                        Err(format!("Assertion failed: {}", msg))
+                    } else {
+                        Ok(Value::Unit)
+                    }
+                } else {
+                    Err("assert() expects a bool condition".to_string())
                 }
             }
             "exit" => {

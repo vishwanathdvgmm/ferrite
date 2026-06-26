@@ -345,6 +345,7 @@ pub enum Stmt {
 #[derive(Debug, Clone)]
 pub struct MatchCase {
     pub pattern: Pattern,
+    pub guard: Option<Expr>,
     pub body: Block,
     pub span: Span,
 }

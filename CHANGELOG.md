@@ -2,6 +2,23 @@
 
 All notable changes to Ferrite are documented here.
 
+## [2.3.0] — 2026-06-26
+
+### 🔄 Closures, Guards & Interpreter Control Flow
+
+Ferrite v2.3.0 brings significant enhancements to the tree-walk interpreter, including full support for control flow inside loops, advanced pattern matching, and proper lexical closures.
+
+### Added
+
+- **Closures & Lambda Capture** — Lambdas `(params) => expr` now correctly capture their lexical environment at creation time, allowing stateful functions and callbacks.
+- **Match Guards** — `case pattern if cond =>` syntax added for conditional pattern matching.
+- **Advanced Destructuring** — `match` statements now fully support deep enum and struct destructuring in the interpreter.
+- **Loop Control Flow** — `stop` (break) and `skip` (continue) are now fully operational in the tree-walk interpreter for `while` and `for` loops.
+- **String Concatenation** — The `+` operator now properly supports `string + string` concatenation in the semantic analyzer.
+- **3 New Tests** — Coverage expanded for closures, match guards, and loop control flow.
+
+---
+
 ## [2.2.1] — 2026-06-11
 
 ### 🛠️ Type System Hardening & Traits

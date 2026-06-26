@@ -960,11 +960,18 @@ impl<'a> Parser<'a> {
             let case_start = self.peek().span.clone();
             if self.match_token(&[TokenKind::Case]) {
                 let pattern = self.parse_pattern()?;
+                // Parse optional guard clause: `if <expr>`
+                let guard = if self.match_token(&[TokenKind::If]) {
+                    Some(self.parse_expression()?)
+                } else {
+                    None
+                };
                 self.consume(TokenKind::FatArrow, "Expected '=>' after case pattern.")?;
                 let body = self.parse_block()?;
                 let span = self.merge_span(&case_start, &self.previous().span.clone());
                 cases.push(MatchCase {
                     pattern,
+                    guard,
                     body,
                     span,
                 });
@@ -974,6 +981,7 @@ impl<'a> Parser<'a> {
                 let span = self.merge_span(&case_start, &self.previous().span.clone());
                 cases.push(MatchCase {
                     pattern: Pattern::Wildcard(case_start.clone()),
+                    guard: None,
                     body,
                     span,
                 });
@@ -1394,9 +1402,59 @@ impl<'a> Parser<'a> {
         }
 
         if self.match_token(&[TokenKind::LParen]) {
-            let expr = self.parse_expression()?;
-            self.consume(TokenKind::RParen, "Expected ')' after expression.")?;
-            return Some(expr);
+            // Check if this is a lambda: (params) => body
+            // Heuristic: if the next token is ident followed by colon, it's a lambda parameter list
+            let saved_pos = self.pos;
+            let is_lambda = if self.check(&TokenKind::RParen) {
+                // () => ... is a zero-argument lambda — check for =>
+                let test_pos = self.pos + 1; // after RParen
+                test_pos < self.tokens.len() && self.tokens[test_pos].kind == TokenKind::FatArrow
+            } else if let TokenKind::Ident(_) = self.peek().kind {
+                // Could be (x: int, ...) => ... or just (expr)
+                // Look ahead: if ident is followed by ':', it's a lambda
+                self.pos + 1 < self.tokens.len()
+                    && self.tokens[self.pos + 1].kind == TokenKind::Colon
+            } else {
+                false
+            };
+
+            if is_lambda {
+                // Parse lambda parameters
+                let mut params = Vec::new();
+                if !self.check(&TokenKind::RParen) {
+                    loop {
+                        let (pname, pspan) = self.consume_ident("Expected parameter name.")?;
+                        self.consume(TokenKind::Colon, "Expected ':' after parameter name.")?;
+                        let pty = self.parse_type()?;
+                        params.push(Param {
+                            name: pname,
+                            ty: pty,
+                            span: pspan,
+                        });
+                        if !self.match_token(&[TokenKind::Comma]) {
+                            break;
+                        }
+                    }
+                }
+                self.consume(TokenKind::RParen, "Expected ')' after lambda parameters.")?;
+                self.consume(
+                    TokenKind::FatArrow,
+                    "Expected '=>' after lambda parameters.",
+                )?;
+                let body = self.parse_expression()?;
+                let full_span = self.merge_span(&span, &body.span());
+                return Some(Expr::Lambda {
+                    params,
+                    body: Box::new(body),
+                    span: full_span,
+                });
+            } else {
+                // Regular parenthesized expression
+                self.pos = saved_pos;
+                let expr = self.parse_expression()?;
+                self.consume(TokenKind::RParen, "Expected ')' after expression.")?;
+                return Some(expr);
+            }
         }
 
         self.error_at_current("Expected expression.");

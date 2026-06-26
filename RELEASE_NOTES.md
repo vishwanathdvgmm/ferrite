@@ -1,8 +1,38 @@
-# Ferrite v2.2.1 Release Notes
+# Ferrite v2.3.0 Release Notes
 
-Welcome to **Ferrite v2.2.1** 🚀 — The **"Type System Hardening & Traits"** update. This release brings robust code reusability through trait definitions, impl blocks, and operator overloading.
+Welcome to **Ferrite v2.3.0** 🚀 — The **"Closures, Guards & Interpreter Control Flow"** update. This release significantly empowers the tree-walk interpreter with new runtime capabilities.
 
 ---
+
+## 🔄 Closures & Lambda Capture
+
+Lambdas `(params) => expr` now correctly capture their lexical environment at creation time. This enables stateful functions, callbacks, and functional programming patterns within the interpreter.
+
+```ferrite
+keep offset: int = 100;
+keep adder: fun(int) -> int = (x: int) => x + offset;
+keep result: int = adder(42); // 142
+```
+
+## 🛡️ Match Guards & Destructuring
+
+The `match` statement now fully supports deep enum and struct destructuring in the interpreter, and introduces **guard clauses** (`if cond`) for fine-grained conditional matching.
+
+```ferrite
+match x {
+    case n if n < 0 => { return "negative"; }
+    case 0 => { return "zero"; }
+    default => { return "positive"; }
+}
+```
+
+## 🔁 Loop Control Flow
+
+The `stop` (`break`) and `skip` (`continue`) statements are now fully operational in the tree-walk interpreter, allowing you to correctly exit early or skip iterations in `while` and `for` loops.
+
+---
+
+# Ferrite v2.2.1 Release Notes
 
 ## 🚀 Tree-Walk Interpreter (`ferrite run`)
 
