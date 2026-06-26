@@ -545,88 +545,92 @@ pi = <span class="number">3.20</span>;
         <div id="page-packages" class="page">
             <section class="packages-section container">
                 <div class="packages-hero">
+                    <div class="coming-soon-badge">🚧 Coming Soon</div>
                     <h2>Ferrite Package Registry</h2>
-                    <p>Discover libraries and dependencies to extend your Ferrite programs, or publish your own using <code>fe-pkg</code>.</p>
-                    
-                    <div class="search-box glass">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="package-search" placeholder="Search packages (e.g., neural networks, csv, plotting)...">
-                    </div>
+                    <p>A built-in package manager is on the roadmap. Soon you'll be able to discover, install, and publish Ferrite libraries with a single command.</p>
                 </div>
 
-                <div class="packages-layout">
-                    <!-- Installation CLI Instructions -->
+                <div class="packages-coming-soon-layout">
+                    <!-- Preview of planned CLI -->
                     <div class="packages-cli-info glass">
-                        <h3>Using the Package Manager</h3>
-                        <p>The package manager is bundled directly with the Ferrite SDK.</p>
+                        <h3>Planned CLI Preview</h3>
+                        <p>Here's what <code>fe-pkg</code> will look like when it ships:</p>
                         
-                        <div class="cli-cmd-box font-mono">
-                            <span class="comment"># Add a package dependency to your project</span>
+                        <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                            <span class="comment"># Initialize a new Ferrite project</span>
+                            <span class="prompt">$</span> fe-pkg init my-project<br>
+                            <span class="output">✓ Created ferrite.toml</span>
+                        </div>
+
+                        <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                            <span class="comment"># Add a package dependency</span>
                             <span class="prompt">$</span> fe-pkg add nn<br>
-                            <span class="output">Installing nn v1.4.2...</span><br>
+                            <span class="output">Resolving nn v1.x...</span><br>
                             <span class="output">✓ Package added to ferrite.toml</span>
                         </div>
 
-                        <div class="cli-cmd-box font-mono">
-                            <span class="comment"># Publish your module to the global registry</span>
+                        <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                            <span class="comment"># Publish your own library</span>
                             <span class="prompt">$</span> fe-pkg publish<br>
-                            <span class="output">Packaging module...</span><br>
-                            <span class="output">✓ Module uploaded successfully.</span>
+                            <span class="output">✓ Module uploaded to registry.</span>
                         </div>
                     </div>
 
-                    <!-- Package Cards List -->
-                    <div class="packages-list-container">
-                        <h3>Featured Packages</h3>
-                        <div class="packages-grid" id="packages-grid-list">
-                            <!-- Card 1 -->
-                            <div class="pkg-card glass">
-                                <div class="pkg-header">
-                                    <h4 class="pkg-name">nn</h4>
-                                    <span class="pkg-version">v1.4.2</span>
-                                </div>
-                                <p class="pkg-desc">Common neural network layers (Dense, Conv2D, LSTM), dropout, activations, and Adam optimizer implementations.</p>
-                                <div class="pkg-footer">
-                                    <span class="pkg-author">👤 ferrite-core</span>
-                                    <code class="pkg-install font-mono">fe-pkg add nn</code>
+                    <!-- Roadmap Timeline -->
+                    <div class="packages-roadmap glass">
+                        <h3>📋 Roadmap</h3>
+                        <div class="roadmap-timeline">
+                            <div class="roadmap-item completed">
+                                <div class="roadmap-dot"></div>
+                                <div class="roadmap-content">
+                                    <span class="roadmap-label">Done</span>
+                                    <h4>Core Language</h4>
+                                    <p>Lexer, parser, type checker, and tree-walk interpreter are live and working.</p>
                                 </div>
                             </div>
-                            <!-- Card 2 -->
-                            <div class="pkg-card glass">
-                                <div class="pkg-header">
-                                    <h4 class="pkg-name">linalg</h4>
-                                    <span class="pkg-version">v0.9.1</span>
-                                </div>
-                                <p class="pkg-desc">Linear algebra solver routines, including QR decomposition, SVD, eigenvalues, and fast Fourier transforms.</p>
-                                <div class="pkg-footer">
-                                    <span class="pkg-author">👤 scientific-devs</span>
-                                    <code class="pkg-install font-mono">fe-pkg add linalg</code>
+                            <div class="roadmap-item completed">
+                                <div class="roadmap-dot"></div>
+                                <div class="roadmap-content">
+                                    <span class="roadmap-label">Done</span>
+                                    <h4>Online Playground</h4>
+                                    <p>Run Ferrite code directly in your browser with real-time output.</p>
                                 </div>
                             </div>
-                            <!-- Card 3 -->
-                            <div class="pkg-card glass">
-                                <div class="pkg-header">
-                                    <h4 class="pkg-name">csv</h4>
-                                    <span class="pkg-version">v1.0.0</span>
-                                </div>
-                                <p class="pkg-desc">Robust and fast streaming CSV reader and writer with schema deduction and automatic validation.</p>
-                                <div class="pkg-footer">
-                                    <span class="pkg-author">👤 ferrite-core</span>
-                                    <code class="pkg-install font-mono">fe-pkg add csv</code>
+                            <div class="roadmap-item in-progress">
+                                <div class="roadmap-dot"></div>
+                                <div class="roadmap-content">
+                                    <span class="roadmap-label">In Progress</span>
+                                    <h4>Module System</h4>
+                                    <p>Import/export, module resolution, and namespace management for multi-file projects.</p>
                                 </div>
                             </div>
-                            <!-- Card 4 -->
-                            <div class="pkg-card glass">
-                                <div class="pkg-header">
-                                    <h4 class="pkg-name">http</h4>
-                                    <span class="pkg-version">v0.8.4</span>
-                                </div>
-                                <p class="pkg-desc">Lightweight HTTP client and server framework supporting async requests and REST API routing handlers.</p>
-                                <div class="pkg-footer">
-                                    <span class="pkg-author">👤 network-guy</span>
-                                    <code class="pkg-install font-mono">fe-pkg add http</code>
+                            <div class="roadmap-item upcoming">
+                                <div class="roadmap-dot"></div>
+                                <div class="roadmap-content">
+                                    <span class="roadmap-label">Planned</span>
+                                    <h4>Package Manager (<code>fe-pkg</code>)</h4>
+                                    <p>Dependency resolution, version pinning, <code>ferrite.toml</code> manifest, and a global registry.</p>
                                 </div>
                             </div>
+                            <div class="roadmap-item upcoming">
+                                <div class="roadmap-dot"></div>
+                                <div class="roadmap-content">
+                                    <span class="roadmap-label">Planned</span>
+                                    <h4>Standard Library</h4>
+                                    <p>Core packages for I/O, math, networking, data structures, and ML primitives.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notify CTA -->
+                <div class="packages-notify glass">
+                    <div class="notify-content">
+                        <span class="notify-icon">📬</span>
+                        <div>
+                            <h4>Want to be notified when packages launch?</h4>
+                            <p>Star the <a href="https://github.com/vishwanathdvgmm/ferrite" target="_blank" rel="noopener noreferrer">GitHub repo</a> to get release notifications, or follow the <a href="#blog" class="notify-blog-link" data-target="blog">blog</a> for updates.</p>
                         </div>
                     </div>
                 </div>

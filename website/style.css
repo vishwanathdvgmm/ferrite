@@ -851,7 +851,7 @@ code {
     margin-bottom: 1.5rem;
 }
 
-/* PAGE 4: PACKAGES */
+/* PAGE 4: PACKAGES (Coming Soon) */
 .packages-section {
     padding-top: 2.5rem;
     padding-bottom: 4rem;
@@ -860,6 +860,25 @@ code {
 .packages-hero {
     text-align: center;
     margin-bottom: 3.5rem;
+}
+
+.coming-soon-badge {
+    display: inline-block;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 68, 68, 0.1));
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    color: var(--accent-secondary);
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.04em;
+    animation: pulse-badge 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+    0%, 100% { box-shadow: 0 0 8px rgba(255, 107, 53, 0.1); }
+    50% { box-shadow: 0 0 20px rgba(255, 107, 53, 0.25); }
 }
 
 .packages-hero h2 {
@@ -871,36 +890,16 @@ code {
 .packages-hero p {
     color: var(--text-secondary);
     margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
-.search-box {
-    display: flex;
-    align-items: center;
-    max-width: 650px;
-    margin: 0 auto;
-    padding: 0.5rem 1.2rem;
-    border-radius: 30px;
-}
-
-.search-icon {
-    font-size: 1.2rem;
-    margin-right: 0.75rem;
-}
-
-#package-search {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--text-primary);
-    font-size: 1rem;
-    padding: 0.4rem 0;
-}
-
-.packages-layout {
+.packages-coming-soon-layout {
     display: grid;
-    grid-template-columns: 1fr 1.8fr;
+    grid-template-columns: 1fr 1.2fr;
     gap: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .packages-cli-info {
@@ -929,72 +928,168 @@ code {
     line-height: 1.6;
 }
 
-.packages-list-container h3 {
-    font-size: 1.4rem;
-    margin-bottom: 1.2rem;
+.cli-preview-dimmed {
+    opacity: 0.65;
+    position: relative;
 }
 
-.packages-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.2rem;
-}
-
-.pkg-card {
-    padding: 1.8rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.pkg-card:hover {
-    border-color: rgba(255, 107, 53, 0.2);
-    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.05);
-}
-
-.pkg-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
-}
-
-.pkg-name {
-    font-size: 1.2rem;
-    color: var(--accent-secondary);
+.cli-preview-dimmed::after {
+    content: "PREVIEW";
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 0.6rem;
     font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgba(255, 107, 53, 0.4);
+    font-family: 'Fira Code', monospace;
 }
 
-.pkg-version {
-    font-size: 0.8rem;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    color: var(--text-secondary);
+/* Roadmap Timeline */
+.packages-roadmap {
+    padding: 2rem;
 }
 
-.pkg-desc {
-    font-size: 0.92rem;
-    color: var(--text-secondary);
+.packages-roadmap h3 {
+    font-size: 1.25rem;
     margin-bottom: 1.5rem;
+}
+
+.roadmap-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.roadmap-timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: linear-gradient(to bottom, #4ade80, #4ade80 40%, var(--accent-secondary) 60%, rgba(255,255,255,0.1) 80%);
+    border-radius: 2px;
+}
+
+.roadmap-item {
+    position: relative;
+    margin-bottom: 1.8rem;
+}
+
+.roadmap-item:last-child {
+    margin-bottom: 0;
+}
+
+.roadmap-dot {
+    position: absolute;
+    left: -2rem;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    z-index: 1;
+}
+
+.roadmap-item.completed .roadmap-dot {
+    background: #4ade80;
+    border-color: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+
+.roadmap-item.in-progress .roadmap-dot {
+    background: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+    animation: dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(255, 107, 53, 0.3); }
+    50% { box-shadow: 0 0 18px rgba(255, 107, 53, 0.6); }
+}
+
+.roadmap-item.upcoming .roadmap-dot {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.roadmap-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: var(--text-primary);
+}
+
+.roadmap-content p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
     line-height: 1.5;
 }
 
-.pkg-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
+.roadmap-label {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.4rem;
 }
 
-.pkg-author {
+.roadmap-item.completed .roadmap-label {
+    background: rgba(74, 222, 128, 0.12);
+    color: #4ade80;
+}
+
+.roadmap-item.in-progress .roadmap-label {
+    background: rgba(255, 107, 53, 0.12);
+    color: var(--accent-secondary);
+}
+
+.roadmap-item.upcoming .roadmap-label {
+    background: rgba(255, 255, 255, 0.06);
     color: var(--text-muted);
 }
 
-.pkg-install {
-    background: #090B10;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    border: 1px solid var(--glass-border);
-    color: var(--text-primary);
+/* Notify CTA */
+.packages-notify {
+    padding: 1.5rem 2rem;
+    border: 1px solid rgba(255, 107, 53, 0.15);
+}
+
+.notify-content {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.notify-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.notify-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.notify-content p {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.notify-content a {
+    color: var(--accent-secondary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.notify-content a:hover {
+    color: var(--accent-primary);
 }
 
 /* PAGE 5: BLOG */
@@ -1235,7 +1330,7 @@ code {
         max-height: none;
     }
     
-    .packages-layout {
+    .packages-coming-soon-layout {
         grid-template-columns: 1fr;
     }
     

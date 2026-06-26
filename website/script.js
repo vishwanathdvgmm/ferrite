@@ -91,25 +91,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---------------------------------------------
-    // 4. PACKAGES SEARCH REGISTRY (packages.ferrite-lang.org)
+    // 4. PACKAGES - NOTIFY BLOG LINK (packages.ferrite-lang.org)
     // ---------------------------------------------
-    const packageSearch = document.getElementById('package-search');
-    const packageCards = document.querySelectorAll('.pkg-card');
-
-    if (packageSearch) {
-        packageSearch.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            
-            packageCards.forEach(card => {
-                const pkgName = card.querySelector('.pkg-name').innerText.toLowerCase();
-                const pkgDesc = card.querySelector('.pkg-desc').innerText.toLowerCase();
-                
-                if (pkgName.includes(query) || pkgDesc.includes(query)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+    const notifyBlogLink = document.querySelector('.notify-blog-link');
+    if (notifyBlogLink) {
+        notifyBlogLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Navigate to the blog page using the existing page navigation
+            const target = notifyBlogLink.getAttribute('data-target');
+            if (target) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                const blogPage = document.getElementById('page-' + target);
+                if (blogPage) blogPage.classList.add('active');
+                // Update active nav
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+                const blogNav = document.querySelector(`.nav-item[data-target="${target}"]`);
+                if (blogNav) blogNav.classList.add('active-nav');
+            }
         });
     }
 
