@@ -173,6 +173,7 @@ Source (.fe) → Lexer → Parser → ImportResolver (Asset Bundling) → TypeEn
 ```
 
 ```
+├── 📁 .github
 ├── 📁 docs
 ├── 📁 src
 │   ├── 📁 ast
@@ -187,13 +188,19 @@ Source (.fe) → Lexer → Parser → ImportResolver (Asset Bundling) → TypeEn
 │   ├── 📁 types
 │   └── 🦀 main.rs
 ├── 📁 tests
+├── 📁 website
 ├── ⚙️ .gitignore
 ├── 📝 ARCHITECTURE.md
 ├── 📝 CHANGELOG.md
+├── 📄 CNAME
+├── 📝 CODE_OF_CONDUCT.md
 ├── ⚙️ Cargo.toml
+├── 📄 EULA.txt
+├── 📄 LICENSE
 ├── 📝 MIGRATION.md
 ├── 📝 README.md
-└── 📝 RELEASE_NOTES.md
+├── 📝 RELEASE_NOTES.md
+└── 📝 TERMS.md
 ```
 
 See [ARCHITECTURE.md](https://github.com/vishwanathdvgmm/ferrite/blob/main/ARCHITECTURE.md) for a detailed breakdown of each compiler phase.
