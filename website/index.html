@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+      content="Ferrite is a modern programming language.">
+
+    <meta name="keywords"
+      content="Ferrite, Programming Language, Compiler, Systems Programming">
+
+    <meta name="author"
+      content="Vishwanath M M">
     <title>Ferrite - The ML-First Systems Language</title>
     <meta name="description" content="Ferrite is a statically-typed, ahead-of-time compiled ML programming language built in Rust. Zero implicit coercion, native tensor types, and blazing fast performance.">
     
@@ -12,6 +20,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Styles -->
+    <link rel="canonical" href="https://ferrite-lang.org/">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="manifest" href="manifest.webmanifest">
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -138,10 +149,32 @@
             <section class="home-download container">
                 <div class="download-banner glass">
                     <h3>Get Ferrite Today</h3>
-                    <p>Download the official installer for Windows or build from source using Cargo.</p>
-                    <div class="download-buttons">
-                        <a href="https://github.com/vishwanathdvgmm/ferrite/releases" class="btn btn-primary btn-large">Download Windows Installer (.exe)</a>
-                        <a href="#docs" class="btn btn-secondary btn-large">Build from Source Guide</a>
+                    <p>Install the Ferrite compiler v2.3.0 natively on your operating system.</p>
+                    
+                    <div class="download-platforms">
+                        <!-- Windows Card -->
+                        <div class="platform-card glass">
+                            <span class="platform-icon">🪟</span>
+                            <h4>Windows</h4>
+                            <p>Bundle includes compiler, tree-walk interpreter, and path setup wizard.</p>
+                            <a href="https://github.com/vishwanathdvgmm/ferrite/releases" class="btn btn-primary" style="margin-top: 1rem;">Download Installer (.exe)</a>
+                        </div>
+                        
+                        <!-- macOS Card -->
+                        <div class="platform-card glass">
+                            <span class="platform-icon">🍏</span>
+                            <h4>macOS</h4>
+                            <p>Install via Homebrew tap or download static Apple Silicon/Intel binaries.</p>
+                            <code class="platform-cmd">brew install vishwanathdvgmm/tap/ferrite</code>
+                        </div>
+                        
+                        <!-- Linux Card -->
+                        <div class="platform-card glass">
+                            <span class="platform-icon">🐧</span>
+                            <h4>Linux</h4>
+                            <p>Download precompiled binaries or install instantly via curl script.</p>
+                            <code class="platform-cmd">curl -fsSL https://ferrite-lang.org/install.sh | sh</code>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -267,13 +300,33 @@
                         <!-- Installation -->
                         <div id="docs-install" class="docs-section-content">
                             <h2>Installation & Setup</h2>
-                            <p>Ferrite provides a standalone execution binary that bundles the compiler and interpreter together with no external dependencies.</p>
+                            <p>Ferrite provides standalone precompiled binaries with no external runtime dependencies. Select your platform below for installation guidelines.</p>
                             
-                            <h3>Windows Installer</h3>
-                            <p>For Windows, download and run the custom setup wizard: <a href="https://github.com/vishwanathdvgmm/ferrite/releases" target="_blank" rel="noopener noreferrer">ferrite-v2.3.0-setup.exe</a>. The setup wizard automatically adds the installation folder to your User Path variables.</p>
+                            <h3>Windows</h3>
+                            <p>Download and run the custom setup wizard: <a href="https://github.com/vishwanathdvgmm/ferrite/releases" target="_blank" rel="noopener noreferrer">ferrite-v2.3.0-setup.exe</a>. The wizard will install the compiler and automatically configure your environment variables.</p>
                             
+                            <h3>macOS</h3>
+                            <p>Install Ferrite using our official Homebrew tap:</p>
+                            <pre><code class="language-bash">
+# Add the tap and install
+brew tap vishwanathdvgmm/tap
+brew install ferrite
+                            </code></pre>
+                            <p>Alternatively, download the `.tar.gz` archive for Apple Silicon (M1/M2/M3) or Intel architectures from our <a href="https://github.com/vishwanathdvgmm/ferrite/releases" target="_blank">Releases</a> page, extract it, and copy `ferrite` to `/usr/local/bin`.</p>
+
+                            <h3>Linux</h3>
+                            <p>Run the automated shell install script in your terminal:</p>
+                            <pre><code class="language-bash">
+curl -fsSL https://ferrite-lang.org/install.sh | sh
+                            </code></pre>
+                            <p>Or download the precompiled binary from the Releases page, extract it, and add it to your path:</p>
+                            <pre><code class="language-bash">
+tar -xzf ferrite-v2.3.0-linux-x86_64.tar.gz
+sudo mv ferrite /usr/local/bin/
+                            </code></pre>
+
                             <h3>Build from Source</h3>
-                            <p>Since Ferrite is written in Rust, you can compile it natively using Cargo on Windows, macOS, or Linux:</p>
+                            <p>Ferrite can be compiled from source on any system running a modern Rust compiler toolchain:</p>
                             <pre><code class="language-bash">
 # Clone the repository
 git clone https://github.com/vishwanathdvgmm/ferrite.git

@@ -1,0 +1,16 @@
+{
+    "name": "Ferrite Programming Language",
+    "short_name": "Ferrite",
+    "description": "Official website of the Ferrite Programming Language.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+        {
+            "src": "favicon.ico",
+            "sizes": "512x512",
+            "type": "image/x-icon"
+        }
+    ]
+}
