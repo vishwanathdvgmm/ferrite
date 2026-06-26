@@ -568,6 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Templates map
     const codeTemplates = {
+        blank: '// Write your Ferrite code here\n\n',
         hello: 'println("Hello, Ferrite!");',
         tensors: `import "math";\n\nparam inputs: Tensor<float, (1, 4)> = rand(1, 4);\nparam weights: Tensor<float, (4, 2)> = ones(4, 2);\n\ninfer {\n    keep outputs = inputs @ weights;\n    println("Inputs:  " + str(inputs));\n    println("Outputs: " + str(outputs));\n}`,
         matching: `enum Device {\n    Cpu;\n    Gpu(int);\n}\n\nkeep current = Gpu(1);\n\nmatch current {\n    case Cpu => {\n        println("Running on Host CPU");\n    }\n    case Gpu(id) if id == 0 => {\n        println("Primary GPU active");\n    }\n    case Gpu(id) => {\n        println("Secondary GPU (ID: 1)");\n    }\n}`,

@@ -1,83 +1,126 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-      content="Ferrite is a modern programming language.">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Ferrite is a modern programming language."
+    />
 
-    <meta name="keywords"
-      content="Ferrite, Programming Language, Compiler, Systems Programming">
+    <meta
+      name="keywords"
+      content="Ferrite, Programming Language, Compiler, Systems Programming"
+    />
 
-    <meta name="author"
-      content="Vishwanath M M">
+    <meta name="author" content="Vishwanath M M" />
     <title>Ferrite - The ML-First Systems Language</title>
-    <meta name="description" content="Ferrite is a statically-typed, ahead-of-time compiled ML programming language built in Rust. Zero implicit coercion, native tensor types, and blazing fast performance.">
-    
+    <meta
+      name="description"
+      content="Ferrite is a statically-typed, ahead-of-time compiled ML programming language built in Rust. Zero implicit coercion, native tensor types, and blazing fast performance."
+    />
+
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Styles -->
-    <link rel="canonical" href="https://ferrite-lang.org/">
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="./style.css">
-</head>
-<body>
+    <link rel="canonical" href="https://ferrite-lang.org/" />
+    <link rel="icon" href="./favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+
+  <body>
     <div class="blob-bg-1"></div>
     <div class="blob-bg-2"></div>
 
     <!-- Navigation Header -->
     <header class="navbar glass">
-        <div class="container nav-content">
-            <a href="#" class="logo active-nav" data-target="home">
-                <img src="./logo.png" alt="Ferrite Logo" class="logo-img">
-                <span class="logo-text">Ferrite</span>
-            </a>
-            
-            <button class="nav-toggle" aria-label="Toggle navigation">
-                <span></span><span></span><span></span>
+      <div class="container nav-content">
+        <a href="#" class="logo active-nav" data-target="home">
+          <img src="./logo.png" alt="Ferrite Logo" class="logo-img" />
+          <span class="logo-text">Ferrite</span>
+        </a>
+
+        <button class="nav-toggle" aria-label="Toggle navigation">
+          <span></span><span></span><span></span>
+        </button>
+
+        <nav class="nav-links">
+          <a href="#about" class="nav-item" data-target="about"
+            ><span class="subdomain">About</span></a
+          >
+          <a href="#downloads" class="nav-item" data-target="downloads"
+            ><span class="subdomain">Downloads</span></a
+          >
+          <a href="#getstarted" class="nav-item" data-target="getstarted"
+            ><span class="subdomain">Get Started</span></a
+          >
+          <a href="#play" class="nav-item" data-target="play"
+            ><span class="subdomain">Playground</span></a
+          >
+          <div class="nav-dropdown">
+            <button class="nav-dropbtn">
+              Learn <span class="arrow">▼</span>
             </button>
-            
-            <nav class="nav-links">
-                <a href="#play" class="nav-item" data-target="play"><span class="subdomain">play</a>
-                <a href="#docs" class="nav-item" data-target="docs"><span class="subdomain">docs</a>
-                <a href="#packages" class="nav-item" data-target="packages"><span class="subdomain">packages</a>
-                <a href="#blog" class="nav-item" data-target="blog"><span class="subdomain">blog</a>
-                <a href="https://github.com/vishwanathdvgmm/ferrite" target="_blank" rel="noopener noreferrer" class="btn btn-outline nav-github">GitHub</a>
-            </nav>
-        </div>
+            <div class="nav-dropdown-content glass">
+              <a href="#docs" class="nav-item" data-target="docs"
+                >Documentation</a
+              >
+              <a href="#tutorial" class="nav-item" data-target="tutorial"
+                >Tutorial</a
+              >
+              <a href="#packages" class="nav-item" data-target="packages"
+                >Packages</a
+              >
+              <a href="#blog" class="nav-item" data-target="blog">News/Blogs</a>
+            </div>
+          </div>
+          <a
+            href="https://github.com/vishwanathdvgmm/ferrite"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-outline nav-github"
+            >GitHub</a
+          >
+        </nav>
+      </div>
     </header>
 
     <main class="page-container">
-        
-        <!-- PAGE 1: HOME (ferrite-lang.org) -->
-        <div id="page-home" class="page active">
-            <!-- Hero Section -->
-            <section class="hero container">
-                <div class="hero-content">
-                    <div class="badge">v2.3.0 Released! 🚀</div>
-                    <h1 class="hero-title">The <span class="gradient-text">ML-First</span><br>Systems Language.</h1>
-                    <p class="hero-subtitle">
-                        Statically-typed, ahead-of-time compiled, and built in pure Rust. Native multi-dimensional tensors, strict structural type check, and instant tree-walk interpretation.
-                    </p>
-                    <div class="hero-cta">
-                        <a href="#play" class="btn btn-primary">Try in Browser</a>
-                        <a href="#docs" class="btn btn-secondary">Explore the Docs</a>
-                    </div>
-                </div>
-                
-                <!-- Quick Code Window -->
-                <div class="hero-code-window glass">
-                    <div class="window-header">
-                        <div class="dots">
-                            <span></span><span></span><span></span>
-                        </div>
-                        <div class="filename">tensor_multiply.fe</div>
-                    </div>
-                    <pre><code class="language-ferrite">
+      <!-- PAGE 1: HOME (ferrite-lang.org) -->
+      <div id="page-home" class="page active">
+        <!-- Hero Section -->
+        <section class="hero container">
+          <div class="hero-content">
+            <div class="badge">v2.3.0 Released! 🚀</div>
+            <h1 class="hero-title">
+              The <span class="gradient-text">ML-First</span><br />Systems
+              Language.
+            </h1>
+            <p class="hero-subtitle">
+              Statically-typed, ahead-of-time compiled, and built in pure Rust.
+              Native multi-dimensional tensors, strict structural type check,
+              and instant tree-walk interpretation.
+            </p>
+            <div class="hero-cta">
+              <a href="#play" class="btn btn-primary">Try in Browser</a>
+              <a href="#docs" class="btn btn-secondary">Explore the Docs</a>
+            </div>
+          </div>
+
+          <!-- Quick Code Window -->
+          <div class="hero-code-window glass">
+            <div class="window-header">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <div class="filename">tensor_multiply.fe</div>
+            </div>
+            <pre><code class="language-ferrite">
 <span class="keyword">import</span> <span class="string">"math"</span>;
 
 <span class="comment">// Compile-time validated tensor shapes</span>
@@ -90,244 +133,832 @@
     println(<span class="string">"Output shape: "</span> + str(shape(logits)));
 }
                     </code></pre>
+          </div>
+        </section>
+
+        <!-- Stats grid -->
+        <section class="stats container">
+          <div class="stats-grid">
+            <div class="stat-card glass">
+              <div class="stat-icon">🦀</div>
+              <h4>Built in Rust</h4>
+              <p>
+                No garbage collector. Blazing fast compiler and runtime core
+                written on top of a type-safe Rust foundation.
+              </p>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-icon">📐</div>
+              <h4>First-Class Tensors</h4>
+              <p>
+                Dimensional shapes verified at compile-time. Dedicated
+                <code>train</code> and <code>infer</code> blocks isolate model
+                execution contexts.
+              </p>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-icon">🔄</div>
+              <h4>Dual Runtime</h4>
+              <p>
+                Run scripts instantly using the tree-walk interpreter for
+                development, or compile to LLVM binaries for native production
+                code.
+              </p>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-icon">🔒</div>
+              <h4>Zero Coercion</h4>
+              <p>
+                Complete safety with zero implicit numeric casting or weak
+                comparisons. Float, int, and bool alignments are always strictly
+                verified.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Mini Showcase -->
+        <section class="home-showcase container">
+          <div class="showcase-content">
+            <h2>Modern Constructs, No Compromise</h2>
+            <p>
+              Ferrite blends systems-level speed with expressive syntax. Write
+              safe pattern-matches, define strict interface contracts via
+              Traits, and manipulate multidimensional data using readable
+              high-level semantics.
+            </p>
+            <ul class="bullet-list">
+              <li>
+                <strong>Structural Pattern Matching</strong> with conditional
+                guard clauses
+              </li>
+              <li><strong>First-class functions</strong> & lexical closures</li>
+              <li>
+                <strong>Safe traits</strong> with explicit static
+                implementations
+              </li>
+              <li>
+                <strong>No undefined behaviors</strong> or runtime reflection
+                lookup errors
+              </li>
+            </ul>
+          </div>
+          <div class="showcase-visual glass">
+            <div class="visual-header">Console Output Demo</div>
+            <div class="visual-body font-mono">
+              <span class="prompt">$</span> ferrite check model.fe<br />
+              <span class="success">✓ Type check passed in 0.8ms</span
+              ><br /><br />
+              <span class="prompt">$</span> ferrite run model.fe<br />
+              <span class="output"
+                >[Epoch 1/5] loss: 0.4218 - accuracy: 89.2%</span
+              ><br />
+              <span class="output"
+                >[Epoch 2/5] loss: 0.2811 - accuracy: 93.4%</span
+              ><br />
+              <span class="output"
+                >[Epoch 3/5] loss: 0.1989 - accuracy: 96.1%</span
+              ><br />
+              <span class="success"
+                >✓ Training completed successfully. Output saved to
+                weights.fe</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- Installer Prompt -->
+        <section class="home-download container">
+          <div class="download-banner glass">
+            <h3>Get Ferrite Today</h3>
+            <p>
+              Install the Ferrite compiler v2.3.0 natively on your operating
+              system.
+            </p>
+
+            <div class="download-platforms">
+              <!-- Windows Card -->
+              <div class="platform-card glass">
+                <span class="platform-icon">🪟</span>
+                <h4>Windows</h4>
+                <p>
+                  Bundle includes compiler, tree-walk interpreter, and path
+                  setup wizard.
+                </p>
+                <a
+                  href="https://github.com/vishwanathdvgmm/ferrite/releases"
+                  class="btn btn-primary"
+                  style="margin-top: 1rem"
+                  >Download Installer (.exe)</a
+                >
+              </div>
+
+              <!-- macOS Card -->
+              <div class="platform-card glass">
+                <span class="platform-icon">🍏</span>
+                <h4>macOS</h4>
+                <p>
+                  Install via Homebrew tap or download static Apple
+                  Silicon/Intel binaries.
+                </p>
+                <code class="platform-cmd"
+                  >brew install vishwanathdvgmm/tap/ferrite</code
+                >
+              </div>
+
+              <!-- Linux Card -->
+              <div class="platform-card glass">
+                <span class="platform-icon">🐧</span>
+                <h4>Linux</h4>
+                <p>
+                  Download precompiled binaries or install instantly via curl
+                  script.
+                </p>
+                <code class="platform-cmd"
+                  >curl -fsSL https://ferrite-lang.org/install.sh | sh</code
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <!-- PAGE: ABOUT -->
+      <div id="page-about" class="page">
+        <section class="about-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              About <span class="text-gradient">Ferrite</span>
+            </h2>
+            <p class="section-subtitle">
+              The statically-typed, ML-first systems programming language.
+            </p>
+          </div>
+          <div class="about-grid">
+            <div class="about-card glass">
+              <h3>Our Mission</h3>
+              <p>
+                Ferrite aims to bridge the gap between high-performance systems
+                programming and expressive machine learning workflows. We
+                believe tensors should be native primitives, and type safety
+                should be absolute.
+              </p>
+            </div>
+            <div class="about-card glass">
+              <h3>Design Philosophy</h3>
+              <ul class="about-list">
+                <li>
+                  <strong>Zero Coercion:</strong> No implicit type conversions
+                  to prevent silent bugs.
+                </li>
+                <li>
+                  <strong>ML Native:</strong> Tensors with compile-time shape
+                  verification.
+                </li>
+                <li>
+                  <strong>Dual Execution:</strong> JIT for fast iteration, AOT
+                  for deployment.
+                </li>
+              </ul>
+            </div>
+            <div class="about-card glass">
+              <h3>The Creator</h3>
+              <p>
+                Created and maintained by <strong>Vishwanath M M</strong>, built
+                entirely in Rust from the ground up for maximum safety and
+                performance.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAGE: DOWNLOADS -->
+      <div id="page-downloads" class="page">
+        <section class="downloads-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              Download <span class="text-gradient">Ferrite</span>
+            </h2>
+            <p class="section-subtitle">
+              Get the latest precompiled binaries for your system.
+            </p>
+          </div>
+          <div class="platform-grid downloads-grid">
+            <div class="platform-card glass">
+              <span class="platform-icon">🪟</span>
+              <h3>Windows</h3>
+              <p>Requires Windows 10/11 (64-bit)</p>
+              <a
+                href="https://github.com/vishwanathdvgmm/ferrite/releases"
+                target="_blank"
+                class="btn btn-primary"
+                style="margin-top: 1rem; display: inline-block"
+                >Download Setup .exe</a
+              >
+            </div>
+            <div class="platform-card glass">
+              <span class="platform-icon">🍏</span>
+              <h3>macOS</h3>
+              <p>Apple Silicon (M1/M2/M3) & Intel</p>
+              <code class="platform-cmd"
+                >brew install vishwanathdvgmm/tap/ferrite</code
+              >
+            </div>
+            <div class="platform-card glass">
+              <span class="platform-icon">🐧</span>
+              <h3>Linux</h3>
+              <p>Ubuntu, Fedora, Arch, etc.</p>
+              <code class="platform-cmd"
+                >curl -fsSL https://ferrite-lang.org/install.sh | sh</code
+              >
+            </div>
+          </div>
+          <div class="build-source glass">
+            <h3>Build from Source</h3>
+            <p>
+              Require a custom build? Make sure you have the Rust toolchain
+              installed.
+            </p>
+            <pre><code class="language-bash">git clone https://github.com/vishwanathdvgmm/ferrite.git
+cd ferrite
+cargo build --release</code></pre>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAGE: GET STARTED -->
+      <div id="page-getstarted" class="page">
+        <section class="getstarted-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              Get <span class="text-gradient">Started</span>
+            </h2>
+            <p class="section-subtitle">Your first steps with Ferrite.</p>
+          </div>
+          <div class="steps-container">
+            <div class="step-card glass">
+              <div class="step-number">1</div>
+              <h3>Installation</h3>
+              <p>
+                Install Ferrite using the appropriate method for your OS from
+                the
+                <a
+                  href="#downloads"
+                  data-target="downloads"
+                  class="text-gradient"
+                  >Downloads</a
+                >
+                page.
+              </p>
+              <p>Verify installation:</p>
+              <pre><code class="language-bash">ferrite --version</code></pre>
+            </div>
+            <div class="step-card glass">
+              <div class="step-number">2</div>
+              <h3>Write Code</h3>
+              <p>
+                Create a new file named <code>hello.fe</code> and add the
+                following:
+              </p>
+              <pre><code class="language-ferrite">keep message: string = "Hello, Ferrite!";
+println(message);</code></pre>
+            </div>
+            <div class="step-card glass">
+              <div class="step-number">3</div>
+              <h3>Run</h3>
+              <p>Execute your program using the interpreter:</p>
+              <pre><code class="language-bash">ferrite run hello.fe</code></pre>
+              <p>Expected output: <code>Hello, Ferrite!</code></p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAGE: TUTORIAL -->
+      <div id="page-tutorial" class="page">
+        <section class="tutorial-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              Ferrite <span class="text-gradient">Tutorial</span>
+            </h2>
+            <p class="section-subtitle">Learn the language from scratch.</p>
+          </div>
+          <div class="docs-layout">
+            <!-- Tutorial Sidebar -->
+            <aside class="docs-sidebar glass">
+              <div class="docs-menu-group">
+                <h5>Chapter 1: Basics</h5>
+                <ul>
+                  <li>
+                    <a href="#tut-hello" class="docs-link active"
+                      >Hello World</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#tut-vars" class="docs-link">Variables & Types</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="docs-menu-group">
+                <h5>Chapter 2: Control Flow</h5>
+                <ul>
+                  <li><a href="#tut-if" class="docs-link">If & Else</a></li>
+                  <li><a href="#tut-loops" class="docs-link">Loops</a></li>
+                </ul>
+              </div>
+              <div class="docs-menu-group">
+                <h5>Chapter 3: Pattern Matching</h5>
+                <ul>
+                  <li>
+                    <a href="#tut-enums" class="docs-link">Enums & Match</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="docs-menu-group">
+                <h5>Chapter 4: Data Structures</h5>
+                <ul>
+                  <li><a href="#tut-groups" class="docs-link">Groups</a></li>
+                  <li>
+                    <a href="#tut-traits" class="docs-link"
+                      >Traits (Interfaces)</a
+                    >
+                  </li>
+                </ul>
+              </div>
+
+              <div class="docs-menu-group">
+                <h5>Chapter 5: Machine Learning</h5>
+                <ul>
+                  <li><a href="#tut-tensors" class="docs-link">Tensors</a></li>
+                  <li>
+                    <a href="#tut-blocks" class="docs-link">Execution Blocks</a>
+                  </li>
+                </ul>
+              </div>
+            </aside>
+            <!-- Tutorial Content -->
+            <article class="docs-content glass">
+              <!-- Hello World -->
+              <div id="tut-hello" class="docs-section-content active">
+                <h2>Chapter 1.1: Hello World</h2>
+                <p>
+                  Welcome to Ferrite! Let's start with the classic first
+                  program.
+                </p>
+                <p>
+                  In Ferrite, you can use the built-in
+                  <code>println</code> function to output text to the console.
+                </p>
+
+                <pre><code class="language-ferrite">println("Hello, World!");</code></pre>
+
+                <a
+                  href="#play"
+                  data-target="play"
+                  class="btn btn-outline"
+                  style="margin-top: 1rem; display: inline-block"
+                  >Try in Playground →</a
+                >
+              </div>
+
+              <!-- Variables & Types -->
+              <div id="tut-vars" class="docs-section-content">
+                <h2>Chapter 1.2: Variables & Types</h2>
+                <p>
+                  Ferrite is strictly typed. You must declare the type of a
+                  variable. By default, variables are declared with the
+                  <code>keep</code> keyword.
+                </p>
+
+                <pre><code class="language-ferrite">keep age: int = 25;
+keep name: string = "Ferris";
+keep is_active: bool = true;
+keep pi: float = 3.14159;</code></pre>
+
+                <p>
+                  Variables are immutable constants by default. You can reassign
+                  them if you want, but their type can never change.
+                </p>
+                <pre><code class="language-ferrite">keep count: int = 1;
+count = count + 1; // Allowed
+// count = "two"; // Error: Type mismatch</code></pre>
+              </div>
+
+              <!-- If / Else -->
+              <div id="tut-if" class="docs-section-content">
+                <h2>Chapter 2.1: If & Else</h2>
+                <p>
+                  Conditional logic in Ferrite uses standard <code>if</code>,
+                  <code>else if</code>, and <code>else</code> blocks. Note that
+                  there are no parentheses around the condition!
+                </p>
+
+                <pre><code class="language-ferrite">keep score = 85;
+
+if score >= 90 {
+    println("Grade: A");
+} else if score >= 80 {
+    println("Grade: B");
+} else {
+    println("Grade: C");
+}</code></pre>
+              </div>
+
+              <!-- Loops -->
+              <div id="tut-loops" class="docs-section-content">
+                <h2>Chapter 2.2: Loops</h2>
+                <p>
+                  Ferrite primarily uses <code>while</code> loops for iteration.
+                  You can use <code>skip</code> to continue to the next
+                  iteration, and <code>stop</code> to break out of the loop.
+                </p>
+
+                <pre><code class="language-ferrite">keep i = 0;
+while i < 5 {
+    i = i + 1;
+    if i == 3 {
+        skip; // Skips printing 3
+    }
+    println("Count: " + str(i));
+}</code></pre>
+              </div>
+              <!-- Enums & Match -->
+              <div id="tut-enums" class="docs-section-content">
+                <h2>Chapter 3.1: Enums & Match</h2>
+                <p>
+                  Ferrite supports powerful algebraic datatypes using
+                  <code>enum</code>, and deep pattern matching with the
+                  <code>match</code> keyword.
+                </p>
+                <p>
+                  You can also use <code>if</code> clauses inside match arms as
+                  "guards" for extra conditions!
+                </p>
+
+                <pre><code class="language-ferrite">enum Result&lt;T&gt; {
+    Ok(T);
+    Err(string);
+}
+
+keep response = Ok(200);
+
+match response {
+    case Ok(status) if status == 200 =&gt; {
+        println("Success!");
+    }
+    case Ok(status) =&gt; {
+        println("Other status: " + str(status));
+    }
+    case Err(msg) =&gt; {
+        println("Error: " + msg);
+    }
+}</code></pre>
+              </div>
+
+              <!-- Groups -->
+              <div id="tut-groups" class="docs-section-content">
+                <h2>Chapter 4.1: Groups</h2>
+                <p>
+                  Instead of classes or structs, Ferrite uses
+                  <code>group</code> to define collections of data.
+                </p>
+
+                <pre><code class="language-ferrite">group Vector2 {
+    x: float;
+    y: float;
+}
+
+keep position = Vector2 { x: 10.5, y: 20.0 };
+println("X Coordinate: " + str(position.x));</code></pre>
+              </div>
+
+              <!-- Traits -->
+              <div id="tut-traits" class="docs-section-content">
+                <h2>Chapter 4.2: Traits (Interfaces)</h2>
+                <p>
+                  A <code>trait</code> defines shared behavior (like an
+                  interface). You can then use the <code>impl</code> block to
+                  implement that behavior for a specific group.
+                </p>
+
+                <pre><code class="language-ferrite">trait Display {
+    fun format(self) -&gt; string;
+}
+
+impl Display for Vector2 {
+    fun format(self) -&gt; string {
+        return "Vec2(" + str(self.x) + ", " + str(self.y) + ")";
+    }
+}
+
+println(position.format());</code></pre>
+              </div>
+
+              <!-- Tensors -->
+              <div id="tut-tensors" class="docs-section-content">
+                <h2>Chapter 5.1: Tensors</h2>
+                <p>
+                  Tensors are native primitives in Ferrite. When you declare a
+                  Tensor, you specify its shape in the type signature. The
+                  compiler checks these shapes during compile time!
+                </p>
+
+                <pre><code class="language-ferrite">import "math";
+
+// Define a 1x4 input tensor and a 4x2 weights tensor
+param inputs: Tensor&lt;float, (1, 4)&gt; = rand(1, 4);
+param weights: Tensor&lt;float, (4, 2)&gt; = ones(4, 2);
+
+// Matrix multiplication using the @ operator
+// Resulting shape will automatically be (1, 2)
+keep outputs = inputs @ weights;</code></pre>
+              </div>
+
+              <!-- Execution Blocks -->
+              <div id="tut-blocks" class="docs-section-content">
+                <h2>Chapter 5.2: Execution Blocks</h2>
+                <p>
+                  Ferrite uses specialized contexts for ML operations. For
+                  example, <code>infer {}</code> blocks optimize execution for
+                  pure feed-forward passes by disabling gradient tracking
+                  overhead.
+                </p>
+
+                <pre><code class="language-ferrite">infer {
+    keep outputs = inputs @ weights;
+    println("Outputs: " + str(outputs));
+}
+
+train {
+    // Operations here will track gradients
+    keep loss = compute_gradients(inputs);
+}</code></pre>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAGE 2: PLAYGROUND (play.ferrite-lang.org) -->
+      <div id="page-play" class="page">
+        <section class="playground-section container">
+          <div class="playground-layout">
+            <!-- Left templates sidebar -->
+            <div class="play-sidebar glass">
+              <h4>Examples</h4>
+              <ul class="example-list">
+                <li class="example-item" data-example="blank">✨ New File</li>
+                <li class="example-item active" data-example="hello">
+                  1. Hello, Ferrite!
+                </li>
+                <li class="example-item" data-example="tensors">
+                  2. Tensor Multiplications
+                </li>
+                <li class="example-item" data-example="matching">
+                  3. Match Guards & Enums
+                </li>
+                <li class="example-item" data-example="traits">
+                  4. Traits & Groups
+                </li>
+                <li class="example-item" data-example="closures">
+                  5. Closures & Loops
+                </li>
+              </ul>
+              <div class="play-help">
+                <p>
+                  <strong>Note:</strong> This is a client-side execution
+                  environment for Ferrite code. Some heavy tensor operations may
+                  run slower than native.
+                </p>
+              </div>
+            </div>
+
+            <!-- Right Code Editor and Console -->
+            <div class="play-editor-container">
+              <div class="play-editor-header glass">
+                <div class="editor-title font-mono">sandbox.fe</div>
+                <div class="editor-actions">
+                  <button id="btn-run" class="btn btn-primary">
+                    <span class="icon">▶</span> Run Code
+                  </button>
+                  <button id="btn-clear" class="btn btn-secondary">
+                    Clear Output
+                  </button>
                 </div>
-            </section>
+              </div>
 
-            <!-- Stats grid -->
-            <section class="stats container">
-                <div class="stats-grid">
-                    <div class="stat-card glass">
-                        <div class="stat-icon">🦀</div>
-                        <h4>Built in Rust</h4>
-                        <p>No garbage collector. Blazing fast compiler and runtime core written on top of a type-safe Rust foundation.</p>
-                    </div>
-                    <div class="stat-card glass">
-                        <div class="stat-icon">📐</div>
-                        <h4>First-Class Tensors</h4>
-                        <p>Dimensional shapes verified at compile-time. Dedicated <code>train</code> and <code>infer</code> blocks isolate model execution contexts.</p>
-                    </div>
-                    <div class="stat-card glass">
-                        <div class="stat-icon">🔄</div>
-                        <h4>Dual Runtime</h4>
-                        <p>Run scripts instantly using the tree-walk interpreter for development, or compile to LLVM binaries for native production code.</p>
-                    </div>
-                    <div class="stat-card glass">
-                        <div class="stat-icon">🔒</div>
-                        <h4>Zero Coercion</h4>
-                        <p>Complete safety with zero implicit numeric casting or weak comparisons. Float, int, and bool alignments are always strictly verified.</p>
-                    </div>
+              <div class="play-workspace">
+                <!-- Code Area -->
+                <div class="code-area">
+                  <div class="line-numbers font-mono" id="editor-lines">
+                    1<br />2<br />3<br />4<br />5
+                  </div>
+                  <textarea
+                    id="code-editor"
+                    class="font-mono"
+                    spellcheck="false"
+                  >
+println("Hello, Ferrite!");</textarea
+                  >
                 </div>
-            </section>
 
-            <!-- Mini Showcase -->
-            <section class="home-showcase container">
-                <div class="showcase-content">
-                    <h2>Modern Constructs, No Compromise</h2>
-                    <p>Ferrite blends systems-level speed with expressive syntax. Write safe pattern-matches, define strict interface contracts via Traits, and manipulate multidimensional data using readable high-level semantics.</p>
-                    <ul class="bullet-list">
-                        <li><strong>Structural Pattern Matching</strong> with conditional guard clauses</li>
-                        <li><strong>First-class functions</strong> & lexical closures</li>
-                        <li><strong>Safe traits</strong> with explicit static implementations</li>
-                        <li><strong>No undefined behaviors</strong> or runtime reflection lookup errors</li>
-                    </ul>
+                <!-- Console Output -->
+                <div class="console-area">
+                  <div class="console-header font-mono">Console Output</div>
+                  <div class="console-body font-mono" id="console-output">
+                    <span class="comment"
+                      >// Press 'Run Code' to execute sandbox.fe...</span
+                    >
+                  </div>
                 </div>
-                <div class="showcase-visual glass">
-                    <div class="visual-header">Console Output Demo</div>
-                    <div class="visual-body font-mono">
-                        <span class="prompt">$</span> ferrite check model.fe<br>
-                        <span class="success">✓ Type check passed in 0.8ms</span><br><br>
-                        <span class="prompt">$</span> ferrite run model.fe<br>
-                        <span class="output">[Epoch 1/5] loss: 0.4218 - accuracy: 89.2%</span><br>
-                        <span class="output">[Epoch 2/5] loss: 0.2811 - accuracy: 93.4%</span><br>
-                        <span class="output">[Epoch 3/5] loss: 0.1989 - accuracy: 96.1%</span><br>
-                        <span class="success">✓ Training completed successfully. Output saved to weights.fe</span>
-                    </div>
-                </div>
-            </section>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
-            <!-- Installer Prompt -->
-            <section class="home-download container">
-                <div class="download-banner glass">
-                    <h3>Get Ferrite Today</h3>
-                    <p>Install the Ferrite compiler v2.3.0 natively on your operating system.</p>
-                    
-                    <div class="download-platforms">
-                        <!-- Windows Card -->
-                        <div class="platform-card glass">
-                            <span class="platform-icon">🪟</span>
-                            <h4>Windows</h4>
-                            <p>Bundle includes compiler, tree-walk interpreter, and path setup wizard.</p>
-                            <a href="https://github.com/vishwanathdvgmm/ferrite/releases" class="btn btn-primary" style="margin-top: 1rem;">Download Installer (.exe)</a>
-                        </div>
-                        
-                        <!-- macOS Card -->
-                        <div class="platform-card glass">
-                            <span class="platform-icon">🍏</span>
-                            <h4>macOS</h4>
-                            <p>Install via Homebrew tap or download static Apple Silicon/Intel binaries.</p>
-                            <code class="platform-cmd">brew install vishwanathdvgmm/tap/ferrite</code>
-                        </div>
-                        
-                        <!-- Linux Card -->
-                        <div class="platform-card glass">
-                            <span class="platform-icon">🐧</span>
-                            <h4>Linux</h4>
-                            <p>Download precompiled binaries or install instantly via curl script.</p>
-                            <code class="platform-cmd">curl -fsSL https://ferrite-lang.org/install.sh | sh</code>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
+      <!-- PAGE 3: DOCUMENTATION (docs.ferrite-lang.org) -->
+      <div id="page-docs" class="page">
+        <section class="docs-section container">
+          <div class="docs-layout">
+            <!-- Docs Sidebar Menu -->
+            <aside class="docs-sidebar glass">
+              <div class="docs-menu-group">
+                <h5>Getting Started</h5>
+                <ul>
+                  <li>
+                    <a href="#docs-intro" class="docs-link active"
+                      >Introduction</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#docs-install" class="docs-link">Installation</a>
+                  </li>
+                  <li>
+                    <a href="#docs-cli" class="docs-link"
+                      >Command Line Interface</a
+                    >
+                  </li>
+                </ul>
+              </div>
 
-        <!-- PAGE 2: PLAYGROUND (play.ferrite-lang.org) -->
-        <div id="page-play" class="page">
-            <section class="playground-section container">
-                <div class="playground-layout">
-                    <!-- Left templates sidebar -->
-                    <div class="play-sidebar glass">
-                        <h4>Examples</h4>
-                        <ul class="example-list">
-                            <li class="example-item active" data-example="hello">1. Hello, Ferrite!</li>
-                            <li class="example-item" data-example="tensors">2. Tensor Multiplications</li>
-                            <li class="example-item" data-example="matching">3. Match Guards & Enums</li>
-                            <li class="example-item" data-example="traits">4. Traits & Groups</li>
-                            <li class="example-item" data-example="closures">5. Closures & Loops</li>
-                        </ul>
-                        <div class="play-help">
-                            <p><strong>Note:</strong> This is a client-side syntax playground showing execution logs simulated from the Rust interpreter runtime.</p>
-                        </div>
-                    </div>
+              <div class="docs-menu-group">
+                <h5>Core Syntax</h5>
+                <ul>
+                  <li>
+                    <a href="#docs-vars" class="docs-link"
+                      >Variables & Mutability</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#docs-types" class="docs-link"
+                      >Strict Type System</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#docs-control" class="docs-link"
+                      >Loops & Control Flow</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#docs-pattern" class="docs-link"
+                      >Pattern Matching</a
+                    >
+                  </li>
+                </ul>
+              </div>
 
-                    <!-- Right Code Editor and Console -->
-                    <div class="play-editor-container">
-                        <div class="play-editor-header glass">
-                            <div class="editor-title font-mono">sandbox.fe</div>
-                            <div class="editor-actions">
-                                <button id="btn-run" class="btn btn-primary"><span class="icon">▶</span> Run Code</button>
-                                <button id="btn-clear" class="btn btn-secondary">Clear Output</button>
-                            </div>
-                        </div>
-                        
-                        <div class="play-workspace">
-                            <!-- Code Area -->
-                            <div class="code-area">
-                                <div class="line-numbers font-mono" id="editor-lines">1<br>2<br>3<br>4<br>5</div>
-                                <textarea id="code-editor" class="font-mono" spellcheck="false">println("Hello, Ferrite!");</textarea>
-                            </div>
-                            
-                            <!-- Console Output -->
-                            <div class="console-area">
-                                <div class="console-header font-mono">Console Output</div>
-                                <div class="console-body font-mono" id="console-output">
-                                    <span class="comment">// Press 'Run Code' to execute sandbox.fe...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
+              <div class="docs-menu-group">
+                <h5>Advanced Features</h5>
+                <ul>
+                  <li>
+                    <a href="#docs-groups" class="docs-link">Groups & Traits</a>
+                  </li>
+                  <li>
+                    <a href="#docs-tensors" class="docs-link">ML & Tensors</a>
+                  </li>
+                  <li>
+                    <a href="#docs-stdlib" class="docs-link"
+                      >Standard Library</a
+                    >
+                  </li>
+                </ul>
+              </div>
+            </aside>
 
-        <!-- PAGE 3: DOCUMENTATION (docs.ferrite-lang.org) -->
-        <div id="page-docs" class="page">
-            <section class="docs-section container">
-                <div class="docs-layout">
-                    <!-- Docs Sidebar Menu -->
-                    <aside class="docs-sidebar glass">
-                        <div class="docs-menu-group">
-                            <h5>Getting Started</h5>
-                            <ul>
-                                <li><a href="#docs-intro" class="docs-link active">Introduction</a></li>
-                                <li><a href="#docs-install" class="docs-link">Installation</a></li>
-                                <li><a href="#docs-cli" class="docs-link">Command Line Interface</a></li>
-                            </ul>
-                        </div>
-                        
-                        <div class="docs-menu-group">
-                            <h5>Core Syntax</h5>
-                            <ul>
-                                <li><a href="#docs-vars" class="docs-link">Variables & Mutability</a></li>
-                                <li><a href="#docs-types" class="docs-link">Strict Type System</a></li>
-                                <li><a href="#docs-control" class="docs-link">Loops & Control Flow</a></li>
-                                <li><a href="#docs-pattern" class="docs-link">Pattern Matching</a></li>
-                            </ul>
-                        </div>
+            <!-- Docs Content Area -->
+            <article class="docs-content glass">
+              <!-- Intro -->
+              <div id="docs-intro" class="docs-section-content active">
+                <h2>Introduction to Ferrite</h2>
+                <p>
+                  Ferrite is a statically-typed, ahead-of-time compiled, systems
+                  programming language specifically optimized for machine
+                  learning computation, built from the ground up in Rust.
+                </p>
+                <p>
+                  Unlike languages like Python, which are slow and dynamically
+                  typed, or C++/Rust, which require complex bindings for tensor
+                  libraries, Ferrite treats tensors as first-class primitives
+                  with strict compile-time shape validation.
+                </p>
 
-                        <div class="docs-menu-group">
-                            <h5>Advanced Features</h5>
-                            <ul>
-                                <li><a href="#docs-groups" class="docs-link">Groups & Traits</a></li>
-                                <li><a href="#docs-tensors" class="docs-link">ML & Tensors</a></li>
-                                <li><a href="#docs-stdlib" class="docs-link">Standard Library</a></li>
-                            </ul>
-                        </div>
-                    </aside>
+                <h3>Core Pillars</h3>
+                <table class="docs-table">
+                  <thead>
+                    <tr>
+                      <th>Feature</th>
+                      <th>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>No Implicit Coercion</strong></td>
+                      <td>
+                        Types do not cast silently. Adding an
+                        <code>int</code> to a <code>float</code> requires
+                        explicit cast helper functions.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>AOT + JIT Execution</strong></td>
+                      <td>
+                        Runs dynamically via a Tree-Walk interpreter, or builds
+                        directly to native assemblies.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>Native Tensors</strong></td>
+                      <td>
+                        Compile-time shape validation prevents dimension
+                        mismatches before deployment.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-                    <!-- Docs Content Area -->
-                    <article class="docs-content glass">
-                        <!-- Intro -->
-                        <div id="docs-intro" class="docs-section-content active">
-                            <h2>Introduction to Ferrite</h2>
-                            <p>Ferrite is a statically-typed, ahead-of-time compiled, systems programming language specifically optimized for machine learning computation, built from the ground up in Rust.</p>
-                            <p>Unlike languages like Python, which are slow and dynamically typed, or C++/Rust, which require complex bindings for tensor libraries, Ferrite treats tensors as first-class primitives with strict compile-time shape validation.</p>
-                            
-                            <h3>Core Pillars</h3>
-                            <table class="docs-table">
-                                <thead>
-                                    <tr>
-                                        <th>Feature</th>
-                                        <th>Details</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>No Implicit Coercion</strong></td>
-                                        <td>Types do not cast silently. Adding an <code>int</code> to a <code>float</code> requires explicit cast helper functions.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>AOT + JIT Execution</strong></td>
-                                        <td>Runs dynamically via a Tree-Walk interpreter, or builds directly to native assemblies.</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Native Tensors</strong></td>
-                                        <td>Compile-time shape validation prevents dimension mismatches before deployment.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+              <!-- Installation -->
+              <div id="docs-install" class="docs-section-content">
+                <h2>Installation & Setup</h2>
+                <p>
+                  Ferrite provides standalone precompiled binaries with no
+                  external runtime dependencies. Select your platform below for
+                  installation guidelines.
+                </p>
 
-                        <!-- Installation -->
-                        <div id="docs-install" class="docs-section-content">
-                            <h2>Installation & Setup</h2>
-                            <p>Ferrite provides standalone precompiled binaries with no external runtime dependencies. Select your platform below for installation guidelines.</p>
-                            
-                            <h3>Windows</h3>
-                            <p>Download and run the custom setup wizard: <a href="https://github.com/vishwanathdvgmm/ferrite/releases" target="_blank" rel="noopener noreferrer">ferrite-v2.3.0-setup.exe</a>. The wizard will install the compiler and automatically configure your environment variables.</p>
-                            
-                            <h3>macOS</h3>
-                            <p>Install Ferrite using our official Homebrew tap:</p>
-                            <pre><code class="language-bash">
+                <h3>Windows</h3>
+                <p>
+                  Download and run the custom setup wizard:
+                  <a
+                    href="https://github.com/vishwanathdvgmm/ferrite/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >ferrite-v2.3.0-setup.exe</a
+                  >. The wizard will install the compiler and automatically
+                  configure your environment variables.
+                </p>
+
+                <h3>macOS</h3>
+                <p>Install Ferrite using our official Homebrew tap:</p>
+                <pre><code class="language-bash">
 # Add the tap and install
 brew tap vishwanathdvgmm/tap
 brew install ferrite
                             </code></pre>
-                            <p>Alternatively, download the `.tar.gz` archive for Apple Silicon (M1/M2/M3) or Intel architectures from our <a href="https://github.com/vishwanathdvgmm/ferrite/releases" target="_blank">Releases</a> page, extract it, and copy `ferrite` to `/usr/local/bin`.</p>
+                <p>
+                  Alternatively, download the `.tar.gz` archive for Apple
+                  Silicon (M1/M2/M3) or Intel architectures from our
+                  <a
+                    href="https://github.com/vishwanathdvgmm/ferrite/releases"
+                    target="_blank"
+                    >Releases</a
+                  >
+                  page, extract it, and copy `ferrite` to `/usr/local/bin`.
+                </p>
 
-                            <h3>Linux</h3>
-                            <p>Run the automated shell install script in your terminal:</p>
-                            <pre><code class="language-bash">
+                <h3>Linux</h3>
+                <p>Run the automated shell install script in your terminal:</p>
+                <pre><code class="language-bash">
 curl -fsSL https://ferrite-lang.org/install.sh | sh
                             </code></pre>
-                            <p>Or download the precompiled binary from the Releases page, extract it, and add it to your path:</p>
-                            <pre><code class="language-bash">
+                <p>
+                  Or download the precompiled binary from the Releases page,
+                  extract it, and add it to your path:
+                </p>
+                <pre><code class="language-bash">
 tar -xzf ferrite-v2.3.0-linux-x86_64.tar.gz
 sudo mv ferrite /usr/local/bin/
                             </code></pre>
 
-                            <h3>Build from Source</h3>
-                            <p>Ferrite can be compiled from source on any system running a modern Rust compiler toolchain:</p>
-                            <pre><code class="language-bash">
+                <h3>Build from Source</h3>
+                <p>
+                  Ferrite can be compiled from source on any system running a
+                  modern Rust compiler toolchain:
+                </p>
+                <pre><code class="language-bash">
 # Clone the repository
 git clone https://github.com/vishwanathdvgmm/ferrite.git
 cd ferrite
@@ -338,15 +969,18 @@ cargo build --release
 # Run a quick sanity check
 ./target/release/ferrite run tests/hello.fe
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- CLI -->
-                        <div id="docs-cli" class="docs-section-content">
-                            <h2>Command Line Interface</h2>
-                            <p>The <code>ferrite</code> compiler binary includes utility subcommands for testing, executing, and type-checking scripts.</p>
-                            
-                            <h3>Command Syntax</h3>
-                            <pre><code class="language-bash">
+              <!-- CLI -->
+              <div id="docs-cli" class="docs-section-content">
+                <h2>Command Line Interface</h2>
+                <p>
+                  The <code>ferrite</code> compiler binary includes utility
+                  subcommands for testing, executing, and type-checking scripts.
+                </p>
+
+                <h3>Command Syntax</h3>
+                <pre><code class="language-bash">
 # Syntax-check and type-check a program without running it
 ferrite check my_code.fe
 
@@ -357,15 +991,20 @@ ferrite run my_code.fe
 ferrite --help
 ferrite --version
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- Variables -->
-                        <div id="docs-vars" class="docs-section-content">
-                            <h2>Variables & Mutability</h2>
-                            <p>By default, variables declared in Ferrite are **immutable (read-only constants)** using the <code>keep</code> keyword. Mutable variables can be updated using normal reassignment syntax.</p>
-                            
-                            <h3>Declaration Examples</h3>
-                            <pre><code class="language-ferrite">
+              <!-- Variables -->
+              <div id="docs-vars" class="docs-section-content">
+                <h2>Variables & Mutability</h2>
+                <p>
+                  By default, variables declared in Ferrite are **immutable
+                  (read-only constants)** using the <code>keep</code> keyword.
+                  Mutable variables can be updated using normal reassignment
+                  syntax.
+                </p>
+
+                <h3>Declaration Examples</h3>
+                <pre><code class="language-ferrite">
 <span class="comment">// Keep defines immutable constants</span>
 <span class="keyword">keep</span> pi: <span class="type">float</span> = <span class="number">3.14159</span>;
 <span class="keyword">keep</span> welcome: <span class="type">string</span> = <span class="string">"Hello, System!"</span>;
@@ -377,25 +1016,38 @@ count = count + <span class="number">1</span>; <span class="comment">// Works!</
 <span class="comment">// Error: Cannot reassign an immutable keep once initialized</span>
 pi = <span class="number">3.20</span>; 
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- Type System -->
-                        <div id="docs-types" class="docs-section-content">
-                            <h2>Strict Type System</h2>
-                            <p>Ferrite implements absolute type safety. There is no concept of "truthiness" (e.g. <code>if 1</code> is a compile error) and no silent numeric upgrades (e.g., passing an <code>int</code> into a function parameter expecting a <code>float</code> fails immediately).</p>
-                            
-                            <h3>Primitive Types</h3>
-                            <ul>
-                                <li><code>int</code>: 64-bit signed integer.</li>
-                                <li><code>float</code>: 64-bit floating-point number.</li>
-                                <li><code>bool</code>: Boolean values (<code>true</code> or <code>false</code>).</li>
-                                <li><code>string</code>: UTF-8 character arrays.</li>
-                                <li><code>fun</code>: First-class function handle signatures.</li>
-                                <li><code>Tensor</code>: Multi-dimensional numeric arrays.</li>
-                            </ul>
+              <!-- Type System -->
+              <div id="docs-types" class="docs-section-content">
+                <h2>Strict Type System</h2>
+                <p>
+                  Ferrite implements absolute type safety. There is no concept
+                  of "truthiness" (e.g. <code>if 1</code> is a compile error)
+                  and no silent numeric upgrades (e.g., passing an
+                  <code>int</code> into a function parameter expecting a
+                  <code>float</code> fails immediately).
+                </p>
 
-                            <h3>Casting Rules</h3>
-                            <pre><code class="language-ferrite">
+                <h3>Primitive Types</h3>
+                <ul>
+                  <li><code>int</code>: 64-bit signed integer.</li>
+                  <li><code>float</code>: 64-bit floating-point number.</li>
+                  <li>
+                    <code>bool</code>: Boolean values (<code>true</code> or
+                    <code>false</code>).
+                  </li>
+                  <li><code>string</code>: UTF-8 character arrays.</li>
+                  <li>
+                    <code>fun</code>: First-class function handle signatures.
+                  </li>
+                  <li>
+                    <code>Tensor</code>: Multi-dimensional numeric arrays.
+                  </li>
+                </ul>
+
+                <h3>Casting Rules</h3>
+                <pre><code class="language-ferrite">
 <span class="keyword">keep</span> x: <span class="type">int</span> = <span class="number">5</span>;
 <span class="keyword">keep</span> y: <span class="type">float</span> = <span class="number">2.5</span>;
 
@@ -405,15 +1057,19 @@ pi = <span class="number">3.20</span>;
 <span class="comment">// Success: Cast x explicitly to a float first</span>
 <span class="keyword">keep</span> correct = float(x) + y;
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- Control Flow -->
-                        <div id="docs-control" class="docs-section-content">
-                            <h2>Loops & Control Flow</h2>
-                            <p>Ferrite supports conditional blocks and iteration loops with advanced jump controls like <code>skip</code> (continue) and <code>stop</code> (break).</p>
-                            
-                            <h3>Conditional branching</h3>
-                            <pre><code class="language-ferrite">
+              <!-- Control Flow -->
+              <div id="docs-control" class="docs-section-content">
+                <h2>Loops & Control Flow</h2>
+                <p>
+                  Ferrite supports conditional blocks and iteration loops with
+                  advanced jump controls like <code>skip</code> (continue) and
+                  <code>stop</code> (break).
+                </p>
+
+                <h3>Conditional branching</h3>
+                <pre><code class="language-ferrite">
 <span class="keyword">keep</span> temperature: <span class="type">float</span> = <span class="number">38.5</span>;
 
 <span class="keyword">if</span> temperature &gt; <span class="number">37.5</span> {
@@ -423,8 +1079,8 @@ pi = <span class="number">3.20</span>;
 }
                             </code></pre>
 
-                            <h3>While Loops</h3>
-                            <pre><code class="language-ferrite">
+                <h3>While Loops</h3>
+                <pre><code class="language-ferrite">
 <span class="keyword">keep</span> i: <span class="type">int</span> = <span class="number">0</span>;
 <span class="keyword">while</span> i &lt; <span class="number">10</span> {
     i = i + <span class="number">1</span>;
@@ -437,15 +1093,19 @@ pi = <span class="number">3.20</span>;
     println(str(i));
 }
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- Pattern Matching -->
-                        <div id="docs-pattern" class="docs-section-content">
-                            <h2>Pattern Matching & Guards</h2>
-                            <p>Ferrite supports deep algebraic matching on Enum datatypes, featuring conditional guard clauses via the <code>if</code> keyword inside cases.</p>
-                            
-                            <h3>Match syntax</h3>
-                            <pre><code class="language-ferrite">
+              <!-- Pattern Matching -->
+              <div id="docs-pattern" class="docs-section-content">
+                <h2>Pattern Matching & Guards</h2>
+                <p>
+                  Ferrite supports deep algebraic matching on Enum datatypes,
+                  featuring conditional guard clauses via the
+                  <code>if</code> keyword inside cases.
+                </p>
+
+                <h3>Match syntax</h3>
+                <pre><code class="language-ferrite">
 <span class="keyword">enum</span> Result&lt;T&gt; {
     Ok(T);
     Err(<span class="type">string</span>);
@@ -465,15 +1125,20 @@ pi = <span class="number">3.20</span>;
     }
 }
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- Groups & Traits -->
-                        <div id="docs-groups" class="docs-section-content">
-                            <h2>Groups & Traits</h2>
-                            <p>Data containers are defined using <code>group</code>. Interfaces or shared protocols are declared using <code>trait</code>, which can be implemented explicitly on groups using the <code>impl</code> block.</p>
-                            
-                            <h3>Defining Structure and Interfaces</h3>
-                            <pre><code class="language-ferrite">
+              <!-- Groups & Traits -->
+              <div id="docs-groups" class="docs-section-content">
+                <h2>Groups & Traits</h2>
+                <p>
+                  Data containers are defined using <code>group</code>.
+                  Interfaces or shared protocols are declared using
+                  <code>trait</code>, which can be implemented explicitly on
+                  groups using the <code>impl</code> block.
+                </p>
+
+                <h3>Defining Structure and Interfaces</h3>
+                <pre><code class="language-ferrite">
 <span class="keyword">group</span> Vector2 {
     x: <span class="type">float</span>;
     y: <span class="type">float</span>;
@@ -489,15 +1154,19 @@ pi = <span class="number">3.20</span>;
     }
 }
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- ML & Tensors -->
-                        <div id="docs-tensors" class="docs-section-content">
-                            <h2>ML & Tensor Operations</h2>
-                            <p>Tensors are native primitives in Ferrite. Shapes are specified within the generic parameters and are enforced during type checking to prevent out-of-bounds layer math.</p>
-                            
-                            <h3>Compile-Time Shape Constraints</h3>
-                            <pre><code class="language-ferrite">
+              <!-- ML & Tensors -->
+              <div id="docs-tensors" class="docs-section-content">
+                <h2>ML & Tensor Operations</h2>
+                <p>
+                  Tensors are native primitives in Ferrite. Shapes are specified
+                  within the generic parameters and are enforced during type
+                  checking to prevent out-of-bounds layer math.
+                </p>
+
+                <h3>Compile-Time Shape Constraints</h3>
+                <pre><code class="language-ferrite">
 <span class="comment">// Declare shapes (batch_size, inputs) and (inputs, outputs)</span>
 <span class="keyword">param</span> batch: <span class="type">Tensor</span>&lt;<span class="type">float</span>, (<span class="number">32</span>, <span class="number">128</span>)&gt; = rand();
 <span class="keyword">param</span> weights: <span class="type">Tensor</span>&lt;<span class="type">float</span>, (<span class="number">128</span>, <span class="number">64</span>)&gt; = zeros();
@@ -509,9 +1178,13 @@ pi = <span class="number">3.20</span>;
 <span class="keyword">keep</span> invalid = weights @ batch;
                             </code></pre>
 
-                            <h3>Execution Blocks (train / infer)</h3>
-                            <p>Isolate your operations inside context blocks which optimize execution parameters (e.g. tracking gradients, disabling backpropagation overheads):</p>
-                            <pre><code class="language-ferrite">
+                <h3>Execution Blocks (train / infer)</h3>
+                <p>
+                  Isolate your operations inside context blocks which optimize
+                  execution parameters (e.g. tracking gradients, disabling
+                  backpropagation overheads):
+                </p>
+                <pre><code class="language-ferrite">
 <span class="keyword">train</span> {
     <span class="comment">// Gradients are calculated automatically</span>
     <span class="keyword">keep</span> loss = compute_gradients(batch);
@@ -522,226 +1195,360 @@ pi = <span class="number">3.20</span>;
     <span class="keyword">keep</span> output = forward_pass(batch);
 }
                             </code></pre>
-                        </div>
+              </div>
 
-                        <!-- Stdlib -->
-                        <div id="docs-stdlib" class="docs-section-content">
-                            <h2>Standard Library</h2>
-                            <p>Ferrite includes a curated set of native core libraries accessible via the `import` command.</p>
-                            
-                            <h3>Available modules</h3>
-                            <ul>
-                                <li><code>"math"</code>: Trigonometric calculations, matrix algebra tools, distributions.</li>
-                                <li><code>"system"</code>: Direct environment querying, file reading/writing buffers.</li>
-                                <li><code>"tensors"</code>: High-level utility routines (reshaping, slicing, normalizations).</li>
-                            </ul>
-                        </div>
-                    </article>
+              <!-- Stdlib -->
+              <div id="docs-stdlib" class="docs-section-content">
+                <h2>Standard Library</h2>
+                <p>
+                  Ferrite includes a curated set of native core libraries
+                  accessible via the `import` command.
+                </p>
+
+                <h3>Available modules</h3>
+                <ul>
+                  <li>
+                    <code>"math"</code>: Trigonometric calculations, matrix
+                    algebra tools, distributions.
+                  </li>
+                  <li>
+                    <code>"system"</code>: Direct environment querying, file
+                    reading/writing buffers.
+                  </li>
+                  <li>
+                    <code>"tensors"</code>: High-level utility routines
+                    (reshaping, slicing, normalizations).
+                  </li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAGE 4: PACKAGES (packages.ferrite-lang.org) -->
+      <div id="page-packages" class="page">
+        <section class="packages-section container">
+          <div class="packages-hero">
+            <div class="coming-soon-badge">🚧 Coming Soon</div>
+            <h2>Ferrite Package Registry</h2>
+            <p>
+              A built-in package manager is on the roadmap. Soon you'll be able
+              to discover, install, and publish Ferrite libraries with a single
+              command.
+            </p>
+          </div>
+
+          <div class="packages-coming-soon-layout">
+            <!-- Preview of planned CLI -->
+            <div class="packages-cli-info glass">
+              <h3>Planned CLI Preview</h3>
+              <p>
+                Here's what <code>fe-pkg</code> will look like when it ships:
+              </p>
+
+              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                <span class="comment"># Initialize a new Ferrite project</span>
+                <span class="prompt">$</span> fe-pkg init my-project<br />
+                <span class="output">✓ Created ferrite.toml</span>
+              </div>
+
+              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                <span class="comment"># Add a package dependency</span>
+                <span class="prompt">$</span> fe-pkg add nn<br />
+                <span class="output">Resolving nn v1.x...</span><br />
+                <span class="output">✓ Package added to ferrite.toml</span>
+              </div>
+
+              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                <span class="comment"># Publish your own library</span>
+                <span class="prompt">$</span> fe-pkg publish<br />
+                <span class="output">✓ Module uploaded to registry.</span>
+              </div>
+            </div>
+
+            <!-- Roadmap Timeline -->
+            <div class="packages-roadmap glass">
+              <h3>📋 Roadmap</h3>
+              <div class="roadmap-timeline">
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Done</span>
+                    <h4>Core Language</h4>
+                    <p>
+                      Lexer, parser, type checker, and tree-walk interpreter are
+                      live and working.
+                    </p>
+                  </div>
                 </div>
-            </section>
-        </div>
-
-        <!-- PAGE 4: PACKAGES (packages.ferrite-lang.org) -->
-        <div id="page-packages" class="page">
-            <section class="packages-section container">
-                <div class="packages-hero">
-                    <div class="coming-soon-badge">🚧 Coming Soon</div>
-                    <h2>Ferrite Package Registry</h2>
-                    <p>A built-in package manager is on the roadmap. Soon you'll be able to discover, install, and publish Ferrite libraries with a single command.</p>
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Done</span>
+                    <h4>Online Playground</h4>
+                    <p>
+                      Run Ferrite code directly in your browser with real-time
+                      output.
+                    </p>
+                  </div>
                 </div>
-
-                <div class="packages-coming-soon-layout">
-                    <!-- Preview of planned CLI -->
-                    <div class="packages-cli-info glass">
-                        <h3>Planned CLI Preview</h3>
-                        <p>Here's what <code>fe-pkg</code> will look like when it ships:</p>
-                        
-                        <div class="cli-cmd-box font-mono cli-preview-dimmed">
-                            <span class="comment"># Initialize a new Ferrite project</span>
-                            <span class="prompt">$</span> fe-pkg init my-project<br>
-                            <span class="output">✓ Created ferrite.toml</span>
-                        </div>
-
-                        <div class="cli-cmd-box font-mono cli-preview-dimmed">
-                            <span class="comment"># Add a package dependency</span>
-                            <span class="prompt">$</span> fe-pkg add nn<br>
-                            <span class="output">Resolving nn v1.x...</span><br>
-                            <span class="output">✓ Package added to ferrite.toml</span>
-                        </div>
-
-                        <div class="cli-cmd-box font-mono cli-preview-dimmed">
-                            <span class="comment"># Publish your own library</span>
-                            <span class="prompt">$</span> fe-pkg publish<br>
-                            <span class="output">✓ Module uploaded to registry.</span>
-                        </div>
-                    </div>
-
-                    <!-- Roadmap Timeline -->
-                    <div class="packages-roadmap glass">
-                        <h3>📋 Roadmap</h3>
-                        <div class="roadmap-timeline">
-                            <div class="roadmap-item completed">
-                                <div class="roadmap-dot"></div>
-                                <div class="roadmap-content">
-                                    <span class="roadmap-label">Done</span>
-                                    <h4>Core Language</h4>
-                                    <p>Lexer, parser, type checker, and tree-walk interpreter are live and working.</p>
-                                </div>
-                            </div>
-                            <div class="roadmap-item completed">
-                                <div class="roadmap-dot"></div>
-                                <div class="roadmap-content">
-                                    <span class="roadmap-label">Done</span>
-                                    <h4>Online Playground</h4>
-                                    <p>Run Ferrite code directly in your browser with real-time output.</p>
-                                </div>
-                            </div>
-                            <div class="roadmap-item in-progress">
-                                <div class="roadmap-dot"></div>
-                                <div class="roadmap-content">
-                                    <span class="roadmap-label">In Progress</span>
-                                    <h4>Module System</h4>
-                                    <p>Import/export, module resolution, and namespace management for multi-file projects.</p>
-                                </div>
-                            </div>
-                            <div class="roadmap-item upcoming">
-                                <div class="roadmap-dot"></div>
-                                <div class="roadmap-content">
-                                    <span class="roadmap-label">Planned</span>
-                                    <h4>Package Manager (<code>fe-pkg</code>)</h4>
-                                    <p>Dependency resolution, version pinning, <code>ferrite.toml</code> manifest, and a global registry.</p>
-                                </div>
-                            </div>
-                            <div class="roadmap-item upcoming">
-                                <div class="roadmap-dot"></div>
-                                <div class="roadmap-content">
-                                    <span class="roadmap-label">Planned</span>
-                                    <h4>Standard Library</h4>
-                                    <p>Core packages for I/O, math, networking, data structures, and ML primitives.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="roadmap-item in-progress">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">In Progress</span>
+                    <h4>Module System</h4>
+                    <p>
+                      Import/export, module resolution, and namespace management
+                      for multi-file projects.
+                    </p>
+                  </div>
                 </div>
-
-                <!-- Notify CTA -->
-                <div class="packages-notify glass">
-                    <div class="notify-content">
-                        <span class="notify-icon">📬</span>
-                        <div>
-                            <h4>Want to be notified when packages launch?</h4>
-                            <p>Star the <a href="https://github.com/vishwanathdvgmm/ferrite" target="_blank" rel="noopener noreferrer">GitHub repo</a> to get release notifications, or follow the <a href="#blog" class="notify-blog-link" data-target="blog">blog</a> for updates.</p>
-                        </div>
-                    </div>
+                <div class="roadmap-item upcoming">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Planned</span>
+                    <h4>Package Manager (<code>fe-pkg</code>)</h4>
+                    <p>
+                      Dependency resolution, version pinning,
+                      <code>ferrite.toml</code> manifest, and a global registry.
+                    </p>
+                  </div>
                 </div>
-            </section>
-        </div>
+                <div class="roadmap-item upcoming">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Planned</span>
+                    <h4>Standard Library</h4>
+                    <p>
+                      Core packages for I/O, math, networking, data structures,
+                      and ML primitives.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <!-- PAGE 5: BLOG (blog.ferrite-lang.org) -->
-        <div id="page-blog" class="page">
-            <section class="blog-section container">
-                <h2>Ecosystem & Release Blog</h2>
-                <p class="blog-lead">Stay up to date with the latest features, releases, and guides from the Ferrite core team.</p>
-                
-                <div class="blog-layout">
-                    <!-- Main articles list -->
-                    <div class="blog-posts-list">
-                        <!-- Post 1 -->
-                        <article class="blog-post glass">
-                            <header class="post-header">
-                                <div class="post-meta">June 26, 2026 • Releases</div>
-                                <h3 class="post-title">Announcing Ferrite v2.3.0: Closures, Guards, & Setup Wizards</h3>
-                            </header>
-                            <p class="post-summary">We are excited to release Ferrite v2.3.0! This release is packed with compiler features, syntax improvements, and ecosystem setups. Highlights include lexical closures, enum guard clauses, skip/stop loops control, and the new setup wizard.</p>
-                            <div class="post-content-full">
-                                <h4>Lexical Closures</h4>
-                                <p>First-class functions can now capture variables from their outer scope. This unlocks functional programming patterns directly in Ferrite:</p>
-                                <pre><code class="language-ferrite">
+          <!-- Notify CTA -->
+          <div class="packages-notify glass">
+            <div class="notify-content">
+              <span class="notify-icon">📬</span>
+              <div>
+                <h4>Want to be notified when packages launch?</h4>
+                <p>
+                  Star the
+                  <a
+                    href="https://github.com/vishwanathdvgmm/ferrite"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >GitHub repo</a
+                  >
+                  to get release notifications, or follow the
+                  <a href="#blog" class="notify-blog-link" data-target="blog"
+                    >blog</a
+                  >
+                  for updates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- PAGE 5: BLOG (blog.ferrite-lang.org) -->
+      <div id="page-blog" class="page">
+        <section class="blog-section container">
+          <h2>Ecosystem & Release Blog</h2>
+          <p class="blog-lead">
+            Stay up to date with the latest features, releases, and guides from
+            the Ferrite core team.
+          </p>
+
+          <div class="blog-layout">
+            <!-- Main articles list -->
+            <div class="blog-posts-list">
+              <!-- Post 1 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">June 26, 2026 • Releases</div>
+                  <h3 class="post-title">
+                    Announcing Ferrite v2.3.0: Closures, Guards, & Setup Wizards
+                  </h3>
+                </header>
+                <p class="post-summary">
+                  We are excited to release Ferrite v2.3.0! This release is
+                  packed with compiler features, syntax improvements, and
+                  ecosystem setups. Highlights include lexical closures, enum
+                  guard clauses, skip/stop loops control, and the new setup
+                  wizard.
+                </p>
+                <div class="post-content-full">
+                  <h4>Lexical Closures</h4>
+                  <p>
+                    First-class functions can now capture variables from their
+                    outer scope. This unlocks functional programming patterns
+                    directly in Ferrite:
+                  </p>
+                  <pre><code class="language-ferrite">
 <span class="keyword">keep</span> multiplier = <span class="number">2</span>;
 <span class="keyword">keep</span> double: <span class="type">fun</span>(<span class="type">int</span>)-&gt;<span class="type">int</span> = (x: <span class="type">int</span>) =&gt; x * multiplier;
                                 </code></pre>
 
-                                <h4>Advanced Loop Control</h4>
-                                <p>We added `skip` and `stop` keywords, aligning Ferrite's iteration structure with standard loop controls (corresponding to `continue` and `break` in traditional C-like syntaxes).</p>
-                                
-                                <h4>New Setup Installer</h4>
-                                <p>Our Windows installation experience has been rewritten. The setup wizard now properly publishes vendor parameters, configures environment paths, and resolves standard SDK files directly.</p>
-                            </div>
-                            <button class="btn btn-secondary btn-read-more">Read More</button>
-                        </article>
+                  <h4>Advanced Loop Control</h4>
+                  <p>
+                    We added `skip` and `stop` keywords, aligning Ferrite's
+                    iteration structure with standard loop controls
+                    (corresponding to `continue` and `break` in traditional
+                    C-like syntaxes).
+                  </p>
 
-                        <!-- Post 2 -->
-                        <article class="blog-post glass">
-                            <header class="post-header">
-                                <div class="post-meta">May 15, 2026 • Compiler</div>
-                                <h3 class="post-title">Ferrite v2.2.0: Hardened Type Checks & Traits</h3>
-                            </header>
-                            <p class="post-summary">Ferrite's compiler type check has been hardened. We've introduced explicit interfaces called Traits, which can be custom-implemented on structural Groups to support clean code architectures.</p>
-                            <div class="post-content-full">
-                                <p>Traits establish code contract standards. In this release, the static analyzer ensures that all trait functions are fully implemented, preventing runtime resolution errors in native compiled binaries.</p>
-                            </div>
-                            <button class="btn btn-secondary btn-read-more">Read More</button>
-                        </article>
-
-                        <!-- Post 3 -->
-                        <article class="blog-post glass">
-                            <header class="post-header">
-                                <div class="post-meta">April 02, 2026 • Design</div>
-                                <h3 class="post-title">Why We Built Ferrite: An ML-First Systems Language</h3>
-                            </header>
-                            <p class="post-summary">In this post, we discuss the design philosophy behind Ferrite, how it handles compilation pathways, and why compiled tensor validation is the future of neural network engineering.</p>
-                            <div class="post-content-full">
-                                <p>Traditional machine learning flows suffer from "shape bugs" that arise hours into training. Ferrite's strict compiler verifies matrix sizes *before* compilation, saving GPU resources and developer time.</p>
-                            </div>
-                            <button class="btn btn-secondary btn-read-more">Read More</button>
-                        </article>
-                    </div>
-
-                    <!-- Blog Sidebar -->
-                    <aside class="blog-aside glass">
-                        <h4>Popular Topics</h4>
-                        <div class="tag-cloud">
-                            <span class="tag">#releases</span>
-                            <span class="tag">#compiler</span>
-                            <span class="tag">#tensors</span>
-                            <span class="tag">#tutorial</span>
-                            <span class="tag">#rust</span>
-                            <span class="tag">#llvm</span>
-                        </div>
-                        
-                        <div class="newsletter-box">
-                            <h5>Newsletter</h5>
-                            <p>Get compiler release notes sent directly to your inbox.</p>
-                            <input type="email" placeholder="email@address.com" class="news-input">
-                            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Subscribe</button>
-                        </div>
-                    </aside>
+                  <h4>New Setup Installer</h4>
+                  <p>
+                    Our Windows installation experience has been rewritten. The
+                    setup wizard now properly publishes vendor parameters,
+                    configures environment paths, and resolves standard SDK
+                    files directly.
+                  </p>
                 </div>
-            </section>
-        </div>
+                <button class="btn btn-secondary btn-read-more">
+                  Read More
+                </button>
+              </article>
 
+              <!-- Post 2 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">May 15, 2026 • Compiler</div>
+                  <h3 class="post-title">
+                    Ferrite v2.2.0: Hardened Type Checks & Traits
+                  </h3>
+                </header>
+                <p class="post-summary">
+                  Ferrite's compiler type check has been hardened. We've
+                  introduced explicit interfaces called Traits, which can be
+                  custom-implemented on structural Groups to support clean code
+                  architectures.
+                </p>
+                <div class="post-content-full">
+                  <p>
+                    Traits establish code contract standards. In this release,
+                    the static analyzer ensures that all trait functions are
+                    fully implemented, preventing runtime resolution errors in
+                    native compiled binaries.
+                  </p>
+                </div>
+                <button class="btn btn-secondary btn-read-more">
+                  Read More
+                </button>
+              </article>
+
+              <!-- Post 3 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">April 02, 2026 • Design</div>
+                  <h3 class="post-title">
+                    Why We Built Ferrite: An ML-First Systems Language
+                  </h3>
+                </header>
+                <p class="post-summary">
+                  In this post, we discuss the design philosophy behind Ferrite,
+                  how it handles compilation pathways, and why compiled tensor
+                  validation is the future of neural network engineering.
+                </p>
+                <div class="post-content-full">
+                  <p>
+                    Traditional machine learning flows suffer from "shape bugs"
+                    that arise hours into training. Ferrite's strict compiler
+                    verifies matrix sizes *before* compilation, saving GPU
+                    resources and developer time.
+                  </p>
+                </div>
+                <button class="btn btn-secondary btn-read-more">
+                  Read More
+                </button>
+              </article>
+            </div>
+
+            <!-- Blog Sidebar -->
+            <aside class="blog-aside glass">
+              <h4>Popular Topics</h4>
+              <div class="tag-cloud">
+                <span class="tag">#releases</span>
+                <span class="tag">#compiler</span>
+                <span class="tag">#tensors</span>
+                <span class="tag">#tutorial</span>
+                <span class="tag">#rust</span>
+                <span class="tag">#llvm</span>
+              </div>
+
+              <div class="newsletter-box">
+                <h5>Support the Project</h5>
+                <p>
+                  Ferrite is open source. Give us a star on GitHub to stay
+                  updated with new releases!
+                </p>
+                <a
+                  href="https://github.com/vishwanathdvgmm/ferrite"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary"
+                  style="
+                    width: 100%;
+                    margin-top: 1rem;
+                    text-align: center;
+                    display: inline-block;
+                  "
+                  >★ Star on GitHub</a
+                >
+              </div>
+            </aside>
+          </div>
+        </section>
+      </div>
     </main>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container footer-content">
-            <div class="footer-left">
-                <div class="logo" data-target="home">
-                    <img src="./logo.png" alt="Ferrite Logo" class="logo-img">
-                    <span class="logo-text">Ferrite</span>
-                </div>
-                <p class="copyright">&copy; 2026 Vishwanath M M. Licensed under MIT.</p>
-            </div>
-            <div class="footer-links">
-                <a href="#play" class="footer-nav-link" data-target="play">Playground</a>
-                <a href="#docs" class="footer-nav-link" data-target="docs">Documentation</a>
-                <a href="#packages" class="footer-nav-link" data-target="packages">Packages</a>
-                <a href="https://github.com/vishwanathdvgmm/ferrite">GitHub</a>
-            </div>
+      <div class="container footer-content">
+        <div class="footer-left">
+          <div class="logo" data-target="home">
+            <img src="./logo.png" alt="Ferrite Logo" class="logo-img" />
+            <span class="logo-text">Ferrite</span>
+          </div>
+          <p class="copyright">
+            &copy; 2026 Vishwanath M M. Licensed under MIT.
+          </p>
         </div>
+        <div class="footer-links">
+          <a href="#about" class="footer-nav-link" data-target="about">About</a>
+          <a href="#downloads" class="footer-nav-link" data-target="downloads"
+            >Downloads</a
+          >
+          <a href="#getstarted" class="footer-nav-link" data-target="getstarted"
+            >Get Started</a
+          >
+          <a href="#play" class="footer-nav-link" data-target="play"
+            >Playground</a
+          >
+          <a href="#docs" class="footer-nav-link" data-target="docs"
+            >Documentation</a
+          >
+          <a href="#tutorial" class="footer-nav-link" data-target="tutorial"
+            >Tutorial</a
+          >
+          <a href="#packages" class="footer-nav-link" data-target="packages"
+            >Packages</a
+          >
+          <a href="#blog" class="footer-nav-link" data-target="blog"
+            >News/Blogs</a
+          >
+          <a href="https://github.com/vishwanathdvgmm/ferrite">GitHub</a>
+        </div>
+      </div>
     </footer>
 
     <!-- Scripts -->
     <script src="./script.js"></script>
-</body>
+  </body>
 </html>
