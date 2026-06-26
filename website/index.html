@@ -14,7 +14,7 @@
     />
 
     <meta name="author" content="Vishwanath M M" />
-    <title>Ferrite - The ML-First Systems Language</title>
+    <title>Ferrite - The AI-Native Programming Language.</title>
     <meta
       name="description"
       content="Ferrite is a statically-typed, ahead-of-time compiled ML programming language built in Rust. Zero implicit coercion, native tensor types, and blazing fast performance."
@@ -100,13 +100,16 @@
           <div class="hero-content">
             <div class="badge">v2.3.0 Released! 🚀</div>
             <h1 class="hero-title">
-              The <span class="gradient-text">ML-First</span><br />Systems
-              Language.
+              The <span class="gradient-text">AI-Native</span><br />
+              Programming Language.
             </h1>
             <p class="hero-subtitle">
-              Statically-typed, ahead-of-time compiled, and built in pure Rust.
-              Native multi-dimensional tensors, strict structural type check,
-              and instant tree-walk interpretation.
+              Ferrite is a compiler-first programming language built
+              specifically for Artificial Intelligence and Machine Learning.
+              Native tensors, compile-time shape verification,
+              compiler-generated automatic differentiation, deterministic
+              execution, and high-performance native binaries—all without
+              external ML frameworks.
             </p>
             <div class="hero-cta">
               <a href="#play" class="btn btn-primary">Try in Browser</a>
@@ -136,6 +139,46 @@
           </div>
         </section>
 
+        <!-- Why Ferrite Comparison -->
+        <section class="comparison-section container">
+          <div class="comparison-card glass">
+            <div class="comparison-header">
+              <h2 class="section-title">
+                Why <span class="text-gradient">Ferrite?</span>
+              </h2>
+              <p class="section-subtitle">Why shouldn't I just use Python?</p>
+            </div>
+
+            <div class="comparison-grid">
+              <!-- Python Column -->
+              <div class="comparison-col python-col">
+                <h3>Python + PyTorch</h3>
+                <hr class="col-divider python-div" />
+                <ul class="comparison-list">
+                  <li class="cross">Runtime tensor errors</li>
+                  <li class="cross">Dynamic typing</li>
+                  <li class="cross">External autodiff</li>
+                  <li class="cross">Framework-dependent</li>
+                  <li class="cross">Runtime graph construction</li>
+                </ul>
+              </div>
+
+              <!-- Ferrite Column -->
+              <div class="comparison-col ferrite-col">
+                <h3>Ferrite</h3>
+                <hr class="col-divider ferrite-div" />
+                <ul class="comparison-list">
+                  <li class="check">Compile-time tensor safety</li>
+                  <li class="check">Static typing</li>
+                  <li class="check">Compiler-generated autodiff</li>
+                  <li class="check">Language-native tensors</li>
+                  <li class="check">Compiler optimization</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Stats grid -->
         <section class="stats container">
           <div class="stats-grid">
@@ -148,31 +191,24 @@
               </p>
             </div>
             <div class="stat-card glass">
-              <div class="stat-icon">📐</div>
-              <h4>First-Class Tensors</h4>
-              <p>
-                Dimensional shapes verified at compile-time. Dedicated
-                <code>train</code> and <code>infer</code> blocks isolate model
-                execution contexts.
-              </p>
+              <div class="stat-icon">🧠</div>
+              <h4>AI Native</h4>
+              <p>Models, tensors and training are language features.</p>
             </div>
             <div class="stat-card glass">
-              <div class="stat-icon">🔄</div>
-              <h4>Dual Runtime</h4>
-              <p>
-                Run scripts instantly using the tree-walk interpreter for
-                development, or compile to LLVM binaries for native production
-                code.
-              </p>
+              <div class="stat-icon">📐</div>
+              <h4>Compile-Time Tensor Safety</h4>
+              <p>Tensor shapes are verified before execution.</p>
+            </div>
+            <div class="stat-card glass">
+              <div class="stat-icon">⚡</div>
+              <h4>Compiler Optimized</h4>
+              <p>Operator fusion, Memory planning, Static graph optimization</p>
             </div>
             <div class="stat-card glass">
               <div class="stat-icon">🔒</div>
-              <h4>Zero Coercion</h4>
-              <p>
-                Complete safety with zero implicit numeric casting or weak
-                comparisons. Float, int, and bool alignments are always strictly
-                verified.
-              </p>
+              <h4>Deterministic</h4>
+              <p>No hidden randomness. Reproducible training.</p>
             </div>
           </div>
         </section>
@@ -297,10 +333,14 @@
             <div class="about-card glass">
               <h3>Our Mission</h3>
               <p>
-                Ferrite aims to bridge the gap between high-performance systems
-                programming and expressive machine learning workflows. We
-                believe tensors should be native primitives, and type safety
-                should be absolute.
+                Ferrite exists because Artificial Intelligence deserves a
+                programming language designed specifically for it—not a
+                general-purpose language extended with libraries. <br />
+                <br />
+                Instead of treating tensors, models, and training as runtime
+                abstractions, Ferrite makes them first-class language concepts
+                that the compiler understands, verifies, and optimizes before
+                execution.
               </p>
             </div>
             <div class="about-card glass">
