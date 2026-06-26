@@ -6,6 +6,7 @@ on:
     paths:
       - "website/**"
       - ".github/workflows/pages.yml"
+      - "CNAME"
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -28,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Copy CNAME
+        run: cp CNAME website/CNAME || true
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
