@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferrite - The ML-First Systems Language</title>
+    <meta name="description" content="Ferrite is a statically-typed, ahead-of-time compiled ML programming language built in Rust. Zero implicit coercion, native tensor types, and blazing fast performance.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="blob-bg"></div>
+
+    <header class="navbar glass">
+        <div class="container nav-content">
+            <div class="logo">
+                <span class="logo-icon">🦀</span>
+                <span class="logo-text">Ferrite</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#syntax">Syntax</a>
+                <a href="#install">Install</a>
+                <a href="https://github.com/vishwanathdvgmm/ferrite" target="_blank" rel="noopener noreferrer" class="btn btn-outline">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero container">
+            <div class="hero-content">
+                <div class="badge">v2.3.0 is out now! ✨</div>
+                <h1 class="hero-title">The <span class="gradient-text">ML-First</span><br>Systems Language.</h1>
+                <p class="hero-subtitle">
+                    Statically-typed, ahead-of-time compiled, and built in pure Rust. Native tensor types, strict structural typing, and zero implicit coercion.
+                </p>
+                <div class="hero-cta">
+                    <a href="#install" class="btn btn-primary">Get Started</a>
+                    <a href="#syntax" class="btn btn-secondary">Read the Docs</a>
+                </div>
+            </div>
+            
+            <div class="hero-code-window glass reveal">
+                <div class="window-header">
+                    <div class="dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="filename">train.fe</div>
+                </div>
+                <pre><code class="language-ferrite">
+<span class="keyword">import</span> <span class="string">"math"</span>;
+
+<span class="comment">// Native tensor types with shape validation</span>
+<span class="keyword">param</span> weights: <span class="type">Tensor</span>&lt;<span class="type">float</span>, (<span class="number">784</span>, <span class="number">128</span>)&gt; = zeros();
+
+<span class="comment">// ML execution blocks</span>
+<span class="keyword">train</span> {
+    <span class="keyword">keep</span> loss: <span class="type">float</span> = compute_loss(weights);
+    println(<span class="string">"Loss: "</span> + str(loss));
+}
+
+<span class="comment">// Strict structural typing & pattern matching</span>
+<span class="keyword">enum</span> Option&lt;T&gt; { Some(T); None; }
+
+<span class="keyword">match</span> result {
+    <span class="keyword">case</span> Some(x) <span class="keyword">if</span> x &gt; <span class="number">0</span> =&gt; { println(<span class="string">"Success"</span>); }
+    <span class="keyword">case</span> _ =&gt; { stop; }
+}
+                </code></pre>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features container">
+            <h2 class="section-title reveal">Why <span class="gradient-text">Ferrite</span>?</h2>
+            
+            <div class="grid-features">
+                <div class="feature-card glass reveal delay-1">
+                    <div class="feature-icon">🧠</div>
+                    <h3>ML-First Design</h3>
+                    <p>Tensor types with compile-time shape validation. Dedicated <code>train</code> and <code>infer</code> effect blocks built directly into the language semantics.</p>
+                </div>
+                
+                <div class="feature-card glass reveal delay-2">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Strict Typing</h3>
+                    <p>Zero implicit coercion, zero truthiness, and zero runtime reflection. If it compiles, the types and memory align perfectly.</p>
+                </div>
+                
+                <div class="feature-card glass reveal delay-3">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Dual Execution</h3>
+                    <p>Run scripts instantly using the pure-Rust Tree-Walk Interpreter, or compile ahead-of-time to blazing fast native code via LLVM.</p>
+                </div>
+                
+                <div class="feature-card glass reveal delay-4">
+                    <div class="feature-icon">🧩</div>
+                    <h3>Modern Paradigms</h3>
+                    <p>Algebraic Data Types (Enums), Trait implementations, closures, and deep structural pattern matching with guard clauses.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Syntax Section -->
+        <section id="syntax" class="syntax container">
+            <h2 class="section-title reveal">Clean, Expressive <span class="gradient-text">Syntax</span></h2>
+            
+            <div class="syntax-grid">
+                <div class="syntax-card glass reveal">
+                    <div class="syntax-header">Groups & Traits</div>
+                    <pre><code>
+<span class="keyword">group</span> Point {
+    x: <span class="type">float</span>;
+    y: <span class="type">float</span>;
+}
+
+<span class="keyword">trait</span> Add {
+    <span class="keyword">fun</span> add(self, other: <span class="type">Self</span>) -&gt; <span class="type">Self</span>;
+}
+
+<span class="keyword">impl</span> Add <span class="keyword">for</span> Point {
+    <span class="keyword">fun</span> add(self, other: <span class="type">Self</span>) -&gt; <span class="type">Self</span> {
+        <span class="keyword">return</span> Point {
+            x: self.x + other.x,
+            y: self.y + other.y
+        };
+    }
+}
+                    </code></pre>
+                </div>
+                
+                <div class="syntax-card glass reveal delay-2">
+                    <div class="syntax-header">Closures & Loops</div>
+                    <pre><code>
+<span class="comment">// First-class functions & lexical capture</span>
+<span class="keyword">keep</span> offset: <span class="type">int</span> = <span class="number">100</span>;
+<span class="keyword">keep</span> adder: <span class="type">fun</span>(<span class="type">int</span>)-&gt;<span class="type">int</span> = (x: <span class="type">int</span>) =&gt; x + offset;
+
+<span class="comment">// Advanced loop control</span>
+<span class="keyword">keep</span> i: <span class="type">int</span> = <span class="number">0</span>;
+<span class="keyword">while</span> i &lt; <span class="number">10</span> {
+    i = i + <span class="number">1</span>;
+    <span class="keyword">if</span> i == <span class="number">3</span> { <span class="keyword">skip</span>; } <span class="comment">// continue</span>
+    <span class="keyword">if</span> i == <span class="number">8</span> { <span class="keyword">stop</span>; } <span class="comment">// break</span>
+    println(str(adder(i)));
+}
+                    </code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Install Section -->
+        <section id="install" class="install container reveal">
+            <div class="install-box glass">
+                <h2>Ready to <span class="gradient-text">Build</span>?</h2>
+                <p>Download the latest v2.3.0 standalone executable for Windows.</p>
+                
+                <div class="terminal-box">
+                    <div class="term-header">Terminal</div>
+                    <div class="term-body">
+                        <span class="prompt">$</span> ferrite check my_program.fe<br>
+                        <span class="output">✅ Type-checking successful.</span><br><br>
+                        <span class="prompt">$</span> ferrite run my_program.fe<br>
+                        <span class="output">Executing...</span>
+                    </div>
+                </div>
+                
+                <a href="https://github.com/vishwanathdvgmm/ferrite/releases" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large">Download Installer (.exe)</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <div class="footer-left">
+                <span class="logo-icon">🦀</span>
+                <span class="logo-text">Ferrite</span>
+                <p class="copyright">&copy; 2026 Vishwanath M M. Licensed under MIT.</p>
+            </div>
+            <div class="footer-links">
+                <a href="https://github.com/vishwanathdvgmm/ferrite">GitHub</a>
+                <a href="https://github.com/vishwanathdvgmm/ferrite/issues">Issues</a>
+                <a href="https://github.com/vishwanathdvgmm/ferrite/releases">Releases</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./script.js"></script>
+</body>
+</html>
