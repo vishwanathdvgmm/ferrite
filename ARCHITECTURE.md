@@ -4,6 +4,16 @@ This document describes the internal architecture of the Ferrite v2.1 AOT compil
 
 ---
 
+## What's New in v2.3
+
+### 🌐 Interpreter Web Execution & Control Flow
+
+The tree-walk interpreter has been significantly upgraded to support complex runtime features, enabling it to run directly in the browser on the new interactive playground.
+
+- **Control Flow**: `stop` and `skip` are now fully evaluated in `while` loops within the interpreter.
+- **Match Guards**: The interpreter now fully supports `if` guard clauses in `match` statements.
+- **Closures**: Lexical environments are correctly captured at creation time for lambdas, allowing stateful callbacks.
+
 ## What's New in v2.2
 
 ### 🛠️ Trait and Impl Registries

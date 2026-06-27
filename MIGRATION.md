@@ -2,6 +2,31 @@
 
 This document covers major changes and migration steps between Ferrite versions.
 
+## Migrating from Ferrite v2.2.1 to v2.3.0
+
+Ferrite v2.3.0 focuses on bringing the interpreter's capabilities to parity with the AOT compiler, specifically regarding closures and control flow. There are no breaking syntax changes in this release, but behavior inside `ferrite run` is vastly improved.
+
+### 1. Closures and State
+
+Lambdas now correctly capture their environment. In v2.2.1, using an outer variable inside a lambda could result in undefined behavior during interpreter execution. This is now fully supported.
+
+### 2. Match Guards
+
+You can now use `if` guards on match cases when using `ferrite run` or the web playground.
+
+```ferrite
+match num {
+    case x if x < 0 => { println("Negative"); }
+    default => { println("Positive"); }
+}
+```
+
+### 3. Web Playground
+
+You can now experiment with Ferrite v2.3.0 directly in your browser at [ferrite-lang.org](https://ferrite-lang.org/) without installing the compiler locally.
+
+---
+
 ## Migrating from Ferrite v2.1 to v2.2.1
 
 Ferrite v2.2.1 introduces full trait support, strict trait bound enforcement, and a new tree-walk interpreter.
