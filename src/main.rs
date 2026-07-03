@@ -15,7 +15,7 @@ use std::path::PathBuf;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let version_str = "Ferrite v2.3.0 Compiler (AOT ML Language)";
+    let version_str = "Ferrite v2.3.1 Compiler (AOT ML Language)";
     let usage_str = "Usage:
   ferrite run     <file.fe>   # Execute via Tree-Walk Interpreter
   ferrite check   <file.fe>   # Parse and Type-check only

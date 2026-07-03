@@ -14,7 +14,7 @@ ERRORS=()
 
 echo ""
 echo "══════════════════════════════════════════════════════════════"
-echo "  Ferrite v2.2 — Compiler Verification Suite"
+echo "  Ferrite v2.3.1 — Compiler Verification Suite"
 echo "══════════════════════════════════════════════════════════════"
 echo ""
 
@@ -31,11 +31,21 @@ echo ""
 
 for test_file in "$TESTS_DIR"/pass_*.fe; do
     test_name=$(basename "$test_file" .fe)
+    # Check if it parses and typechecks
     output=$("$FERRITE" check "$test_file" 2>&1) && exit_code=0 || exit_code=$?
     
     if [ "$exit_code" -eq 0 ]; then
-        echo "  ✅ PASS  $test_name"
-        PASS=$((PASS + 1))
+        # Also ensure it runs without crashing. Provide mock stdin for tests like pass_11_builtins
+        run_output=$(echo "test_input" | "$FERRITE" run "$test_file" 2>&1) && run_code=0 || run_code=$?
+        if [ "$run_code" -eq 0 ]; then
+            echo "  ✅ PASS  $test_name"
+            PASS=$((PASS + 1))
+        else
+            echo "  ❌ FAIL  $test_name (typecheck ok, but execution failed with exit $run_code)"
+            echo "          Output: $run_output"
+            FAIL=$((FAIL + 1))
+            ERRORS+=("$test_name: execution failed")
+        fi
     else
         echo "  ❌ FAIL  $test_name  (expected exit 0, got $exit_code)"
         echo "          Output: $output"
@@ -97,6 +107,45 @@ done
 
 echo ""
 
+# ── RUNTIME FAIL Tests ───────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  RUNTIME FAIL TESTS (must fail with exit code 1 during run)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+declare -A EXPECTED_RUNTIME_ERRORS=(
+    ["runtime_fail_01_div_by_zero"]="Division by zero"
+    ["runtime_fail_02_negative_index"]="Negative index"
+    ["runtime_fail_03_index_bounds"]="out of bounds"
+)
+
+for test_file in "$TESTS_DIR"/runtime_fail_*.fe; do
+    if [ ! -f "$test_file" ]; then break; fi
+    test_name=$(basename "$test_file" .fe)
+    
+    # Run the file (not just check)
+    output=$("$FERRITE" run "$test_file" 2>&1) && exit_code=0 || exit_code=$?
+    expected_err="${EXPECTED_RUNTIME_ERRORS[$test_name]:-Runtime Error}"
+    
+    if [ "$exit_code" -ne 0 ]; then
+        if echo "$output" | grep -qi "$expected_err"; then
+            echo "  ✅ PASS  $test_name  (correctly failed at runtime with: \"$expected_err\")"
+            PASS=$((PASS + 1))
+        else
+            echo "  ⚠️  PARTIAL  $test_name  (failed, but missing expected error: \"$expected_err\")"
+            echo "          Actual output: $output"
+            FAIL=$((FAIL + 1))
+            ERRORS+=("$test_name: runtime rejected but wrong error message")
+        fi
+    else
+        echo "  ❌ FAIL  $test_name  (expected runtime rejection, but it ran successfully!)"
+        FAIL=$((FAIL + 1))
+        ERRORS+=("$test_name: expected to fail at runtime but passed")
+    fi
+done
+
+echo ""
+
 # ── Summary ──────────────────────────────────────────────────────
 TOTAL=$((PASS + FAIL))
 echo "══════════════════════════════════════════════════════════════"
@@ -113,7 +162,7 @@ if [ "$FAIL" -gt 0 ]; then
     exit 1
 else
     echo ""
-    echo "  🎉 ALL $TOTAL TESTS PASSED — Ferrite v2.2 is verified!"
+    echo "  🎉 ALL $TOTAL TESTS PASSED — Ferrite v2.3.1 is verified!"
     echo ""
     exit 0
 fi

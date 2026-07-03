@@ -1,0 +1,5 @@
+// Test: runtime_fail_02_negative_index.fe
+fun main() {
+    keep items = [1, 2, 3];
+    keep val = items[-1];
+}

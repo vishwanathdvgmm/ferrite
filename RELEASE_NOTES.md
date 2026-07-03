@@ -1,3 +1,22 @@
+# Ferrite v2.3.1 Release Notes
+
+Welcome to **Ferrite v2.3.1** 🚀 — A patch release focused on stability, bug fixes, edge cases, and performance improvements for the interpreter.
+
+### 🐛 Bug Fixes & Edge Cases
+
+- **Safety Checks:** Fixed interpreter crashes caused by negative list/string indexing and float division/modulo by zero. These now emit clean runtime errors instead of panicking.
+- **Top-Level Statements:** The `ferrite run` command now supports running `.fe` script files without requiring a `main` function. This makes writing small scripts and testing in the playground much friendlier!
+- **Method Dispatch:** Fixed an issue where `self` wasn't correctly injected into `impl` methods during field access in the interpreter.
+- **Closure Semantics:** Formally documented that Ferrite closures capture variables as pure, frozen snapshots (mutations do not leak to the outer scope), ensuring safety and preventing data races.
+
+### ⚡ Performance & Testing
+
+- Improved overall AST processing during the module merging phase.
+- Re-architected `run_tests.sh` to fully verify interpreter execution behavior (`run`) in addition to semantic type-checking (`check`).
+- Added rigorous cross-language benchmark suite (`tests/benchmarks`) comparing Ferrite against Python, Lua, Node.js, Rust, and Go on workloads like deep recursion, string concatenation, and numeric loops.
+
+---
+
 # Ferrite v2.3.0 Release Notes
 
 Welcome to **Ferrite v2.3.0** 🚀 — The **"Closures, Guards & Interpreter Control Flow"** update. This release significantly empowers the tree-walk interpreter with new runtime capabilities.

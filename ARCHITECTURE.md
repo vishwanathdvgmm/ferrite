@@ -1,6 +1,6 @@
-# Ferrite v2.2 — Compiler Architecture
+# Ferrite v2.3.1 — Compiler Architecture
 
-This document describes the internal architecture of the Ferrite v2.1 AOT compiler.
+This document describes the internal architecture of the Ferrite v2.3.1 AOT compiler.
 
 ---
 

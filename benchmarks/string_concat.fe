@@ -1,0 +1,12 @@
+// Ferrite Benchmark: String Concatenation
+// Build a string by concatenating 10,000 characters
+
+fun main() {
+    keep result: string = "";
+    keep i: int = 0;
+    while i < 10000 {
+        result = result + "x";
+        i = i + 1;
+    }
+    println("String length = " + str(len(result)));
+}

@@ -1,0 +1,8 @@
+// Test: pass_22_top_level_stmts.fe
+// This test has no main function. The hybrid interpreter should just run the top level.
+
+keep msg: string = "Hello from top level!";
+keep len = 5 + 10;
+
+// The test runner just runs `ferrite check` which parses/type-checks.
+// Since `check` just type-checks, it passes if there's no main but the script is valid.

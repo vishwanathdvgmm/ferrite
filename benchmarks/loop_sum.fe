@@ -1,0 +1,12 @@
+// Ferrite Benchmark: Loop Sum
+// Sum integers from 1 to 1,000,000
+
+fun main() {
+    keep sum: int = 0;
+    keep i: int = 1;
+    while i <= 1000000 {
+        sum = sum + i;
+        i = i + 1;
+    }
+    println("Sum = " + str(sum));
+}

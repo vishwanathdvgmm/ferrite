@@ -18,6 +18,8 @@ pub enum Value {
     Enum(String, String, Vec<Value>),
     List(Vec<Value>),
     Tensor(Vec<f64>, Vec<i64>), // basic flat tensor for interpreter fallback
+    /// A method bound to its receiver object (self, method_func).
+    BoundMethod(Box<Value>, Box<Value>),
 }
 
 impl fmt::Display for Value {
@@ -72,6 +74,9 @@ impl fmt::Display for Value {
             }
             Value::Tensor(data, shape) => {
                 write!(f, "Tensor(shape={:?}, data={:?})", shape, data)
+            }
+            Value::BoundMethod(_, method) => {
+                write!(f, "<bound method {:?}>", method)
             }
         }
     }

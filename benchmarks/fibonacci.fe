@@ -1,0 +1,14 @@
+// Ferrite Benchmark: Recursive Fibonacci
+// Calculates fib(30) using naive recursion
+
+fun fib(n: int) -> int {
+    if n <= 1 {
+        return n;
+    }
+    return fib(n - 1) + fib(n - 2);
+}
+
+fun main() {
+    keep result: int = fib(30);
+    println("fib(30) = " + str(result));
+}

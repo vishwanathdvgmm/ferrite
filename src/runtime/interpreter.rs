@@ -51,8 +51,8 @@ impl Interpreter {
                 }
                 TopDecl::Impl(imp) => {
                     for m in &imp.methods {
-                        // Very simplified dispatch: we just inject impl methods into global scope by name.
-                        // In a real VM, method dispatch is bound to the type.
+                        // Store the target type name alongside the method for self-dispatch.
+                        let qualified_name = format!("{}::{}", imp.target_type, m.name);
                         let mut fdecl = FuncDecl {
                             effect_params: m.effects.iter().map(|_| "".to_string()).collect(),
                             effects: m.effects.clone(),
@@ -75,7 +75,9 @@ impl Interpreter {
                                 },
                             );
                         }
-                        self.env.declare(m.name.clone(), Value::Func(fdecl));
+                        // Register both by simple name and qualified name for dispatch
+                        self.env.declare(m.name.clone(), Value::Func(fdecl.clone()));
+                        self.env.declare(qualified_name, Value::Func(fdecl));
                     }
                 }
                 TopDecl::Enum(e) => {
@@ -91,12 +93,35 @@ impl Interpreter {
             }
         }
 
-        // Run main
+        // Hybrid execution: if main exists, run it. Otherwise execute top-level statements.
         if let Ok(Value::Func(main_func)) = self.env.get("main") {
             let (val, _) = self.exec_block(&main_func.body)?;
             Ok(val)
         } else {
-            Err("No main function found.".to_string())
+            // No main — execute top-level statements directly (script mode).
+            // This enables quick playground scripts and small .fe files.
+            let last_val = Value::Unit;
+            for decl in &program.decls {
+                match decl {
+                    TopDecl::Func(_)
+                    | TopDecl::Constant(_)
+                    | TopDecl::Impl(_)
+                    | TopDecl::Enum(_)
+                    | TopDecl::Trait(_)
+                    | TopDecl::Group(_)
+                    | TopDecl::Import(_) => {
+                        // Already processed in first pass
+                    }
+                }
+            }
+            // Execute any top-level statements from the AST
+            // (The parser wraps loose statements into a synthetic main block;
+            //  for files with no main, we look for a __top_level__ function)
+            if let Ok(Value::Func(top_func)) = self.env.get("__top_level__") {
+                let (val, _) = self.exec_block(&top_func.body)?;
+                return Ok(val);
+            }
+            Ok(last_val)
         }
     }
 
@@ -358,14 +383,14 @@ impl Interpreter {
                         BinOp::Mul => Ok(Value::Int(a * b)),
                         BinOp::Div => {
                             if b == 0 {
-                                Err("Division by zero".to_string())
+                                Err("Runtime Error: Division by zero.".to_string())
                             } else {
                                 Ok(Value::Int(a / b))
                             }
                         }
                         BinOp::Mod => {
                             if b == 0 {
-                                Err("Modulo by zero".to_string())
+                                Err("Runtime Error: Modulo by zero.".to_string())
                             } else {
                                 Ok(Value::Int(a % b))
                             }
@@ -382,7 +407,13 @@ impl Interpreter {
                         BinOp::Add => Ok(Value::Float(a + b)),
                         BinOp::Sub => Ok(Value::Float(a - b)),
                         BinOp::Mul => Ok(Value::Float(a * b)),
-                        BinOp::Div => Ok(Value::Float(a / b)),
+                        BinOp::Div => {
+                            if b == 0.0 {
+                                Err("Runtime Error: Float division by zero.".to_string())
+                            } else {
+                                Ok(Value::Float(a / b))
+                            }
+                        }
                         BinOp::Eq => Ok(Value::Bool(a == b)),
                         BinOp::NotEq => Ok(Value::Bool(a != b)),
                         BinOp::Lt => Ok(Value::Bool(a < b)),
@@ -449,7 +480,11 @@ impl Interpreter {
                         }
                     }
                     Value::Closure(params, body, captured_env) => {
-                        // Save the current environment and swap in the captured one
+                        // Closures use pure snapshot semantics:
+                        // The captured environment is a frozen copy of the scope at
+                        // lambda creation time. Mutations inside the closure do NOT
+                        // propagate back to the outer scope. This is intentional for
+                        // stability — it prevents data races and unexpected side effects.
                         let saved_env = self.env.clone();
                         self.env = captured_env;
                         self.env.enter_scope();
@@ -461,9 +496,30 @@ impl Interpreter {
                         }
                         let result = self.eval_expr(&body);
                         self.env.exit_scope();
-                        // Restore the original environment
                         self.env = saved_env;
                         result
+                    }
+                    Value::BoundMethod(receiver, method) => {
+                        // Auto-inject `self` (the receiver) as the first argument
+                        let mut full_args = vec![*receiver];
+                        full_args.extend(evaluated_args);
+                        match *method {
+                            Value::Func(decl) => {
+                                self.env.enter_scope();
+                                for (i, param) in decl.params.iter().enumerate() {
+                                    if i < full_args.len() {
+                                        self.env.declare(param.name.clone(), full_args[i].clone());
+                                    }
+                                }
+                                let (ret, sig) = self.exec_block(&decl.body)?;
+                                self.env.exit_scope();
+                                match sig {
+                                    Signal::Return(v) => Ok(v),
+                                    _ => Ok(ret),
+                                }
+                            }
+                            _ => Err("BoundMethod wraps a non-function value".to_string()),
+                        }
                     }
                     _ => Err("Attempt to call a non-function".to_string()),
                 }
@@ -494,13 +550,23 @@ impl Interpreter {
                         let idx = self.eval_expr(index)?;
                         let obj = self.env.get(obj_name)?;
                         if let (Value::List(mut items), Value::Int(i)) = (obj, idx) {
-                            let i = i as usize;
-                            if i < items.len() {
-                                items[i] = val.clone();
+                            if i < 0 {
+                                return Err(format!(
+                                    "Runtime Error: Negative index {} is not allowed.",
+                                    i
+                                ));
+                            }
+                            let idx = i as usize;
+                            if idx < items.len() {
+                                items[idx] = val.clone();
                                 self.env.assign(obj_name, Value::List(items))?;
                                 Ok(val)
                             } else {
-                                Err(format!("Index {} out of bounds (len {})", i, items.len()))
+                                Err(format!(
+                                    "Runtime Error: Index {} out of bounds (len {}).",
+                                    i,
+                                    items.len()
+                                ))
                             }
                         } else {
                             Err("Index assignment on non-list type".to_string())
@@ -521,12 +587,25 @@ impl Interpreter {
             }
             Expr::FieldAccess { object, field, .. } => {
                 let obj = self.eval_expr(object)?;
-                match obj {
-                    Value::Group(_, fields) => {
+                match &obj {
+                    Value::Group(group_name, fields) => {
+                        // First check if it's a field
                         if let Some(val) = fields.get(field) {
                             Ok(val.clone())
                         } else {
-                            Err(format!("Field '{}' not found", field))
+                            // Check if it's a method — look up TypeName::method_name
+                            let qualified = format!("{}::{}", group_name, field);
+                            if let Ok(method) = self.env.get(&qualified) {
+                                // Return a partially-applied method with self bound
+                                Ok(Value::BoundMethod(Box::new(obj.clone()), Box::new(method)))
+                            } else if let Ok(method) = self.env.get(field) {
+                                Ok(Value::BoundMethod(Box::new(obj.clone()), Box::new(method)))
+                            } else {
+                                Err(format!(
+                                    "Field or method '{}' not found on '{}'",
+                                    field, group_name
+                                ))
+                            }
                         }
                     }
                     _ => Err("Field access on non-group type".to_string()),
@@ -537,20 +616,36 @@ impl Interpreter {
                 let idx = self.eval_expr(index)?;
                 match (obj, idx) {
                     (Value::List(items), Value::Int(i)) => {
-                        let i = i as usize;
-                        if i < items.len() {
-                            Ok(items[i].clone())
+                        if i < 0 {
+                            return Err(format!(
+                                "Runtime Error: Negative index {} is not allowed.",
+                                i
+                            ));
+                        }
+                        let idx = i as usize;
+                        if idx < items.len() {
+                            Ok(items[idx].clone())
                         } else {
-                            Err(format!("Index {} out of bounds (len {})", i, items.len()))
+                            Err(format!(
+                                "Runtime Error: Index {} out of bounds (len {}).",
+                                i,
+                                items.len()
+                            ))
                         }
                     }
                     (Value::String(s), Value::Int(i)) => {
-                        let i = i as usize;
-                        if i < s.len() {
-                            Ok(Value::String(s.chars().nth(i).unwrap().to_string()))
+                        if i < 0 {
+                            return Err(format!(
+                                "Runtime Error: Negative string index {} is not allowed.",
+                                i
+                            ));
+                        }
+                        let idx = i as usize;
+                        if idx < s.len() {
+                            Ok(Value::String(s.chars().nth(idx).unwrap().to_string()))
                         } else {
                             Err(format!(
-                                "String index {} out of bounds (len {})",
+                                "Runtime Error: String index {} out of bounds (len {}).",
                                 i,
                                 s.len()
                             ))

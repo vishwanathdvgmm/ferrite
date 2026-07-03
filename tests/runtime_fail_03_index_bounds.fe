@@ -1,0 +1,5 @@
+// Test: runtime_fail_03_index_bounds.fe
+fun main() {
+    keep items = [1, 2, 3];
+    keep val = items[5];
+}

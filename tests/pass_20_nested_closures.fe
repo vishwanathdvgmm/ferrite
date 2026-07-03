@@ -1,0 +1,20 @@
+// Test: pass_20_negative_index.fe
+// Since negative indexing now throws a runtime error, we shouldn't have a PASS test for it.
+// Actually, this should be a FAIL test if it crashes the program, but we don't have a catch mechanism yet.
+// Wait, the plan was: "Negative list indexing should produce a clean runtime error".
+// So I will make it fail_19_negative_index.fe instead.
+
+// Let's create pass_21_nested_closures.fe first
+fun make_adder(x: int) -> fun(int) -> int {
+    return fun(y: int) -> int {
+        return x + y;
+    };
+}
+
+fun main() {
+    keep add5 = make_adder(5);
+    keep result = add5(10);
+    if result != 15 {
+        stop; // fail
+    }
+}

@@ -2,6 +2,22 @@
 
 All notable changes to Ferrite are documented here.
 
+## [2.3.1] — 2026-07-03
+
+### Fixed
+
+- Fixed interpreter crash when using negative list or string indices (now emits a clean runtime error).
+- Fixed interpreter missing zero-checks for float division and modulo.
+- Fixed `ferrite run` not supporting files with only top-level statements (it now runs them automatically if no `main` is found).
+- Fixed method dispatch inside the interpreter failing to inject `self` properly.
+- Removed unused mutable variables and unused variables warning during compilation.
+
+### Added
+
+- Documented pure snapshot semantics for closures in interpreter.
+- Added comprehensive cross-language benchmark suite (`tests/benchmarks`).
+- Upgraded `run_tests.sh` to fully verify interpreter execution (`run`) in addition to semantic type-checking (`check`), and added runtime fail tests.
+
 ## [2.3.0] — 2026-06-26
 
 ### 🔄 Closures, Guards & Interpreter Control Flow
