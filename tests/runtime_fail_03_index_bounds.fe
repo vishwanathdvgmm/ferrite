@@ -1,5 +1,5 @@
 // Test: runtime_fail_03_index_bounds.fe
 fun main() {
-    keep items: List<int> = [1, 2, 3];
-    keep val: int = items[5];
+    keep s: string = "abc";
+    keep val: string = s[5];
 }

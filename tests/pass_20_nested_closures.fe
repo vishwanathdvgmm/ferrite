@@ -9,5 +9,5 @@ fun main() {
     // Nested closure immediately invoked
     keep result: int = ((x: int) => ((y: int) => x + y + offset)(5))(10);
     
-    assert(result == 115);
+    assert(result == 115, "fail");
 }
