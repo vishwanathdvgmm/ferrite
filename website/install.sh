@@ -27,7 +27,7 @@ esac
 # Formulate download URL based on GitHub Releases
 # Using v2.3.0 release assets
 REPO="vishwanathdvgmm/ferrite"
-VERSION="v2.3.0"
+VERSION="v2.3.1"
 
 if [ "${PLATFORM}" = "linux" ]; then
     BINARY_NAME="ferrite-${VERSION}-linux-x86_64.tar.gz"
