@@ -115,7 +115,7 @@ echo ""
 
 declare -A EXPECTED_RUNTIME_ERRORS=(
     ["runtime_fail_01_div_by_zero"]="Division by zero"
-    ["runtime_fail_02_negative_index"]="Negative index"
+    ["runtime_fail_02_negative_index"]="Negative string index"
     ["runtime_fail_03_index_bounds"]="out of bounds"
 )
 
