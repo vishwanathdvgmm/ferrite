@@ -259,11 +259,12 @@ The v2.3 test suite includes **35 exhaustive tests**:
 
 ## 📦 Releases
 
-| Version | Tag            | Description                         |
-| :------ | :------------- | :---------------------------------- |
-| v2.3.0  | `v2.3.0`       | Closures, Guards, Interpreter Flow  |
-| v2.2.1  | `v2.2.1`       | Type System Hardening & Traits      |
-| v2.1.0  | `v2.1.0`       | Standard Library & Builtins         |
-| v2.0.0  | `v2.0.0`       | AOT compiled ML language            |
-| v1.4.0  | `v1.4.0-final` | Bytecode VM (on `v1-legacy` branch) |
-| v1.0.0  | `v1.0.0`       | Initial tree-walking interpreter    |
+| Version | Tag            | Description                           |
+| :------ | :------------- | :------------------------------------ |
+| v2.3.1  | `v2.3.1`       | Performance Optimizations & Bug Fixes |
+| v2.3.0  | `v2.3.0`       | Closures, Guards, Interpreter Flow    |
+| v2.2.1  | `v2.2.1`       | Type System Hardening & Traits        |
+| v2.1.0  | `v2.1.0`       | Standard Library & Builtins           |
+| v2.0.0  | `v2.0.0`       | AOT compiled ML language              |
+| v1.4.0  | `v1.4.0-final` | Bytecode VM (on `v1-legacy` branch)   |
+| v1.0.0  | `v1.0.0`       | Initial tree-walking interpreter      |
