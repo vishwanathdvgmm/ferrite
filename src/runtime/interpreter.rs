@@ -2,6 +2,7 @@ use super::environment::Environment;
 use super::value::Value;
 use crate::ast::*;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 /// Control flow signals that propagate up through the interpreter.
 /// These allow `return`, `stop` (break), and `skip` (continue) to
@@ -44,7 +45,7 @@ impl Interpreter {
             match decl {
                 TopDecl::Func(f) => {
                     self.env
-                        .declare(f.name.clone(), Value::Func(Box::new(f.clone())));
+                        .declare(f.name.clone(), Value::Func(Rc::new(f.clone())));
                 }
                 TopDecl::Constant(c) => {
                     let val = self.eval_expr(&c.value)?;
@@ -78,9 +79,9 @@ impl Interpreter {
                         }
                         // Register both by simple name and qualified name for dispatch
                         self.env
-                            .declare(m.name.clone(), Value::Func(Box::new(fdecl.clone())));
+                            .declare(m.name.clone(), Value::Func(Rc::new(fdecl.clone())));
                         self.env
-                            .declare(qualified_name, Value::Func(Box::new(fdecl)));
+                            .declare(qualified_name, Value::Func(Rc::new(fdecl)));
                     }
                 }
                 TopDecl::Enum(e) => {
@@ -489,7 +490,7 @@ impl Interpreter {
                         // propagate back to the outer scope. This is intentional for
                         // stability — it prevents data races and unexpected side effects.
                         let saved_env = self.env.clone();
-                        self.env = *captured_env;
+                        self.env = (*captured_env).clone();
                         self.env.enter_scope();
                         for (i, param) in params.iter().enumerate() {
                             if i < evaluated_args.len() {
@@ -662,8 +663,8 @@ impl Interpreter {
                 let captured_env = self.env.clone();
                 Ok(Value::Closure(
                     params.clone(),
-                    body.clone(),
-                    Box::new(captured_env),
+                    Rc::new(*body.clone()),
+                    Rc::new(captured_env),
                 ))
             }
         }

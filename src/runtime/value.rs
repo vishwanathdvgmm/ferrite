@@ -2,6 +2,7 @@ use super::environment::Environment;
 use crate::ast::{Expr, FuncDecl, Param};
 use std::collections::HashMap;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 pub enum Value {
@@ -10,9 +11,9 @@ pub enum Value {
     Float(f64),
     Bool(bool),
     String(String),
-    Func(Box<FuncDecl>),
+    Func(Rc<FuncDecl>),
     /// A closure captures its lexical environment at creation time.
-    Closure(Vec<Param>, Box<Expr>, Box<Environment>),
+    Closure(Vec<Param>, Rc<Expr>, Rc<Environment>),
     Builtin(String),
     Group(String, HashMap<String, Value>),
     Enum(String, String, Vec<Value>),
