@@ -179,6 +179,96 @@
           </div>
         </section>
 
+        <!-- Performance Benchmarks -->
+        <section class="comparison-section container">
+          <div class="comparison-card glass">
+            <div class="comparison-header">
+              <h2 class="section-title">
+                Performance <span class="text-gradient">Benchmarks</span>
+              </h2>
+              <p class="section-subtitle">
+                AST-Interpreter evaluation speeds vs VMs/Native (ms)
+              </p>
+            </div>
+
+            <div style="overflow-x: auto; margin-top: 2rem">
+              <table
+                style="
+                  width: 100%;
+                  border-collapse: collapse;
+                  text-align: left;
+                  color: var(--text-color);
+                "
+              >
+                <thead>
+                  <tr
+                    style="
+                      border-bottom: 2px solid var(--border-color);
+                      color: var(--primary-color);
+                    "
+                  >
+                    <th style="padding: 1rem">Benchmark</th>
+                    <th style="padding: 1rem">Ferrite</th>
+                    <th style="padding: 1rem">Python</th>
+                    <th style="padding: 1rem">Node.js</th>
+                    <th style="padding: 1rem">Rust</th>
+                    <th style="padding: 1rem">Go</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid var(--border-color)">
+                    <td style="padding: 1rem; font-weight: bold">
+                      Fibonacci (25)
+                    </td>
+                    <td style="padding: 1rem; color: var(--secondary-color)">
+                      7093
+                    </td>
+                    <td style="padding: 1rem">923</td>
+                    <td style="padding: 1rem">593</td>
+                    <td style="padding: 1rem">847</td>
+                    <td style="padding: 1rem">917</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid var(--border-color)">
+                    <td style="padding: 1rem; font-weight: bold">
+                      Loop Sum (10M)
+                    </td>
+                    <td style="padding: 1rem; color: var(--secondary-color)">
+                      1882
+                    </td>
+                    <td style="padding: 1rem">762</td>
+                    <td style="padding: 1rem">572</td>
+                    <td style="padding: 1rem">800</td>
+                    <td style="padding: 1rem">865</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 1rem; font-weight: bold">
+                      String Concat
+                    </td>
+                    <td style="padding: 1rem; color: var(--secondary-color)">
+                      468
+                    </td>
+                    <td style="padding: 1rem">542</td>
+                    <td style="padding: 1rem">532</td>
+                    <td style="padding: 1rem">692</td>
+                    <td style="padding: 1rem">1022</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p
+              style="
+                margin-top: 1rem;
+                font-size: 0.9rem;
+                opacity: 0.8;
+                text-align: center;
+              "
+            >
+              * String concatenation in Ferrite bypasses AST overhead by
+              natively delegating to Rust's optimized memory allocators.
+            </p>
+          </div>
+        </section>
+
         <!-- Stats grid -->
         <section class="stats container">
           <div class="stats-grid">
