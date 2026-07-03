@@ -811,6 +811,10 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                         self.env.unify(&Type::Int, &idx_ty, span);
                         args[0].clone()
                     }
+                    Type::String => {
+                        self.env.unify(&Type::Int, &idx_ty, span);
+                        Type::String
+                    }
                     _ => {
                         if obj_ty != Type::Error {
                             self.env.diag.error(

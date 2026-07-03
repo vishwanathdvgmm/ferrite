@@ -10,9 +10,9 @@ pub enum Value {
     Float(f64),
     Bool(bool),
     String(String),
-    Func(FuncDecl),
+    Func(Box<FuncDecl>),
     /// A closure captures its lexical environment at creation time.
-    Closure(Vec<Param>, Box<Expr>, Environment),
+    Closure(Vec<Param>, Box<Expr>, Box<Environment>),
     Builtin(String),
     Group(String, HashMap<String, Value>),
     Enum(String, String, Vec<Value>),

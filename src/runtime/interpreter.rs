@@ -43,7 +43,8 @@ impl Interpreter {
         for decl in &program.decls {
             match decl {
                 TopDecl::Func(f) => {
-                    self.env.declare(f.name.clone(), Value::Func(f.clone()));
+                    self.env
+                        .declare(f.name.clone(), Value::Func(Box::new(f.clone())));
                 }
                 TopDecl::Constant(c) => {
                     let val = self.eval_expr(&c.value)?;
@@ -76,8 +77,10 @@ impl Interpreter {
                             );
                         }
                         // Register both by simple name and qualified name for dispatch
-                        self.env.declare(m.name.clone(), Value::Func(fdecl.clone()));
-                        self.env.declare(qualified_name, Value::Func(fdecl));
+                        self.env
+                            .declare(m.name.clone(), Value::Func(Box::new(fdecl.clone())));
+                        self.env
+                            .declare(qualified_name, Value::Func(Box::new(fdecl)));
                     }
                 }
                 TopDecl::Enum(e) => {
@@ -486,7 +489,7 @@ impl Interpreter {
                         // propagate back to the outer scope. This is intentional for
                         // stability — it prevents data races and unexpected side effects.
                         let saved_env = self.env.clone();
-                        self.env = captured_env;
+                        self.env = *captured_env;
                         self.env.enter_scope();
                         for (i, param) in params.iter().enumerate() {
                             if i < evaluated_args.len() {
@@ -659,8 +662,8 @@ impl Interpreter {
                 let captured_env = self.env.clone();
                 Ok(Value::Closure(
                     params.clone(),
-                    Box::new(*body.clone()),
-                    captured_env,
+                    body.clone(),
+                    Box::new(captured_env),
                 ))
             }
         }

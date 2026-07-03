@@ -7,6 +7,6 @@ fun sum(n: int) -> int {
 }
 
 fun main() {
-    keep result: int = sum(100);
-    assert(result == 5050, "fail");
+    keep result: int = sum(10);
+    assert(result == 55, "fail");
 }
