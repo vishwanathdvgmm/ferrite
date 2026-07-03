@@ -7,8 +7,6 @@ fun sum(n: int) -> int {
 }
 
 fun main() {
-    keep result = sum(100);
-    if result != 5050 {
-        stop;
-    }
+    keep result: int = sum(100);
+    assert(result == 5050);
 }

@@ -2,5 +2,5 @@
 fun main() {
     keep a: float = 10.0;
     keep b: float = 0.0;
-    keep c = a / b;
+    keep c: float = a / b;
 }

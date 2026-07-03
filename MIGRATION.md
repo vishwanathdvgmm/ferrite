@@ -2,9 +2,9 @@
 
 This document covers major changes and migration steps between Ferrite versions.
 
-## Migrating from Ferrite v2.2.1 to v2.3.0
+## Migrating from Ferrite v2.2.1 to v2.3.1
 
-Ferrite v2.3.0 focuses on bringing the interpreter's capabilities to parity with the AOT compiler, specifically regarding closures and control flow. There are no breaking syntax changes in this release, but behavior inside `ferrite run` is vastly improved.
+Ferrite v2.3.1 focuses on bringing the interpreter's capabilities to parity with the AOT compiler, specifically regarding closures and control flow. There are no breaking syntax changes in this release, but behavior inside `ferrite run` is vastly improved.
 
 ### 1. Closures and State
 
@@ -23,7 +23,7 @@ match num {
 
 ### 3. Web Playground
 
-You can now experiment with Ferrite v2.3.0 directly in your browser at [ferrite-lang.org](https://ferrite-lang.org/) without installing the compiler locally.
+You can now experiment with Ferrite v2.3.1 directly in your browser at [ferrite-lang.org](https://ferrite-lang.org/) without installing the compiler locally.
 
 ---
 
