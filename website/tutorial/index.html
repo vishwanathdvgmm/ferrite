@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ferrite Tutorial - Learn the Language from Scratch</title>
+    <meta name="description" content="Step-by-step tutorial to learn the Ferrite programming language, from Hello World to machine learning with tensors." />
+    <meta name="keywords" content="Ferrite, Programming Language, Compiler, Systems Programming, Machine Learning" />
+    <meta name="author" content="Vishwanath M M" />
+    <link rel="canonical" href="https://ferrite-lang.org/tutorial/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Ferrite Tutorial - Learn the Language from Scratch" />
+    <meta property="og:description" content="Step-by-step tutorial to learn the Ferrite programming language, from Hello World to machine learning with tensors." />
+    <meta property="og:url" content="https://ferrite-lang.org/tutorial/" />
+    <meta property="og:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ferrite Tutorial - Learn the Language from Scratch" />
+    <meta name="twitter:description" content="Step-by-step tutorial to learn the Ferrite programming language, from Hello World to machine learning with tensors." />
+    <meta name="twitter:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+  </head>
+
+  <body>
+    <div class="blob-bg-1"></div>
+    <div class="blob-bg-2"></div>
+
+    <!-- Shared Header (loaded via JS) -->
+    <div id="header-slot"></div>
+
+    <main class="page-container">
+      <div class="page active">
+        <section class="getstarted-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              Get <span class="text-gradient">Started</span>
+            </h2>
+            <p class="section-subtitle">Your first steps with Ferrite.</p>
+          </div>
+          <div class="steps-container">
+            <div class="step-card glass">
+              <div class="step-number">1</div>
+              <h3>Installation</h3>
+              <p>
+                Install Ferrite using the appropriate method for your OS from
+                the
+                <a
+                  href="#downloads"
+                  data-target="downloads"
+                  class="text-gradient"
+                  >Downloads</a
+                >
+                page.
+              </p>
+              <p>Verify installation:</p>
+              <pre><code class="language-bash">ferrite --version</code></pre>
+            </div>
+            <div class="step-card glass">
+              <div class="step-number">2</div>
+              <h3>Write Code</h3>
+              <p>
+                Create a new file named <code>hello.fe</code> and add the
+                following:
+              </p>
+              <pre><code class="language-ferrite">keep message: string = "Hello, Ferrite!";
+println(message);</code></pre>
+            </div>
+            <div class="step-card glass">
+              <div class="step-number">3</div>
+              <h3>Run</h3>
+              <p>Execute your program using the interpreter:</p>
+              <pre><code class="language-bash">ferrite run hello.fe</code></pre>
+              <p>Expected output: <code>Hello, Ferrite!</code></p>
+            </div>
+          </div>
+        </section>
+        <section class="tutorial-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              Ferrite <span class="text-gradient">Tutorial</span>
+            </h2>
+            <p class="section-subtitle">Learn the language from scratch.</p>
+          </div>
+          <div class="docs-layout">
+            <!-- Tutorial Sidebar -->
+            <aside class="docs-sidebar glass">
+              <div class="docs-menu-group">
+                <h5>Chapter 1: Basics</h5>
+                <ul>
+                  <li>
+                    <a href="#tut-hello" class="docs-link active"
+                      >Hello World</a
+                    >
+                  </li>
+                  <li>
+                    <a href="#tut-vars" class="docs-link">Variables & Types</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="docs-menu-group">
+                <h5>Chapter 2: Control Flow</h5>
+                <ul>
+                  <li><a href="#tut-if" class="docs-link">If & Else</a></li>
+                  <li><a href="#tut-loops" class="docs-link">Loops</a></li>
+                </ul>
+              </div>
+              <div class="docs-menu-group">
+                <h5>Chapter 3: Pattern Matching</h5>
+                <ul>
+                  <li>
+                    <a href="#tut-enums" class="docs-link">Enums & Match</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="docs-menu-group">
+                <h5>Chapter 4: Data Structures</h5>
+                <ul>
+                  <li><a href="#tut-groups" class="docs-link">Groups</a></li>
+                  <li>
+                    <a href="#tut-traits" class="docs-link"
+                      >Traits (Interfaces)</a
+                    >
+                  </li>
+                </ul>
+              </div>
+
+              <div class="docs-menu-group">
+                <h5>Chapter 5: Machine Learning</h5>
+                <ul>
+                  <li><a href="#tut-tensors" class="docs-link">Tensors</a></li>
+                  <li>
+                    <a href="#tut-blocks" class="docs-link">Execution Blocks</a>
+                  </li>
+                </ul>
+              </div>
+            </aside>
+            <!-- Tutorial Content -->
+            <article class="docs-content glass">
+              <!-- Hello World -->
+              <div id="tut-hello" class="docs-section-content active">
+                <h2>Chapter 1.1: Hello World</h2>
+                <p>
+                  Welcome to Ferrite! Let's start with the classic first
+                  program.
+                </p>
+                <p>
+                  In Ferrite, you can use the built-in
+                  <code>println</code> function to output text to the console.
+                </p>
+
+                <pre><code class="language-ferrite">println("Hello, World!");</code></pre>
+
+                <a
+                  href="#play"
+                  data-target="play"
+                  class="btn btn-outline"
+                  style="margin-top: 1rem; display: inline-block"
+                  >Try in Playground →</a
+                >
+              </div>
+
+              <!-- Variables & Types -->
+              <div id="tut-vars" class="docs-section-content">
+                <h2>Chapter 1.2: Variables & Types</h2>
+                <p>
+                  Ferrite is strictly typed. You must declare the type of a
+                  variable. By default, variables are declared with the
+                  <code>keep</code> keyword.
+                </p>
+
+                <pre><code class="language-ferrite">keep age: int = 25;
+keep name: string = "Ferris";
+keep is_active: bool = true;
+keep pi: float = 3.14159;</code></pre>
+
+                <p>
+                  Variables are immutable constants by default. You can reassign
+                  them if you want, but their type can never change.
+                </p>
+                <pre><code class="language-ferrite">keep count: int = 1;
+count = count + 1; // Allowed
+// count = "two"; // Error: Type mismatch</code></pre>
+              </div>
+
+              <!-- If / Else -->
+              <div id="tut-if" class="docs-section-content">
+                <h2>Chapter 2.1: If & Else</h2>
+                <p>
+                  Conditional logic in Ferrite uses standard <code>if</code>,
+                  <code>else if</code>, and <code>else</code> blocks. Note that
+                  there are no parentheses around the condition!
+                </p>
+
+                <pre><code class="language-ferrite">keep score = 85;
+
+if score >= 90 {
+    println("Grade: A");
+} else if score >= 80 {
+    println("Grade: B");
+} else {
+    println("Grade: C");
+}</code></pre>
+              </div>
+
+              <!-- Loops -->
+              <div id="tut-loops" class="docs-section-content">
+                <h2>Chapter 2.2: Loops</h2>
+                <p>
+                  Ferrite primarily uses <code>while</code> loops for iteration.
+                  You can use <code>skip</code> to continue to the next
+                  iteration, and <code>stop</code> to break out of the loop.
+                </p>
+
+                <pre><code class="language-ferrite">keep i = 0;
+while i < 5 {
+    i = i + 1;
+    if i == 3 {
+        skip; // Skips printing 3
+    }
+    println("Count: " + str(i));
+}</code></pre>
+              </div>
+              <!-- Enums & Match -->
+              <div id="tut-enums" class="docs-section-content">
+                <h2>Chapter 3.1: Enums & Match</h2>
+                <p>
+                  Ferrite supports powerful algebraic datatypes using
+                  <code>enum</code>, and deep pattern matching with the
+                  <code>match</code> keyword.
+                </p>
+                <p>
+                  You can also use <code>if</code> clauses inside match arms as
+                  "guards" for extra conditions!
+                </p>
+
+                <pre><code class="language-ferrite">enum Result&lt;T&gt; {
+    Ok(T);
+    Err(string);
+}
+
+keep response = Ok(200);
+
+match response {
+    case Ok(status) if status == 200 =&gt; {
+        println("Success!");
+    }
+    case Ok(status) =&gt; {
+        println("Other status: " + str(status));
+    }
+    case Err(msg) =&gt; {
+        println("Error: " + msg);
+    }
+}</code></pre>
+              </div>
+
+              <!-- Groups -->
+              <div id="tut-groups" class="docs-section-content">
+                <h2>Chapter 4.1: Groups</h2>
+                <p>
+                  Instead of classes or structs, Ferrite uses
+                  <code>group</code> to define collections of data.
+                </p>
+
+                <pre><code class="language-ferrite">group Vector2 {
+    x: float;
+    y: float;
+}
+
+keep position = Vector2 { x: 10.5, y: 20.0 };
+println("X Coordinate: " + str(position.x));</code></pre>
+              </div>
+
+              <!-- Traits -->
+              <div id="tut-traits" class="docs-section-content">
+                <h2>Chapter 4.2: Traits (Interfaces)</h2>
+                <p>
+                  A <code>trait</code> defines shared behavior (like an
+                  interface). You can then use the <code>impl</code> block to
+                  implement that behavior for a specific group.
+                </p>
+
+                <pre><code class="language-ferrite">trait Display {
+    fun format(self) -&gt; string;
+}
+
+impl Display for Vector2 {
+    fun format(self) -&gt; string {
+        return "Vec2(" + str(self.x) + ", " + str(self.y) + ")";
+    }
+}
+
+println(position.format());</code></pre>
+              </div>
+
+              <!-- Tensors -->
+              <div id="tut-tensors" class="docs-section-content">
+                <h2>Chapter 5.1: Tensors</h2>
+                <p>
+                  Tensors are native primitives in Ferrite. When you declare a
+                  Tensor, you specify its shape in the type signature. The
+                  compiler checks these shapes during compile time!
+                </p>
+
+                <pre><code class="language-ferrite">import "math";
+
+// Define a 1x4 input tensor and a 4x2 weights tensor
+param inputs: Tensor&lt;float, (1, 4)&gt; = rand(1, 4);
+param weights: Tensor&lt;float, (4, 2)&gt; = ones(4, 2);
+
+// Matrix multiplication using the @ operator
+// Resulting shape will automatically be (1, 2)
+keep outputs = inputs @ weights;</code></pre>
+              </div>
+
+              <!-- Execution Blocks -->
+              <div id="tut-blocks" class="docs-section-content">
+                <h2>Chapter 5.2: Execution Blocks</h2>
+                <p>
+                  Ferrite uses specialized contexts for ML operations. For
+                  example, <code>infer {}</code> blocks optimize execution for
+                  pure feed-forward passes by disabling gradient tracking
+                  overhead.
+                </p>
+
+                <pre><code class="language-ferrite">infer {
+    keep outputs = inputs @ weights;
+    println("Outputs: " + str(outputs));
+}
+
+train {
+    // Operations here will track gradients
+    keep loss = compute_gradients(inputs);
+}</code></pre>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+      </div>
+    </main>
+
+    <!-- Shared Footer (loaded via JS) -->
+    <div id="footer-slot"></div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/layout.js"></script>
+    <script src="/assets/js/script.js"></script>
+  </body>
+</html>

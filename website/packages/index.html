@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ferrite Packages - Package Registry (Coming Soon)</title>
+    <meta name="description" content="The Ferrite package registry is coming soon. Discover, install, and publish Ferrite libraries." />
+    <meta name="keywords" content="Ferrite, Programming Language, Compiler, Systems Programming, Machine Learning" />
+    <meta name="author" content="Vishwanath M M" />
+    <link rel="canonical" href="https://ferrite-lang.org/packages/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Ferrite Packages - Package Registry (Coming Soon)" />
+    <meta property="og:description" content="The Ferrite package registry is coming soon. Discover, install, and publish Ferrite libraries." />
+    <meta property="og:url" content="https://ferrite-lang.org/packages/" />
+    <meta property="og:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ferrite Packages - Package Registry (Coming Soon)" />
+    <meta name="twitter:description" content="The Ferrite package registry is coming soon. Discover, install, and publish Ferrite libraries." />
+    <meta name="twitter:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+  </head>
+
+  <body>
+    <div class="blob-bg-1"></div>
+    <div class="blob-bg-2"></div>
+
+    <!-- Shared Header (loaded via JS) -->
+    <div id="header-slot"></div>
+
+    <main class="page-container">
+      <div class="page active">
+        <section class="packages-section container">
+          <div class="packages-hero">
+            <div class="coming-soon-badge">🚧 Coming Soon</div>
+            <h2>Ferrite Package Registry</h2>
+            <p>
+              A built-in package manager is on the roadmap. Soon you'll be able
+              to discover, install, and publish Ferrite libraries with a single
+              command.
+            </p>
+          </div>
+
+          <div class="packages-coming-soon-layout">
+            <!-- Preview of planned CLI -->
+            <div class="packages-cli-info glass">
+              <h3>Planned CLI Preview</h3>
+              <p>
+                Here's what <code>fe-pkg</code> will look like when it ships:
+              </p>
+
+              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                <span class="comment"># Initialize a new Ferrite project</span>
+                <span class="prompt">$</span> fe-pkg init my-project<br />
+                <span class="output">✓ Created ferrite.toml</span>
+              </div>
+
+              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                <span class="comment"># Add a package dependency</span>
+                <span class="prompt">$</span> fe-pkg add nn<br />
+                <span class="output">Resolving nn v1.x...</span><br />
+                <span class="output">✓ Package added to ferrite.toml</span>
+              </div>
+
+              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+                <span class="comment"># Publish your own library</span>
+                <span class="prompt">$</span> fe-pkg publish<br />
+                <span class="output">✓ Module uploaded to registry.</span>
+              </div>
+            </div>
+
+            <!-- Roadmap Timeline -->
+            <div class="packages-roadmap glass">
+              <h3>📋 Roadmap</h3>
+              <div class="roadmap-timeline">
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Done</span>
+                    <h4>Core Language</h4>
+                    <p>
+                      Lexer, parser, type checker, and tree-walk interpreter are
+                      live and working.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Done</span>
+                    <h4>Online Playground</h4>
+                    <p>
+                      Run Ferrite code directly in your browser with real-time
+                      output.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item in-progress">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">In Progress</span>
+                    <h4>Module System</h4>
+                    <p>
+                      Import/export, module resolution, and namespace management
+                      for multi-file projects.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item upcoming">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Planned</span>
+                    <h4>Package Manager (<code>fe-pkg</code>)</h4>
+                    <p>
+                      Dependency resolution, version pinning,
+                      <code>ferrite.toml</code> manifest, and a global registry.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item upcoming">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Planned</span>
+                    <h4>Standard Library</h4>
+                    <p>
+                      Core packages for I/O, math, networking, data structures,
+                      and ML primitives.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notify CTA -->
+          <div class="packages-notify glass">
+            <div class="notify-content">
+              <span class="notify-icon">📬</span>
+              <div>
+                <h4>Want to be notified when packages launch?</h4>
+                <p>
+                  Star the
+                  <a
+                    href="https://github.com/vishwanathdvgmm/ferrite"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >GitHub repo</a
+                  >
+                  to get release notifications, or follow the
+                  <a href="#blog" class="notify-blog-link" data-target="blog"
+                    >blog</a
+                  >
+                  for updates.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>      </div>
+    </main>
+
+    <!-- Shared Footer (loaded via JS) -->
+    <div id="footer-slot"></div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/layout.js"></script>
+    
+  </body>
+</html>

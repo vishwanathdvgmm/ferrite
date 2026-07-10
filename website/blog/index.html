@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ferrite Blog - News & Releases</title>
+    <meta name="description" content="Stay up to date with the latest Ferrite releases, compiler updates, and ecosystem news." />
+    <meta name="keywords" content="Ferrite, Programming Language, Compiler, Systems Programming, Machine Learning" />
+    <meta name="author" content="Vishwanath M M" />
+    <link rel="canonical" href="https://ferrite-lang.org/blog/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Ferrite Blog - News & Releases" />
+    <meta property="og:description" content="Stay up to date with the latest Ferrite releases, compiler updates, and ecosystem news." />
+    <meta property="og:url" content="https://ferrite-lang.org/blog/" />
+    <meta property="og:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Ferrite Blog - News & Releases" />
+    <meta name="twitter:description" content="Stay up to date with the latest Ferrite releases, compiler updates, and ecosystem news." />
+    <meta name="twitter:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+  </head>
+
+  <body>
+    <div class="blob-bg-1"></div>
+    <div class="blob-bg-2"></div>
+
+    <!-- Shared Header (loaded via JS) -->
+    <div id="header-slot"></div>
+
+    <main class="page-container">
+      <div class="page active">
+        <section class="blog-section container">
+          <h2>Ecosystem & Release Blog</h2>
+          <p class="blog-lead">
+            Stay up to date with the latest features, releases, and guides from
+            the Ferrite core team.
+          </p>
+
+          <div class="blog-layout">
+            <!-- Main articles list -->
+            <div class="blog-posts-list">
+              <!-- Post 1 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">June 26, 2026 • Releases</div>
+                  <h3 class="post-title">
+                    Announcing Ferrite v2.3.1: Closures, Guards, & Setup Wizards
+                  </h3>
+                </header>
+                <p class="post-summary">
+                  We are excited to release Ferrite v2.3.1! This release is
+                  packed with compiler features, syntax improvements, and
+                  ecosystem setups. Highlights include lexical closures, enum
+                  guard clauses, skip/stop loops control, and the new setup
+                  wizard.
+                </p>
+                <div class="post-content-full">
+                  <h4>Lexical Closures</h4>
+                  <p>
+                    First-class functions can now capture variables from their
+                    outer scope. This unlocks functional programming patterns
+                    directly in Ferrite:
+                  </p>
+                  <pre><code class="language-ferrite">
+<span class="keyword">keep</span> multiplier = <span class="number">2</span>;
+<span class="keyword">keep</span> double: <span class="type">fun</span>(<span class="type">int</span>)-&gt;<span class="type">int</span> = (x: <span class="type">int</span>) =&gt; x * multiplier;
+                                </code></pre>
+
+                  <h4>Advanced Loop Control</h4>
+                  <p>
+                    We added `skip` and `stop` keywords, aligning Ferrite's
+                    iteration structure with standard loop controls
+                    (corresponding to `continue` and `break` in traditional
+                    C-like syntaxes).
+                  </p>
+
+                  <h4>New Setup Installer</h4>
+                  <p>
+                    Our Windows installation experience has been rewritten. The
+                    setup wizard now properly publishes vendor parameters,
+                    configures environment paths, and resolves standard SDK
+                    files directly.
+                  </p>
+                </div>
+                <button class="btn btn-secondary btn-read-more">
+                  Read More
+                </button>
+              </article>
+
+              <!-- Post 2 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">May 15, 2026 • Compiler</div>
+                  <h3 class="post-title">
+                    Ferrite v2.2.0: Hardened Type Checks & Traits
+                  </h3>
+                </header>
+                <p class="post-summary">
+                  Ferrite's compiler type check has been hardened. We've
+                  introduced explicit interfaces called Traits, which can be
+                  custom-implemented on structural Groups to support clean code
+                  architectures.
+                </p>
+                <div class="post-content-full">
+                  <p>
+                    Traits establish code contract standards. In this release,
+                    the static analyzer ensures that all trait functions are
+                    fully implemented, preventing runtime resolution errors in
+                    native compiled binaries.
+                  </p>
+                </div>
+                <button class="btn btn-secondary btn-read-more">
+                  Read More
+                </button>
+              </article>
+
+              <!-- Post 3 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">April 02, 2026 • Design</div>
+                  <h3 class="post-title">
+                    Why We Built Ferrite: An ML-First Systems Language
+                  </h3>
+                </header>
+                <p class="post-summary">
+                  In this post, we discuss the design philosophy behind Ferrite,
+                  how it handles compilation pathways, and why compiled tensor
+                  validation is the future of neural network engineering.
+                </p>
+                <div class="post-content-full">
+                  <p>
+                    Traditional machine learning flows suffer from "shape bugs"
+                    that arise hours into training. Ferrite's strict compiler
+                    verifies matrix sizes *before* compilation, saving GPU
+                    resources and developer time.
+                  </p>
+                </div>
+                <button class="btn btn-secondary btn-read-more">
+                  Read More
+                </button>
+              </article>
+            </div>
+
+            <!-- Blog Sidebar -->
+            <aside class="blog-aside glass">
+              <h4>Popular Topics</h4>
+              <div class="tag-cloud">
+                <span class="tag">#releases</span>
+                <span class="tag">#compiler</span>
+                <span class="tag">#tensors</span>
+                <span class="tag">#tutorial</span>
+                <span class="tag">#rust</span>
+                <span class="tag">#llvm</span>
+              </div>
+
+              <div class="newsletter-box">
+                <h5>Support the Project</h5>
+                <p>
+                  Ferrite is open source. Give us a star on GitHub to stay
+                  updated with new releases!
+                </p>
+                <a
+                  href="https://github.com/vishwanathdvgmm/ferrite"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-primary"
+                  style="
+                    width: 100%;
+                    margin-top: 1rem;
+                    text-align: center;
+                    display: inline-block;
+                  "
+                  >★ Star on GitHub</a
+                >
+              </div>
+            </aside>
+          </div>
+        </section>
+      </div>      </div>
+    </main>
+
+    <!-- Shared Footer (loaded via JS) -->
+    <div id="footer-slot"></div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/layout.js"></script>
+    <script src="/assets/js/script.js"></script>
+  </body>
+</html>

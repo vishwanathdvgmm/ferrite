@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Download Ferrite - The AI-Native Programming Language</title>
+    <meta
+      name="description"
+      content="Download the Ferrite compiler for Windows, macOS, or Linux. Get precompiled binaries or build from source."
+    />
+    <meta
+      name="keywords"
+      content="Ferrite, Programming Language, Compiler, Systems Programming, Machine Learning"
+    />
+    <meta name="author" content="Vishwanath M M" />
+    <link rel="canonical" href="https://ferrite-lang.org/downloads/" />
+
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="Download Ferrite - The AI-Native Programming Language"
+    />
+    <meta
+      property="og:description"
+      content="Download the Ferrite compiler for Windows, macOS, or Linux. Get precompiled binaries or build from source."
+    />
+    <meta property="og:url" content="https://ferrite-lang.org/downloads/" />
+    <meta
+      property="og:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Download Ferrite - The AI-Native Programming Language"
+    />
+    <meta
+      name="twitter:description"
+      content="Download the Ferrite compiler for Windows, macOS, or Linux. Get precompiled binaries or build from source."
+    />
+    <meta
+      name="twitter:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+  </head>
+
+  <body>
+    <div class="blob-bg-1"></div>
+    <div class="blob-bg-2"></div>
+
+    <!-- Shared Header (loaded via JS) -->
+    <div id="header-slot"></div>
+
+    <main class="page-container">
+      <div class="page active">
+        <section class="downloads-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              Download <span class="text-gradient">Ferrite</span>
+            </h2>
+            <p class="section-subtitle">
+              Get the latest precompiled binaries for your system.
+            </p>
+          </div>
+          <div class="platform-grid downloads-grid">
+            <div class="platform-card glass">
+              <span class="platform-icon">🪟</span>
+              <h3>Windows</h3>
+              <p>Requires Windows 10/11 (64-bit)</p>
+              <a
+                href="https://github.com/vishwanathdvgmm/ferrite/releases/download/v2.3.1/ferrite-v2.3.1-setup.exe"
+                target="_blank"
+                class="btn btn-primary"
+                style="margin-top: 1rem; display: inline-block"
+                >Download Setup .exe</a
+              >
+            </div>
+            <div class="platform-card glass">
+              <span class="platform-icon">🍏</span>
+              <h3>macOS</h3>
+              <p>Apple Silicon (M1/M2/M3) & Intel</p>
+              <code class="platform-cmd"
+                >brew install vishwanathdvgmm/tap/ferrite</code
+              >
+            </div>
+            <div class="platform-card glass">
+              <span class="platform-icon">🐧</span>
+              <h3>Linux</h3>
+              <p>Ubuntu, Fedora, Arch, etc.</p>
+              <code class="platform-cmd"
+                >curl -fsSL https://ferrite-lang.org/install.sh | sh</code
+              >
+            </div>
+          </div>
+          <div class="build-source glass">
+            <h3>Build from Source</h3>
+            <p>
+              Require a custom build? Make sure you have the Rust toolchain
+              installed.
+            </p>
+            <pre><code class="language-bash">git clone https://github.com/vishwanathdvgmm/ferrite.git
+cd ferrite
+cargo build --release</code></pre>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Shared Footer (loaded via JS) -->
+    <div id="footer-slot"></div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/layout.js"></script>
+  </body>
+</html>

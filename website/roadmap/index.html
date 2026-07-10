@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ferrite Roadmap - Development Timeline</title>
+    <meta
+      name="description"
+      content="See what's planned for the Ferrite programming language, from module systems to LLVM backends."
+    />
+    <meta
+      name="keywords"
+      content="Ferrite, Programming Language, Compiler, Systems Programming, Machine Learning"
+    />
+    <meta name="author" content="Vishwanath M M" />
+    <link rel="canonical" href="https://ferrite-lang.org/roadmap/" />
+
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="Ferrite Roadmap - Development Timeline"
+    />
+    <meta
+      property="og:description"
+      content="See what's planned for the Ferrite programming language, from module systems to LLVM backends."
+    />
+    <meta property="og:url" content="https://ferrite-lang.org/roadmap/" />
+    <meta
+      property="og:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Ferrite Roadmap - Development Timeline"
+    />
+    <meta
+      name="twitter:description"
+      content="See what's planned for the Ferrite programming language, from module systems to LLVM backends."
+    />
+    <meta
+      name="twitter:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
+  </head>
+
+  <body>
+    <div class="blob-bg-1"></div>
+    <div class="blob-bg-2"></div>
+
+    <!-- Shared Header (loaded via JS) -->
+    <div id="header-slot"></div>
+
+    <main class="page-container">
+      <div class="page active">
+        <section class="packages-section container">
+          <div class="about-header">
+            <h2 class="section-title">
+              Ferrite <span class="text-gradient">Roadmap</span>
+            </h2>
+            <p class="section-subtitle">Where we are and where we're going.</p>
+          </div>
+
+          <div
+            class="packages-coming-soon-layout"
+            style="grid-template-columns: 1fr"
+          >
+            <div class="packages-roadmap glass">
+              <h3>📋 Development Roadmap</h3>
+              <div class="roadmap-timeline">
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">v2.0 — Done</span>
+                    <h4>Core Language & AOT Compilation</h4>
+                    <p>
+                      Lexer, parser, type checker, tree-walk interpreter, and
+                      ahead-of-time compiled ML language.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">v2.1 — Done</span>
+                    <h4>Standard Library & Builtins</h4>
+                    <p>
+                      Core math, system, and tensor utility modules. Built-in
+                      functions for I/O and type casting.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">v2.2 — Done</span>
+                    <h4>Traits, Type Hardening & Generics</h4>
+                    <p>
+                      Explicit trait implementations, strict type checking, and
+                      generic enum support.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">v2.3 — Done</span>
+                    <h4>Closures, Guards, Performance & Setup Wizard</h4>
+                    <p>
+                      Lexical closures, match guards, 4x interpreter speedup via
+                      Rc memory sharing, and Windows installer.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item completed">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">v2.3.1 — Done</span>
+                    <h4>Online Playground & Website</h4>
+                    <p>
+                      Client-side Ferrite interpreter, interactive playground,
+                      and multi-page website restructuring.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item in-progress">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">v2.4 — In Progress</span>
+                    <h4>Module System</h4>
+                    <p>
+                      Import/export, module resolution, and namespace management
+                      for multi-file projects.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item upcoming">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">v3.0 — Planned</span>
+                    <h4>Package Manager (<code>fe-pkg</code>)</h4>
+                    <p>
+                      Dependency resolution, version pinning,
+                      <code>ferrite.toml</code> manifest, and a global registry.
+                    </p>
+                  </div>
+                </div>
+                <div class="roadmap-item upcoming">
+                  <div class="roadmap-dot"></div>
+                  <div class="roadmap-content">
+                    <span class="roadmap-label">Future — Planned</span>
+                    <h4>LLVM Backend & Native GPU Support</h4>
+                    <p>
+                      LLVM IR code generation for native machine code output and
+                      CUDA/ROCm GPU kernel compilation.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Shared Footer (loaded via JS) -->
+    <div id="footer-slot"></div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/layout.js"></script>
+  </body>
+</html>
