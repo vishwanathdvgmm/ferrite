@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ferrite-lang.org/sitemap.xml
+Sitemap: https://www.ferrite-lang.org/sitemap.xml
