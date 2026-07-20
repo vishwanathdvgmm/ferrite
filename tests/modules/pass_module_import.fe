@@ -1,0 +1,9 @@
+// ── PASS TEST: Module import (simple namespace) ──
+// Expected: ferrite check → ✅
+
+import "math_utils";
+
+fun main() -> int {
+    keep result: int = math_utils.add(10, 20);
+    return result;
+}

@@ -1,12 +1,12 @@
-fun split(s: string, delim: string) -> List<string> { return List { ignore: 0 }; }
-fun join(parts: List<string>, delim: string) -> string { return ""; }
-fun trim(s: string) -> string { return s; }
-fun upper(s: string) -> string { return s; }
-fun lower(s: string) -> string { return s; }
-fun starts_with(s: string, prefix: string) -> bool { return true; }
-fun ends_with(s: string, suffix: string) -> bool { return true; }
-fun contains(s: string, sub: string) -> bool { return true; }
-fun replace(s: string, old: string, new_str: string) -> string { return s; }
-fun substr(s: string, start: int, length: int) -> string { return s; }
-fun char_at(s: string, index: int) -> string { return ""; }
-fun repeat(s: string, n: int) -> string { return s; }
+pub fun split(s: string, delim: string) -> List<string> { return List { ignore: 0 }; }
+pub fun join(parts: List<string>, delim: string) -> string { return ""; }
+pub fun trim(s: string) -> string { return s; }
+pub fun upper(s: string) -> string { return s; }
+pub fun lower(s: string) -> string { return s; }
+pub fun starts_with(s: string, prefix: string) -> bool { return true; }
+pub fun ends_with(s: string, suffix: string) -> bool { return true; }
+pub fun contains(s: string, sub: string) -> bool { return true; }
+pub fun replace(s: string, old: string, new_str: string) -> string { return s; }
+pub fun substr(s: string, start: int, length: int) -> string { return s; }
+pub fun char_at(s: string, index: int) -> string { return ""; }
+pub fun repeat(s: string, n: int) -> string { return s; }

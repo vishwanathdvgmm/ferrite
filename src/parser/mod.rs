@@ -151,6 +151,7 @@ impl<'a> Parser<'a> {
                 | TokenKind::Return
                 | TokenKind::Stop
                 | TokenKind::Skip
+                | TokenKind::Pub
                 | TokenKind::Trait
                 | TokenKind::Impl => return,
                 _ => {}
@@ -162,22 +163,29 @@ impl<'a> Parser<'a> {
     // ── Declarations ────────────────────────────────────────────────
 
     fn parse_top_decl(&mut self) -> Option<TopDecl> {
+        // Check for optional `pub` visibility modifier
+        let visibility = if self.match_token(&[TokenKind::Pub]) {
+            Visibility::Public
+        } else {
+            Visibility::Private
+        };
+
         if self.match_token(&[TokenKind::Import, TokenKind::From]) {
             self.parse_import_decl().map(TopDecl::Import)
         } else if self.match_token(&[TokenKind::Constant]) {
-            self.parse_constant_decl().map(TopDecl::Constant)
+            self.parse_constant_decl(visibility).map(TopDecl::Constant)
         } else if self.match_token(&[TokenKind::Group]) {
-            self.parse_group_decl().map(TopDecl::Group)
+            self.parse_group_decl(visibility).map(TopDecl::Group)
         } else if self.match_token(&[TokenKind::Enum]) {
-            self.parse_enum_decl().map(TopDecl::Enum)
+            self.parse_enum_decl(visibility).map(TopDecl::Enum)
         } else if self.match_token(&[TokenKind::Trait]) {
-            self.parse_trait_decl().map(TopDecl::Trait)
+            self.parse_trait_decl(visibility).map(TopDecl::Trait)
         } else if self.match_token(&[TokenKind::Impl]) {
             self.parse_impl_block().map(TopDecl::Impl)
         } else {
             // Function declaration might start with `<`, `infer`, `train`, `async`, or `fun`
             // Let's rely on fact that func starts with `fun` eventually
-            self.parse_func_decl().map(TopDecl::Func)
+            self.parse_func_decl(visibility).map(TopDecl::Func)
         }
     }
 
@@ -213,12 +221,31 @@ impl<'a> Parser<'a> {
             if let TokenKind::StringLit(path) = self.peek().kind.clone() {
                 self.advance();
                 self.consume(TokenKind::Take, "Expected 'take' after from path.")?;
-                let (name, _) = self.consume_ident("Expected identifier after 'take'.")?;
+                let mut names = Vec::new();
+                if self.match_token(&[TokenKind::LBrace]) {
+                    // from "path" take { a, b, c };
+                    loop {
+                        let (name, _) =
+                            self.consume_ident("Expected identifier in selective import.")?;
+                        names.push(name);
+                        if !self.match_token(&[TokenKind::Comma]) {
+                            break;
+                        }
+                    }
+                    self.consume(
+                        TokenKind::RBrace,
+                        "Expected '}' after selective import list.",
+                    )?;
+                } else {
+                    // from "path" take name;
+                    let (name, _) = self.consume_ident("Expected identifier after 'take'.")?;
+                    names.push(name);
+                }
                 let end_span = self.previous().span.clone();
                 self.consume(TokenKind::Semicolon, "Expected ';' after from import.")?;
                 Some(ImportDecl::Selective {
                     path,
-                    name,
+                    names,
                     span: self.merge_span(&span_start, &end_span),
                 })
             } else {
@@ -230,7 +257,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_constant_decl(&mut self) -> Option<ConstantDecl> {
+    fn parse_constant_decl(&mut self, visibility: Visibility) -> Option<ConstantDecl> {
         let start_span = self.previous().span.clone();
         let (name, _) = self.consume_ident("Expected constant name.")?;
         self.consume(TokenKind::Colon, "Expected ':' after constant name.")?;
@@ -243,6 +270,7 @@ impl<'a> Parser<'a> {
             "Expected ';' after constant declaration.",
         )?;
         Some(ConstantDecl {
+            visibility,
             name,
             ty,
             value,
@@ -250,7 +278,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_group_decl(&mut self) -> Option<GroupDecl> {
+    fn parse_group_decl(&mut self, visibility: Visibility) -> Option<GroupDecl> {
         let start_span = self.previous().span.clone();
         let (name, _) = self.consume_ident("Expected group name.")?;
         let generics = self.parse_generic_params_opt();
@@ -275,6 +303,7 @@ impl<'a> Parser<'a> {
         let end_span = self.previous().span.clone();
 
         Some(GroupDecl {
+            visibility,
             name,
             generics,
             fields,
@@ -340,7 +369,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_enum_decl(&mut self) -> Option<EnumDecl> {
+    fn parse_enum_decl(&mut self, visibility: Visibility) -> Option<EnumDecl> {
         let start_span = self.previous().span.clone();
         let (name, _) = self.consume_ident("Expected enum name.")?;
         let generics = self.parse_generic_params_opt();
@@ -353,6 +382,7 @@ impl<'a> Parser<'a> {
         self.consume(TokenKind::RBrace, "Expected '}' after enum body.")?;
         let span = self.merge_span(&start_span, &self.previous().span.clone());
         Some(EnumDecl {
+            visibility,
             name,
             generics,
             variants,
@@ -381,7 +411,7 @@ impl<'a> Parser<'a> {
 
     // ── Trait & Impl Declarations ────────────────────────────────────
 
-    fn parse_trait_decl(&mut self) -> Option<TraitDecl> {
+    fn parse_trait_decl(&mut self, visibility: Visibility) -> Option<TraitDecl> {
         let start_span = self.previous().span.clone();
         let (name, _) = self.consume_ident("Expected trait name.")?;
         let generics = self.parse_generic_params_opt();
@@ -396,6 +426,7 @@ impl<'a> Parser<'a> {
         let end_span = self.previous().span.clone();
 
         Some(TraitDecl {
+            visibility,
             name,
             generics,
             methods,
@@ -480,7 +511,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_func_decl(&mut self) -> Option<FuncDecl> {
+    fn parse_func_decl(&mut self, visibility: Visibility) -> Option<FuncDecl> {
         let start_span = self.peek().span.clone();
 
         let effect_params = Vec::new(); // Effect generic params logic temporarily simplified
@@ -521,6 +552,7 @@ impl<'a> Parser<'a> {
         let span = self.merge_span(&start_span, &self.previous().span.clone());
 
         Some(FuncDecl {
+            visibility,
             effect_params,
             effects,
             name,

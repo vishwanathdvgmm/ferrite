@@ -38,6 +38,7 @@ pub enum TokenKind {
     SelfKw, // `self`
     Trait,
     Impl,
+    Pub,
     Extern,
     Unsafe,
     True,
@@ -120,6 +121,7 @@ impl fmt::Display for TokenKind {
             TokenKind::SelfKw => write!(f, "self"),
             TokenKind::Trait => write!(f, "trait"),
             TokenKind::Impl => write!(f, "impl"),
+            TokenKind::Pub => write!(f, "pub"),
             TokenKind::Extern => write!(f, "extern"),
             TokenKind::Unsafe => write!(f, "unsafe"),
             TokenKind::True => write!(f, "true"),
@@ -211,6 +213,7 @@ pub fn lookup_keyword(word: &str) -> Option<TokenKind> {
         "self" => Some(TokenKind::SelfKw),
         "trait" => Some(TokenKind::Trait),
         "impl" => Some(TokenKind::Impl),
+        "pub" => Some(TokenKind::Pub),
         "extern" => Some(TokenKind::Extern),
         "unsafe" => Some(TokenKind::Unsafe),
         "true" => Some(TokenKind::True),

@@ -1,9 +1,11 @@
 use crate::ast::*;
+use std::collections::HashMap;
 
 use crate::types::{operator_trait, ImplDef, TraitDef, TraitMethodDef, Type, TypeEnv};
 
-pub struct SemanticAnalyzer<'a, 'b> {
-    env: &'b mut TypeEnv<'a>,
+pub struct SemanticAnalyzer<'a> {
+    pub env: &'a mut TypeEnv<'a>,
+    module_exports: HashMap<String, Vec<TopDecl>>,
     in_loop: bool,
     in_func: bool,
     current_return_type: Option<Type>,
@@ -11,10 +13,11 @@ pub struct SemanticAnalyzer<'a, 'b> {
     current_self_type: Option<Type>,
 }
 
-impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
-    pub fn new(env: &'b mut TypeEnv<'a>) -> Self {
+impl<'a> SemanticAnalyzer<'a> {
+    pub fn new(env: &'a mut TypeEnv<'a>, module_exports: HashMap<String, Vec<TopDecl>>) -> Self {
         Self {
             env,
+            module_exports,
             in_loop: false,
             in_func: false,
             current_return_type: None,
@@ -197,7 +200,76 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                             .declare_var(method.name.clone(), func_ty, &method.span);
                     }
                 }
-                TopDecl::Import(_) => {}
+                TopDecl::Import(_) => {
+                    // Imports are resolved at the very end of pass 1 to ensure all types are known
+                }
+            }
+        }
+
+        // Pass 1.5: Build module types for imports
+        for decl in &program.decls {
+            if let TopDecl::Import(import_decl) = decl {
+                match import_decl {
+                    ImportDecl::Simple { path, span } => {
+                        let module_name_opt = if self.module_exports.contains_key(path) {
+                            Some(path.clone())
+                        } else if self
+                            .module_exports
+                            .contains_key(&format!("<stdlib::{}>", path))
+                        {
+                            Some(format!("<stdlib::{}>", path))
+                        } else {
+                            None
+                        };
+                        let module_name = match module_name_opt {
+                            Some(name) => name,
+                            None => continue,
+                        };
+                        if let Some(pub_decls) = self.module_exports.get(&module_name) {
+                            let mut exports = HashMap::new();
+                            for d in pub_decls {
+                                if let Some(n) = d.name() {
+                                    let ty = self.env.lookup_var(&n, span);
+                                    if ty != Type::Error {
+                                        exports.insert(n, Box::new(ty));
+                                    }
+                                }
+                            }
+                            let mod_ty = Type::Module(module_name.clone(), exports);
+                            self.env.declare_var(path.clone(), mod_ty, span);
+                        }
+                    }
+                    ImportDecl::Aliased { name, alias, span } => {
+                        let module_name_opt = if self.module_exports.contains_key(name) {
+                            Some(name.clone())
+                        } else if self
+                            .module_exports
+                            .contains_key(&format!("<stdlib::{}>", name))
+                        {
+                            Some(format!("<stdlib::{}>", name))
+                        } else {
+                            None
+                        };
+                        let module_name = match module_name_opt {
+                            Some(n) => n,
+                            None => continue,
+                        };
+                        if let Some(pub_decls) = self.module_exports.get(&module_name) {
+                            let mut exports = HashMap::new();
+                            for d in pub_decls {
+                                if let Some(n) = d.name() {
+                                    let ty = self.env.lookup_var(&n, span);
+                                    if ty != Type::Error {
+                                        exports.insert(n, Box::new(ty));
+                                    }
+                                }
+                            }
+                            let mod_ty = Type::Module(module_name.clone(), exports);
+                            self.env.declare_var(alias.clone(), mod_ty, span);
+                        }
+                    }
+                    ImportDecl::Selective { .. } => {}
+                }
             }
         }
 
@@ -776,6 +848,17 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                                     format!("Group '{}' has no field '{}'.", type_name, field),
                                 );
                             }
+                            Type::Error
+                        }
+                    }
+                    Type::Module(mod_name, exports) => {
+                        if let Some(field_ty) = exports.get(field) {
+                            *field_ty.clone()
+                        } else {
+                            self.env.diag.error(
+                                span.clone(),
+                                format!("Module '{}' has no public member '{}'.", mod_name, field),
+                            );
                             Type::Error
                         }
                     }

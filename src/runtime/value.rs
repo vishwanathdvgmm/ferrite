@@ -21,22 +21,45 @@ pub enum Value {
     Tensor(Vec<f64>, Vec<i64>), // basic flat tensor for interpreter fallback
     /// A method bound to its receiver object (self, method_func).
     BoundMethod(Box<Value>, Box<Value>),
+    Module(String, HashMap<String, Value>),
 }
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Value::Unit => write!(f, "()"),
-            Value::Int(n) => write!(f, "{}", n),
-            Value::Float(n) => write!(f, "{}", n),
-            Value::Bool(b) => write!(f, "{}", b),
-            Value::String(s) => write!(f, "{}", s),
-            Value::Func(decl) => write!(f, "<fun {}>", decl.name),
+            Value::Unit => {
+                write!(f, "()")?;
+                Ok(())
+            }
+            Value::Int(n) => {
+                write!(f, "{}", n)?;
+                Ok(())
+            }
+            Value::Float(n) => {
+                write!(f, "{}", n)?;
+                Ok(())
+            }
+            Value::Bool(b) => {
+                write!(f, "{}", b)?;
+                Ok(())
+            }
+            Value::String(s) => {
+                write!(f, "{}", s)?;
+                Ok(())
+            }
+            Value::Func(decl) => {
+                write!(f, "<fun {}>", decl.name)?;
+                Ok(())
+            }
             Value::Closure(params, _, _) => {
                 let param_names: Vec<&str> = params.iter().map(|p| p.name.as_str()).collect();
-                write!(f, "<closure ({})>", param_names.join(", "))
+                write!(f, "<closure ({})>", param_names.join(", "))?;
+                Ok(())
             }
-            Value::Builtin(name) => write!(f, "<builtin {}>", name),
+            Value::Builtin(name) => {
+                write!(f, "<builtin {}>", name)?;
+                Ok(())
+            }
             Value::Group(name, fields) => {
                 write!(f, "{} {{ ", name)?;
                 let mut first = true;
@@ -47,11 +70,13 @@ impl fmt::Display for Value {
                     write!(f, "{}: {}", k, v)?;
                     first = false;
                 }
-                write!(f, " }}")
+                write!(f, " }}")?;
+                Ok(())
             }
             Value::Enum(enum_name, variant, values) => {
                 if values.is_empty() {
-                    write!(f, "{}::{}", enum_name, variant)
+                    write!(f, "{}::{}", enum_name, variant)?;
+                    Ok(())
                 } else {
                     write!(f, "{}::{}(", enum_name, variant)?;
                     for (i, v) in values.iter().enumerate() {
@@ -60,7 +85,8 @@ impl fmt::Display for Value {
                         }
                         write!(f, "{}", v)?;
                     }
-                    write!(f, ")")
+                    write!(f, ")")?;
+                    Ok(())
                 }
             }
             Value::List(items) => {
@@ -71,13 +97,26 @@ impl fmt::Display for Value {
                     }
                     write!(f, "{}", v)?;
                 }
-                write!(f, "]")
+                write!(f, "]")?;
+                Ok(())
             }
             Value::Tensor(data, shape) => {
-                write!(f, "Tensor(shape={:?}, data={:?})", shape, data)
+                let shape_str: Vec<String> = shape.iter().map(|d| d.to_string()).collect();
+                write!(
+                    f,
+                    "Tensor({}, shape=[{}])",
+                    data.len(),
+                    shape_str.join(", ")
+                )?;
+                Ok(())
             }
-            Value::BoundMethod(_, method) => {
-                write!(f, "<bound method {:?}>", method)
+            Value::BoundMethod(_, func) => {
+                write!(f, "<bound method {}>", func)?;
+                Ok(())
+            }
+            Value::Module(name, _) => {
+                write!(f, "<module {}>", name)?;
+                Ok(())
             }
         }
     }

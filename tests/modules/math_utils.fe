@@ -1,0 +1,17 @@
+// ── Module: math_utils.fe ──
+// Exported functions and constants for testing the module system.
+
+pub fun add(a: int, b: int) -> int {
+    return a + b;
+}
+
+pub fun multiply(a: int, b: int) -> int {
+    return a * b;
+}
+
+pub constant TAU: float = 6.28318;
+
+// This function is NOT public — should be inaccessible from outside
+fun internal_helper() -> int {
+    return 42;
+}

@@ -1,0 +1,9 @@
+// ── PASS TEST: Selective import ──
+// Expected: ferrite check → ✅
+
+from "math_utils" take { add, TAU };
+
+fun main() -> int {
+    keep result: int = add(5, 10);
+    return result;
+}

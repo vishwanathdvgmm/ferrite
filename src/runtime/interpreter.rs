@@ -20,10 +20,11 @@ enum Signal {
 
 pub struct Interpreter {
     pub env: Environment,
+    module_exports: HashMap<String, Vec<TopDecl>>,
 }
 
 impl Interpreter {
-    pub fn new() -> Self {
+    pub fn new(module_exports: HashMap<String, Vec<TopDecl>>) -> Self {
         let mut env = Environment::new();
         // Register builtins
         env.declare("print".to_string(), Value::Builtin("print".to_string()));
@@ -36,7 +37,10 @@ impl Interpreter {
         env.declare("assert".to_string(), Value::Builtin("assert".to_string()));
         env.declare("exit".to_string(), Value::Builtin("exit".to_string()));
 
-        Self { env }
+        Self {
+            env,
+            module_exports,
+        }
     }
 
     pub fn run_program(&mut self, program: &Program) -> Result<Value, String> {
@@ -51,11 +55,15 @@ impl Interpreter {
                     let val = self.eval_expr(&c.value)?;
                     self.env.declare(c.name.clone(), val);
                 }
+                TopDecl::Import(_) => {
+                    // Imports are resolved in pass 1.5
+                }
                 TopDecl::Impl(imp) => {
                     for m in &imp.methods {
                         // Store the target type name alongside the method for self-dispatch.
                         let qualified_name = format!("{}::{}", imp.target_type, m.name);
                         let mut fdecl = FuncDecl {
+                            visibility: Visibility::Public,
                             effect_params: m.effects.iter().map(|_| "".to_string()).collect(),
                             effects: m.effects.clone(),
                             name: m.name.clone(),
@@ -94,6 +102,73 @@ impl Interpreter {
                     }
                 }
                 _ => {}
+            }
+        }
+
+        // Pass 1.5: Build module values for imports
+        for decl in &program.decls {
+            if let TopDecl::Import(import_decl) = decl {
+                match import_decl {
+                    ImportDecl::Simple { path, .. } => {
+                        let module_name_opt = if self.module_exports.contains_key(path) {
+                            Some(path.clone())
+                        } else if self
+                            .module_exports
+                            .contains_key(&format!("<stdlib::{}>", path))
+                        {
+                            Some(format!("<stdlib::{}>", path))
+                        } else {
+                            None
+                        };
+                        let module_name = match module_name_opt {
+                            Some(name) => name,
+                            None => continue,
+                        };
+                        if let Some(pub_decls) = self.module_exports.get(&module_name) {
+                            let mut exports = HashMap::new();
+                            for d in pub_decls {
+                                if let Some(n) = d.name() {
+                                    if let Ok(val) = self.env.get(&n) {
+                                        exports.insert(n, val.clone());
+                                    }
+                                }
+                            }
+                            self.env
+                                .declare(path.clone(), Value::Module(module_name.clone(), exports));
+                        }
+                    }
+                    ImportDecl::Aliased { name, alias, .. } => {
+                        let module_name_opt = if self.module_exports.contains_key(name) {
+                            Some(name.clone())
+                        } else if self
+                            .module_exports
+                            .contains_key(&format!("<stdlib::{}>", name))
+                        {
+                            Some(format!("<stdlib::{}>", name))
+                        } else {
+                            None
+                        };
+                        let module_name = match module_name_opt {
+                            Some(n) => n,
+                            None => continue,
+                        };
+                        if let Some(pub_decls) = self.module_exports.get(&module_name) {
+                            let mut exports = HashMap::new();
+                            for d in pub_decls {
+                                if let Some(n) = d.name() {
+                                    if let Ok(val) = self.env.get(&n) {
+                                        exports.insert(n, val.clone());
+                                    }
+                                }
+                            }
+                            self.env.declare(
+                                alias.clone(),
+                                Value::Module(module_name.clone(), exports),
+                            );
+                        }
+                    }
+                    ImportDecl::Selective { .. } => {}
+                }
             }
         }
 
@@ -610,6 +685,16 @@ impl Interpreter {
                                     field, group_name
                                 ))
                             }
+                        }
+                    }
+                    Value::Module(module_name, exports) => {
+                        if let Some(val) = exports.get(field) {
+                            Ok(val.clone())
+                        } else {
+                            Err(format!(
+                                "Module '{}' has no public member '{}'",
+                                module_name, field
+                            ))
                         }
                     }
                     _ => Err("Field access on non-group type".to_string()),

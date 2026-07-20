@@ -15,33 +15,56 @@ pub enum Type {
     Bool,
     String,
     Tensor(Box<Type>, TensorShape),
-    Named(String),                  // User-defined enum or group type
-    Generic(String),                // Resolved generic parameter
-    GenericInst(String, Vec<Type>), // Generic instantiation, e.g., List<int>
-    Func(Vec<Type>, Box<Type>),     // Function signature: param types and return type
-    Unit,                           // () function return
-    Never,                          // Type of `stop` or `skip` or divergent branches
-    Error,                          // Represents a failed type check to prevent cascading errors
-    SelfType,                       // Resolves to implementing type inside trait/impl blocks
+    Named(String),                              // User-defined enum or group type
+    Generic(String),                            // Resolved generic parameter
+    GenericInst(String, Vec<Type>),             // Generic instantiation, e.g., List<int>
+    Func(Vec<Type>, Box<Type>),                 // Function signature: param types and return type
+    Unit,                                       // () function return
+    Never,                                      // Type of `stop` or `skip` or divergent branches
+    Error,    // Represents a failed type check to prevent cascading errors
+    SelfType, // Resolves to implementing type inside trait/impl blocks
+    Module(String, HashMap<String, Box<Type>>), // Module namespace: math_utils
 }
 
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Type::Int => write!(f, "int"),
-            Type::Float => write!(f, "float"),
-            Type::Bool => write!(f, "bool"),
-            Type::String => write!(f, "string"),
-            Type::Tensor(elem, shape) => write!(f, "Tensor<{}, {}>", elem, shape),
-            Type::Named(name) => write!(f, "{}", name),
-            Type::Generic(name) => write!(f, "{}", name),
+            Type::Int => {
+                write!(f, "int")?;
+                Ok(())
+            }
+            Type::Float => {
+                write!(f, "float")?;
+                Ok(())
+            }
+            Type::Bool => {
+                write!(f, "bool")?;
+                Ok(())
+            }
+            Type::String => {
+                write!(f, "string")?;
+                Ok(())
+            }
+            Type::Tensor(elem, shape) => {
+                write!(f, "Tensor<{}, {}>", elem, shape)?;
+                Ok(())
+            }
+            Type::Named(name) => {
+                write!(f, "{}", name)?;
+                Ok(())
+            }
+            Type::Generic(name) => {
+                write!(f, "{}", name)?;
+                Ok(())
+            }
             Type::GenericInst(name, args) => {
                 let args_str = args
                     .iter()
                     .map(|t| t.to_string())
                     .collect::<Vec<_>>()
                     .join(", ");
-                write!(f, "{}<{}>", name, args_str)
+                write!(f, "{}<{}>", name, args_str)?;
+                Ok(())
             }
             Type::Func(params, ret) => {
                 let params_str = params
@@ -49,12 +72,30 @@ impl fmt::Display for Type {
                     .map(|t| t.to_string())
                     .collect::<Vec<_>>()
                     .join(", ");
-                write!(f, "fun({}) -> {}", params_str, ret)
+                write!(f, "fun({}) -> {}", params_str, ret)?;
+                Ok(())
             }
-            Type::Unit => write!(f, "()"),
-            Type::Never => write!(f, "!"),
-            Type::Error => write!(f, "<error>"),
-            Type::SelfType => write!(f, "Self"),
+            Type::Unit => {
+                write!(f, "()")?;
+                Ok(())
+            }
+            Type::Never => {
+                write!(f, "!")?;
+                Ok(())
+            }
+            Type::Error => {
+                write!(f, "<error>")?;
+                Ok(())
+            }
+
+            Type::SelfType => {
+                write!(f, "Self")?;
+                Ok(())
+            }
+            Type::Module(name, _) => {
+                write!(f, "<module {}>", name)?;
+                Ok(())
+            }
         }
     }
 }

@@ -12,6 +12,20 @@ pub struct Program {
     pub decls: Vec<TopDecl>,
 }
 
+// ── Visibility ───────────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Visibility {
+    Public,
+    Private,
+}
+
+impl Default for Visibility {
+    fn default() -> Self {
+        Visibility::Private
+    }
+}
+
 // ── Top-Level Declarations ───────────────────────────────────────
 
 #[derive(Debug, Clone)]
@@ -26,9 +40,10 @@ pub enum TopDecl {
 }
 
 // ── Imports ──────────────────────────────────────────────────────
-// import "path";
-// import name as alias;
-// from "path" take name;
+// import "path";           → Simple: imports module under its filename as a namespace
+// import name as alias;    → Aliased: imports module under an alias name
+// from "path" take name;   → Selective: imports specific symbols from a module
+// from "path" take { a, b }; → Selective: imports multiple symbols
 
 #[derive(Debug, Clone)]
 pub enum ImportDecl {
@@ -43,7 +58,7 @@ pub enum ImportDecl {
     },
     Selective {
         path: String,
-        name: String,
+        names: Vec<String>,
         span: Span,
     },
 }
@@ -53,6 +68,7 @@ pub enum ImportDecl {
 
 #[derive(Debug, Clone)]
 pub struct ConstantDecl {
+    pub visibility: Visibility,
     pub name: String,
     pub ty: Type,
     pub value: Expr,
@@ -132,6 +148,7 @@ pub enum RelOp {
 
 #[derive(Debug, Clone)]
 pub struct GroupDecl {
+    pub visibility: Visibility,
     pub name: String,
     pub generics: Vec<GenericParam>,
     pub fields: Vec<FieldDecl>,
@@ -164,6 +181,7 @@ pub struct MethodDecl {
 
 #[derive(Debug, Clone)]
 pub struct EnumDecl {
+    pub visibility: Visibility,
     pub name: String,
     pub generics: Vec<GenericParam>,
     pub variants: Vec<EnumVariant>,
@@ -182,6 +200,7 @@ pub struct EnumVariant {
 
 #[derive(Debug, Clone)]
 pub struct TraitDecl {
+    pub visibility: Visibility,
     pub name: String,
     pub generics: Vec<GenericParam>,
     pub methods: Vec<TraitMethodSig>,
@@ -216,6 +235,7 @@ pub struct ImplBlock {
 
 #[derive(Debug, Clone)]
 pub struct FuncDecl {
+    pub visibility: Visibility,
     pub effect_params: Vec<String>,
     pub effects: Vec<Effect>,
     pub name: String,
@@ -396,6 +416,20 @@ pub struct SelectCase {
     pub body: Block,
     pub is_default: bool,
     pub span: Span,
+}
+
+impl TopDecl {
+    pub fn name(&self) -> Option<String> {
+        match self {
+            TopDecl::Func(f) => Some(f.name.clone()),
+            TopDecl::Constant(c) => Some(c.name.clone()),
+            TopDecl::Group(g) => Some(g.name.clone()),
+            TopDecl::Enum(e) => Some(e.name.clone()),
+            TopDecl::Trait(t) => Some(t.name.clone()),
+            TopDecl::Impl(_) => None,
+            TopDecl::Import(_) => None,
+        }
+    }
 }
 
 // ── Expressions ──────────────────────────────────────────────────
