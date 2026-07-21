@@ -55,105 +55,98 @@
           <div class="blog-layout">
             <!-- Main articles list -->
             <div class="blog-posts-list">
-              <!-- Post 1 -->
+              <!-- Post: 2.4.1 -->
               <article class="blog-post glass">
                 <header class="post-header">
-                  <div class="post-meta">June 26, 2026 • Releases</div>
-                  <h3 class="post-title">
-                    Announcing Ferrite v2.4.0: Closures, Guards, & Setup Wizards
-                  </h3>
+                  <div class="post-meta">July 21, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v2.4.1: Engineering Knowledge Base</h3>
                 </header>
-                <p class="post-summary">
-                  We are excited to release Ferrite v2.4.0! This release is
-                  packed with compiler features, syntax improvements, and
-                  ecosystem setups. Highlights include lexical closures, enum
-                  guard clauses, skip/stop loops control, and the new setup
-                  wizard.
-                </p>
+                <p class="post-summary">Maintenance release focusing on project documentation. We have fully published the 21-chapter Engineering Knowledge Base (EKB) detailing the compiler architecture, memory models, and future MLIR roadmap.</p>
+              </article>
+
+              <!-- Post: 2.4.0 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">July 20, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v2.4.0: Module System & Namespaces</h3>
+                </header>
+                <p class="post-summary">Ferrite scales up! We've introduced a robust module system with <code>import</code>, <code>from</code>, <code>take</code>, and <code>pub</code> keywords, isolating scopes and enabling 100k+ line codebases without symbol pollution.</p>
                 <div class="post-content-full">
-                  <h4>Lexical Closures</h4>
-                  <p>
-                    First-class functions can now capture variables from their
-                    outer scope. This unlocks functional programming patterns
-                    directly in Ferrite:
-                  </p>
+                  <p>The Semantic Analyzer now uses a multi-pass DAG resolution system to enforce strict visibility boundaries across files.</p>
                   <pre><code class="language-ferrite">
-<span class="keyword">keep</span> multiplier = <span class="number">2</span>;
-<span class="keyword">keep</span> double: <span class="type">fun</span>(<span class="type">int</span>)-&gt;<span class="type">int</span> = (x: <span class="type">int</span>) =&gt; x * multiplier;
-                                </code></pre>
-
-                  <h4>Advanced Loop Control</h4>
-                  <p>
-                    We added `skip` and `stop` keywords, aligning Ferrite's
-                    iteration structure with standard loop controls
-                    (corresponding to `continue` and `break` in traditional
-                    C-like syntaxes).
-                  </p>
-
-                  <h4>New Setup Installer</h4>
-                  <p>
-                    Our Windows installation experience has been rewritten. The
-                    setup wizard now properly publishes vendor parameters,
-                    configures environment paths, and resolves standard SDK
-                    files directly.
-                  </p>
+import "math"
+from "utils" take { helper as my_helper }
+pub fun add(a: int, b: int) -> int { return a + b; }
+                  </code></pre>
                 </div>
-                <button class="btn btn-secondary btn-read-more">
-                  Read More
-                </button>
+                <button class="btn btn-secondary btn-read-more">Read More</button>
               </article>
 
-              <!-- Post 2 -->
+              <!-- Post: 2.3.1 -->
               <article class="blog-post glass">
                 <header class="post-header">
-                  <div class="post-meta">May 15, 2026 • Compiler</div>
-                  <h3 class="post-title">
-                    Ferrite v2.2.0: Hardened Type Checks & Traits
-                  </h3>
+                  <div class="post-meta">July 10, 2026 • Compiler</div>
+                  <h3 class="post-title">Ferrite v2.3.1: Embedded Stdlib & Playground</h3>
                 </header>
-                <p class="post-summary">
-                  Ferrite's compiler type check has been hardened. We've
-                  introduced explicit interfaces called Traits, which can be
-                  custom-implemented on structural Groups to support clean code
-                  architectures.
-                </p>
-                <div class="post-content-full">
-                  <p>
-                    Traits establish code contract standards. In this release,
-                    the static analyzer ensures that all trait functions are
-                    fully implemented, preventing runtime resolution errors in
-                    native compiled binaries.
-                  </p>
-                </div>
-                <button class="btn btn-secondary btn-read-more">
-                  Read More
-                </button>
+                <p class="post-summary">The Ferrite compiler can now run entirely in your browser via WebAssembly! We embedded the standard library using <code>include_str!</code> to eliminate OS filesystem dependencies.</p>
               </article>
 
-              <!-- Post 3 -->
+              <!-- Post: 2.3.0 -->
               <article class="blog-post glass">
                 <header class="post-header">
-                  <div class="post-meta">April 02, 2026 • Design</div>
-                  <h3 class="post-title">
-                    Why We Built Ferrite: An ML-First Systems Language
-                  </h3>
+                  <div class="post-meta">July 01, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v2.3.0: Windows Setup Wizard</h3>
                 </header>
-                <p class="post-summary">
-                  In this post, we discuss the design philosophy behind Ferrite,
-                  how it handles compilation pathways, and why compiled tensor
-                  validation is the future of neural network engineering.
-                </p>
+                <p class="post-summary">Our Windows installation experience has been rewritten. The setup wizard now properly publishes vendor parameters, configures environment paths, and resolves standard SDK files directly.</p>
+              </article>
+
+              <!-- Post: 2.2.0 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">June 26, 2026 • Compiler</div>
+                  <h3 class="post-title">Ferrite v2.2.0: Hardened Type Checks & Traits</h3>
+                </header>
+                <p class="post-summary">Ferrite's compiler type check has been hardened. We've introduced explicit interfaces called Traits, which can be custom-implemented on structural Groups to support clean code architectures.</p>
+              </article>
+
+              <!-- Post: 2.1.0 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">June 15, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v2.1.0: Generics & Shape Bounds</h3>
+                </header>
+                <p class="post-summary">Introduced the <code>where</code> clause for Trait and Shape bounds, allowing functions to enforce tensor dimensionalities natively during the unification pass.</p>
+              </article>
+
+              <!-- Post: 2.0.0 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">June 05, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v2.0.0: The LLVM AOT Rewrite</h3>
+                </header>
+                <p class="post-summary">The biggest update in Ferrite history. We discarded the Bytecode VM and transitioned to strict static typing, compiling directly to LLVM IR for bare-metal machine learning performance.</p>
                 <div class="post-content-full">
-                  <p>
-                    Traditional machine learning flows suffer from "shape bugs"
-                    that arise hours into training. Ferrite's strict compiler
-                    verifies matrix sizes *before* compilation, saving GPU
-                    resources and developer time.
-                  </p>
+                  <p>Ferrite now guarantees zero implicit type coercion. Shape mismatch bugs are caught entirely at compile-time.</p>
                 </div>
-                <button class="btn btn-secondary btn-read-more">
-                  Read More
-                </button>
+                <button class="btn btn-secondary btn-read-more">Read More</button>
+              </article>
+
+              <!-- Post: 1.4.0 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">May 10, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v1.4.0: Closures, Guards & Bytecode VM</h3>
+                </header>
+                <p class="post-summary">Replaced the tree-walking interpreter with a custom Stack-Based Bytecode VM. Introduced lexical closures, enum guard clauses, and skip/stop loops control.</p>
+              </article>
+
+              <!-- Post: 1.0.0 -->
+              <article class="blog-post glass">
+                <header class="post-header">
+                  <div class="post-meta">March 15, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v1.0.0: The Genesis</h3>
+                </header>
+                <p class="post-summary">The first public release of the Ferrite language, running on a dynamic Tree-Walking Interpreter written in Rust.</p>
               </article>
             </div>
 
