@@ -72,24 +72,19 @@
                 <h5>Core Syntax</h5>
                 <ul>
                   <li>
-                    <a href="#docs-vars" class="docs-link"
-                      >Variables & Mutability</a
-                    >
+                    <a href="#docs-vars" class="docs-link">Variables & Mutability</a>
                   </li>
                   <li>
-                    <a href="#docs-types" class="docs-link"
-                      >Strict Type System</a
-                    >
+                    <a href="#docs-types" class="docs-link">Strict Type System</a>
                   </li>
                   <li>
-                    <a href="#docs-control" class="docs-link"
-                      >Loops & Control Flow</a
-                    >
+                    <a href="#docs-functions" class="docs-link">Functions & Closures</a>
                   </li>
                   <li>
-                    <a href="#docs-pattern" class="docs-link"
-                      >Pattern Matching</a
-                    >
+                    <a href="#docs-control" class="docs-link">Loops & Control Flow</a>
+                  </li>
+                  <li>
+                    <a href="#docs-pattern" class="docs-link">Pattern Matching</a>
                   </li>
                 </ul>
               </div>
@@ -101,12 +96,22 @@
                     <a href="#docs-groups" class="docs-link">Groups & Traits</a>
                   </li>
                   <li>
+                    <a href="#docs-modules" class="docs-link">Modules & Imports</a>
+                  </li>
+                  <li>
                     <a href="#docs-tensors" class="docs-link">ML & Tensors</a>
                   </li>
                   <li>
-                    <a href="#docs-stdlib" class="docs-link"
-                      >Standard Library</a
-                    >
+                    <a href="#docs-stdlib" class="docs-link">Standard Library</a>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="docs-menu-group">
+                <h5>Architecture</h5>
+                <ul>
+                  <li>
+                    <a href="#docs-ekb" class="docs-link">Engineering Knowledge Base</a>
                   </li>
                 </ul>
               </div>
@@ -323,6 +328,27 @@ pi = <span class="number">3.20</span>;
                             </code></pre>
               </div>
 
+              <!-- Functions & Closures -->
+              <div id="docs-functions" class="docs-section-content">
+                <h2>Functions & Closures</h2>
+                <p>
+                  Ferrite uses the <code>fun</code> keyword for defining functions. First-class functions and closures allow capturing variables from the outer lexical scope.
+                </p>
+
+                <h3>Function Declarations</h3>
+                <pre><code class="language-ferrite">
+<span class="keyword">fun</span> add(a: <span class="type">int</span>, b: <span class="type">int</span>) -&gt; <span class="type">int</span> {
+    <span class="keyword">return</span> a + b;
+}
+                </code></pre>
+
+                <h3>Closures</h3>
+                <pre><code class="language-ferrite">
+<span class="keyword">keep</span> multiplier = <span class="number">2</span>;
+<span class="keyword">keep</span> double = (x: <span class="type">int</span>) =&gt; x * multiplier;
+                </code></pre>
+              </div>
+
               <!-- Control Flow -->
               <div id="docs-control" class="docs-section-content">
                 <h2>Loops & Control Flow</h2>
@@ -420,6 +446,29 @@ pi = <span class="number">3.20</span>;
                             </code></pre>
               </div>
 
+              <!-- Modules & Imports -->
+              <div id="docs-modules" class="docs-section-content">
+                <h2>Modules & Imports</h2>
+                <p>
+                  As of v2.4.0, Ferrite features a robust module system with strict visibility boundaries. Symbols are private by default unless marked with <code>pub</code>.
+                </p>
+
+                <h3>Exporting and Importing</h3>
+                <pre><code class="language-ferrite">
+<span class="comment">// math.fe</span>
+<span class="keyword">pub</span> <span class="keyword">fun</span> add(a: <span class="type">int</span>, b: <span class="type">int</span>) -&gt; <span class="type">int</span> {
+    <span class="keyword">return</span> a + b;
+}
+<span class="keyword">fun</span> hidden_helper() { ... } <span class="comment">// Private</span>
+
+<span class="comment">// main.fe</span>
+<span class="keyword">import</span> <span class="string">"math"</span>
+<span class="keyword">from</span> <span class="string">"utils"</span> <span class="keyword">take</span> { helper <span class="keyword">as</span> my_helper }
+
+<span class="keyword">keep</span> sum = math.add(<span class="number">5</span>, <span class="number">10</span>);
+                </code></pre>
+              </div>
+
               <!-- ML & Tensors -->
               <div id="docs-tensors" class="docs-section-content">
                 <h2>ML & Tensor Operations</h2>
@@ -484,6 +533,19 @@ pi = <span class="number">3.20</span>;
                     (reshaping, slicing, normalizations).
                   </li>
                 </ul>
+              </div>
+
+              <!-- Engineering Knowledge Base -->
+              <div id="docs-ekb" class="docs-section-content">
+                <h2>Engineering Knowledge Base (EKB)</h2>
+                <p>
+                  For compiler engineers and contributors, we have published a comprehensive 21-chapter architecture guide. This covers parsing, the Semantic Analyzer's unification engine, LLVM AOT generation, and performance models.
+                </p>
+                <p>
+                  You can read the full EKB directly in our GitHub repository under the <code>documentation/</code> directory.
+                </p>
+                <br>
+                <a href="https://github.com/vishwanathdvgmm/ferrite/tree/main/documentation" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">View the EKB on GitHub</a>
               </div>
             </article>
           </div>
