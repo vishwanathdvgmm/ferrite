@@ -33,17 +33,17 @@
     <!-- Styles -->
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=2" />
   </head>
 
   <body>
-    <div class="blob-bg-1"></div>
-    <div class="blob-bg-2"></div>
+    
+    
 
     <!-- Shared Header (loaded via JS) -->
     <div id="header-slot"></div>
 
-    <main class="page-container">
+    <main class="page-container" style="padding-top: 70px; background: #fafafa;">
       <div class="page active">
         <section class="packages-section container">
           <div class="packages-hero">
@@ -58,26 +58,26 @@
 
           <div class="packages-coming-soon-layout">
             <!-- Preview of planned CLI -->
-            <div class="packages-cli-info glass">
+            <div class="packages-cli-info" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
               <h3>Planned CLI Preview</h3>
               <p>
                 Here's what <code>fe-pkg</code> will look like when it ships:
               </p>
 
-              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+              <div class="cli-cmd-box font-mono cli-preview-dimmed" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.1);">
                 <span class="comment"># Initialize a new Ferrite project</span>
                 <span class="prompt">$</span> fe-pkg init my-project<br />
                 <span class="output">✓ Created ferrite.toml</span>
               </div>
 
-              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+              <div class="cli-cmd-box font-mono cli-preview-dimmed" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.1);">
                 <span class="comment"># Add a package dependency</span>
                 <span class="prompt">$</span> fe-pkg add nn<br />
                 <span class="output">Resolving nn v1.x...</span><br />
                 <span class="output">✓ Package added to ferrite.toml</span>
               </div>
 
-              <div class="cli-cmd-box font-mono cli-preview-dimmed">
+              <div class="cli-cmd-box font-mono cli-preview-dimmed" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.1);">
                 <span class="comment"># Publish your own library</span>
                 <span class="prompt">$</span> fe-pkg publish<br />
                 <span class="output">✓ Module uploaded to registry.</span>
@@ -85,7 +85,7 @@
             </div>
 
             <!-- Roadmap Timeline -->
-            <div class="packages-roadmap glass">
+            <div class="packages-roadmap" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
               <h3>📋 Roadmap</h3>
               <div class="roadmap-timeline">
                 <div class="roadmap-item completed">
@@ -148,7 +148,7 @@
           </div>
 
           <!-- Notify CTA -->
-          <div class="packages-notify glass">
+          <div class="packages-notify" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
             <div class="notify-content">
               <span class="notify-icon">📬</span>
               <div>

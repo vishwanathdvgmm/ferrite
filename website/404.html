@@ -13,7 +13,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=2" />
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
   </head>
   <body
@@ -25,9 +25,6 @@
       padding: 2rem;
     "
   >
-    <div class="blob-bg-1"></div>
-    <div class="blob-bg-2"></div>
-
     <div
       class="glass"
       style="
@@ -47,12 +44,12 @@
         >🔍</span
       >
       <h1
-        class="gradient-text"
         style="
           font-size: 3rem;
           font-weight: 800;
           margin-bottom: 0.5rem;
           letter-spacing: -1px;
+          color: var(--accent-primary);
         "
       >
         404
@@ -75,10 +72,12 @@
           line-height: 1.5;
         "
       >
-        The page or subdomain resource you requested does not exist or has
-        moved.
+        The page or resource you requested does not exist or has moved.
       </p>
-      <a href="/" class="btn btn-primary" style="text-decoration: none"
+      <a
+        href="/"
+        class="btn btn-primary classic-btn"
+        style="text-decoration: none"
         >Return to Home</a
       >
     </div>

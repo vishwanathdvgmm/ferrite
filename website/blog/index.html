@@ -33,17 +33,17 @@
     <!-- Styles -->
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=2" />
   </head>
 
   <body>
-    <div class="blob-bg-1"></div>
-    <div class="blob-bg-2"></div>
+    
+    
 
     <!-- Shared Header (loaded via JS) -->
     <div id="header-slot"></div>
 
-    <main class="page-container">
+    <main class="page-container" style="padding-top: 70px; background: #fafafa;">
       <div class="page active">
         <section class="blog-section container">
           <h2>Ecosystem & Release Blog</h2>
@@ -52,11 +52,11 @@
             the Ferrite core team.
           </p>
 
-          <div class="blog-layout">
+          <div class="centered-feed-layout">
             <!-- Main articles list -->
             <div class="blog-posts-list">
               <!-- Post: 2.4.1 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">July 21, 2026 • Releases</div>
                   <h3 class="post-title">Ferrite v2.4.1: Engineering Knowledge Base</h3>
@@ -65,7 +65,7 @@
               </article>
 
               <!-- Post: 2.4.0 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">July 20, 2026 • Releases</div>
                   <h3 class="post-title">Ferrite v2.4.0: Module System & Namespaces</h3>
@@ -83,7 +83,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
               </article>
 
               <!-- Post: 2.3.1 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">July 10, 2026 • Compiler</div>
                   <h3 class="post-title">Ferrite v2.3.1: Embedded Stdlib & Playground</h3>
@@ -92,7 +92,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
               </article>
 
               <!-- Post: 2.3.0 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">July 01, 2026 • Releases</div>
                   <h3 class="post-title">Ferrite v2.3.0: Windows Setup Wizard</h3>
@@ -101,7 +101,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
               </article>
 
               <!-- Post: 2.2.0 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">June 26, 2026 • Compiler</div>
                   <h3 class="post-title">Ferrite v2.2.0: Hardened Type Checks & Traits</h3>
@@ -110,7 +110,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
               </article>
 
               <!-- Post: 2.1.0 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">June 15, 2026 • Releases</div>
                   <h3 class="post-title">Ferrite v2.1.0: Generics & Shape Bounds</h3>
@@ -119,7 +119,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
               </article>
 
               <!-- Post: 2.0.0 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">June 05, 2026 • Releases</div>
                   <h3 class="post-title">Ferrite v2.0.0: The LLVM AOT Rewrite</h3>
@@ -132,7 +132,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
               </article>
 
               <!-- Post: 1.4.0 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">May 10, 2026 • Releases</div>
                   <h3 class="post-title">Ferrite v1.4.0: Closures, Guards & Bytecode VM</h3>
@@ -141,7 +141,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
               </article>
 
               <!-- Post: 1.0.0 -->
-              <article class="blog-post glass">
+              <article class="centered-feed-post">
                 <header class="post-header">
                   <div class="post-meta">March 15, 2026 • Releases</div>
                   <h3 class="post-title">Ferrite v1.0.0: The Genesis</h3>
@@ -151,7 +151,7 @@ pub fun add(a: int, b: int) -> int { return a + b; }
             </div>
 
             <!-- Blog Sidebar -->
-            <aside class="blog-aside glass">
+            <aside class="feed-aside">
               <h4>Popular Topics</h4>
               <div class="tag-cloud">
                 <span class="tag">#releases</span>

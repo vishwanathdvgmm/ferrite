@@ -57,47 +57,43 @@
     <!-- Styles -->
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/assets/css/style.css" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=2" />
   </head>
 
   <body>
-    <div class="blob-bg-1"></div>
-    <div class="blob-bg-2"></div>
+    
+    
 
     <!-- Shared Header -->
     <div id="header-slot"></div>
 
-    <main class="page-container">
-      <div class="page active">
-        <!-- Hero Section -->
-        <section class="hero container">
-          <div class="hero-content">
-            <div class="badge">v2.4.0 Released! 🚀</div>
-            <h1 class="hero-title">
-              The <span class="gradient-text">AI-Native</span><br />
-              Programming Language.
-            </h1>
-            <p class="hero-subtitle">
-              Ferrite is a compiler-first programming language built
-              specifically for Artificial Intelligence and Machine Learning.
-              Native tensors, compile-time shape verification,
-              compiler-generated automatic differentiation, deterministic
-              execution, and high-performance native binaries—all without
-              external ML frameworks.
-            </p>
-            <div class="hero-cta">
-              <a href="/playground/" class="btn btn-primary">Try in Browser</a>
-              <a href="/docs/" class="btn btn-secondary">Explore the Docs</a>
-            </div>
-          </div>
+    <main class="page-container" style="padding-top: 70px;">
+<div class="page active">
 
-          <!-- Quick Code Window -->
-          <div class="hero-code-window glass">
-            <div class="window-header">
-              <div class="dots"><span></span><span></span><span></span></div>
-              <div class="filename">tensor_multiply.fe</div>
-            </div>
-            <pre><code class="language-ferrite">
+<!-- Centered Hero -->
+<section class="hero-stacked">
+    <div class="badge">v2.4.0 Released! 🚀</div>
+    <h1 class="hero-title">
+        The <span style="color: var(--accent-primary);">AI-Native</span><br />
+        Programming Language.
+    </h1>
+    <p class="hero-subtitle">
+        Ferrite is a compiler-first programming language built specifically for Artificial Intelligence and Machine Learning. Native tensors, compile-time shape verification, compiler-generated automatic differentiation, and high-performance native binaries.
+    </p>
+    <div class="hero-cta" style="display:flex; gap: 1rem;">
+        <a href="/playground/" class="btn btn-primary classic-btn">Try in Browser</a>
+        <a href="/docs/" class="btn btn-secondary classic-btn">Explore the Docs</a>
+    </div>
+</section>
+
+<!-- Stacked Hero Code Window -->
+<section class="container" style="margin-bottom: 5rem;">
+    <div class="hero-stacked-code">
+    <div class="window-header" style="background: rgba(0,0,0,0.05); padding: 1rem; border-bottom: 1px solid var(--text-primary);">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="filename" style="color: var(--text-primary); font-weight: 600;">tensor_multiply.fe</div>
+    </div>
+    <pre style="margin: 0; padding: 2rem; background: #ffffff;"><code class="language-ferrite">
 <span class="keyword">import</span> <span class="string">"math"</span>;
 
 <span class="comment">// Compile-time validated tensor shapes</span>
@@ -109,332 +105,61 @@
     <span class="keyword">keep</span> logits = features @ weights;
     println(<span class="string">"Output shape: "</span> + str(shape(logits)));
 }
-                    </code></pre>
-          </div>
-        </section>
+    </code></pre>
+    </div>
+</section>
 
-        <!-- Why Ferrite Comparison -->
-        <section class="comparison-section container">
-          <div class="comparison-card glass">
-            <div class="comparison-header">
-              <h2 class="section-title">
-                Why <span class="text-gradient">Ferrite?</span>
-              </h2>
-              <p class="section-subtitle">Why shouldn't I just use Python?</p>
-            </div>
-
-            <div class="comparison-grid">
-              <!-- Python Column -->
-              <div class="comparison-col python-col">
-                <h3>Python + PyTorch</h3>
-                <hr class="col-divider python-div" />
-                <ul class="comparison-list">
-                  <li class="cross">Runtime tensor errors</li>
-                  <li class="cross">Dynamic typing</li>
-                  <li class="cross">External autodiff</li>
-                  <li class="cross">Framework-dependent</li>
-                  <li class="cross">Runtime graph construction</li>
+<!-- Flow Section: Why Ferrite -->
+<section class="flow-section">
+    <div class="flow-card">
+        <h2 style="font-size: 2rem; margin-bottom: 1rem; color: var(--text-primary);">Why Ferrite over Python?</h2>
+        <p style="color: var(--text-muted); margin-bottom: 3rem;">Python is dynamically typed and relies on external runtime frameworks. Ferrite is built different.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
+            <div style="background: rgba(0,0,0,0.02); padding: 2rem; border-radius: 8px;">
+                <h3 style="color: #d9534f; margin-bottom: 1rem;">The Old Way (Python)</h3>
+                <ul style="list-style: none; padding: 0; line-height: 2;">
+                    <li>❌ Runtime tensor errors</li>
+                    <li>❌ Dynamic typing</li>
+                    <li>❌ Framework-dependent</li>
                 </ul>
-              </div>
-
-              <!-- Ferrite Column -->
-              <div class="comparison-col ferrite-col">
-                <h3>Ferrite</h3>
-                <hr class="col-divider ferrite-div" />
-                <ul class="comparison-list">
-                  <li class="check">Compile-time tensor safety</li>
-                  <li class="check">Static typing</li>
-                  <li class="check">Compiler-generated autodiff</li>
-                  <li class="check">Language-native tensors</li>
-                  <li class="check">Compiler optimization</li>
+            </div>
+            <div style="background: rgba(50, 110, 250, 0.05); padding: 2rem; border-radius: 8px; border: 1px solid var(--accent-primary);">
+                <h3 style="color: var(--accent-primary); margin-bottom: 1rem;">The Ferrite Way</h3>
+                <ul style="list-style: none; padding: 0; line-height: 2;">
+                    <li>✅ Compile-time tensor safety</li>
+                    <li>✅ Strict Static typing</li>
+                    <li>✅ Compiler-generated autodiff</li>
                 </ul>
-              </div>
             </div>
-          </div>
-        </section>
+        </div>
+    </div>
+</section>
 
-        <!-- Performance Benchmarks -->
-        <section class="comparison-section container">
-          <div class="comparison-card glass">
-            <div class="comparison-header">
-              <h2 class="section-title">
-                Performance <span class="text-gradient">Benchmarks</span>
-              </h2>
-              <p class="section-subtitle">
-                AST-Interpreter evaluation speeds vs VMs/Native (ms)
-              </p>
-            </div>
+<!-- Stats Flow -->
+<section class="flow-section">
+    <h2 style="text-align: center; font-size: 2rem; margin-bottom: 3rem;">Built for Performance</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+        <div style="text-align: center; padding: 2rem; background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🦀</div>
+            <h4 style="margin-bottom: 0.5rem;">Rust Foundation</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">No GC overhead. Built on top of safe systems memory.</p>
+        </div>
+        <div style="text-align: center; padding: 2rem; background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📐</div>
+            <h4 style="margin-bottom: 0.5rem;">Shape Checking</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Math errors are caught at compile time, not in production.</p>
+        </div>
+        <div style="text-align: center; padding: 2rem; background: #fff; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+            <h4 style="margin-bottom: 0.5rem;">AOT Binaries</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">Ship standalone executables to run anywhere instantly.</p>
+        </div>
+    </div>
+</section>
 
-            <div style="overflow-x: auto; margin-top: 2rem">
-              <table
-                style="
-                  width: 100%;
-                  border-collapse: collapse;
-                  text-align: left;
-                  color: var(--text-color);
-                "
-              >
-                <thead>
-                  <tr
-                    style="
-                      border-bottom: 2px solid var(--border-color);
-                      color: var(--primary-color);
-                    "
-                  >
-                    <th style="padding: 1rem">Benchmark</th>
-                    <th style="padding: 1rem">Ferrite</th>
-                    <th style="padding: 1rem">Python</th>
-                    <th style="padding: 1rem">Node.js</th>
-                    <th style="padding: 1rem">Rust</th>
-                    <th style="padding: 1rem">Go</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-bottom: 1px solid var(--border-color)">
-                    <td style="padding: 1rem; font-weight: bold">
-                      Fibonacci (25)
-                    </td>
-                    <td style="padding: 1rem; color: var(--secondary-color)">
-                      7093
-                    </td>
-                    <td style="padding: 1rem">923</td>
-                    <td style="padding: 1rem">593</td>
-                    <td style="padding: 1rem">847</td>
-                    <td style="padding: 1rem">917</td>
-                  </tr>
-                  <tr style="border-bottom: 1px solid var(--border-color)">
-                    <td style="padding: 1rem; font-weight: bold">
-                      Loop Sum (10M)
-                    </td>
-                    <td style="padding: 1rem; color: var(--secondary-color)">
-                      1882
-                    </td>
-                    <td style="padding: 1rem">762</td>
-                    <td style="padding: 1rem">572</td>
-                    <td style="padding: 1rem">800</td>
-                    <td style="padding: 1rem">865</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 1rem; font-weight: bold">
-                      String Concat
-                    </td>
-                    <td style="padding: 1rem; color: var(--secondary-color)">
-                      468
-                    </td>
-                    <td style="padding: 1rem">542</td>
-                    <td style="padding: 1rem">532</td>
-                    <td style="padding: 1rem">692</td>
-                    <td style="padding: 1rem">1022</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p
-              style="
-                margin-top: 1rem;
-                font-size: 0.9rem;
-                opacity: 0.8;
-                text-align: center;
-              "
-            >
-              * String concatenation in Ferrite bypasses AST overhead by
-              natively delegating to Rust's optimized memory allocators.
-            </p>
-          </div>
-        </section>
-
-        <!-- Stats grid -->
-        <section class="stats container">
-          <div class="stats-grid">
-            <div class="stat-card glass">
-              <div class="stat-icon">🦀</div>
-              <h4>Built in Rust</h4>
-              <p>
-                No garbage collector. Blazing fast compiler and runtime core
-                written on top of a type-safe Rust foundation.
-              </p>
-            </div>
-            <div class="stat-card glass">
-              <div class="stat-icon">🧠</div>
-              <h4>AI Native</h4>
-              <p>Models, tensors and training are language features.</p>
-            </div>
-            <div class="stat-card glass">
-              <div class="stat-icon">📐</div>
-              <h4>Compile-Time Tensor Safety</h4>
-              <p>Tensor shapes are verified before execution.</p>
-            </div>
-            <div class="stat-card glass">
-              <div class="stat-icon">⚡</div>
-              <h4>Compiler Optimized</h4>
-              <p>Operator fusion, Memory planning, Static graph optimization</p>
-            </div>
-            <div class="stat-card glass">
-              <div class="stat-icon">🔒</div>
-              <h4>Deterministic</h4>
-              <p>No hidden randomness. Reproducible training.</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Mini Showcase -->
-        <section class="home-showcase container">
-          <div class="showcase-content">
-            <h2>Modern Constructs, No Compromise</h2>
-            <p>
-              Ferrite blends systems-level speed with expressive syntax. Write
-              safe pattern-matches, define strict interface contracts via
-              Traits, and manipulate multidimensional data using readable
-              high-level semantics.
-            </p>
-            <ul class="bullet-list">
-              <li>
-                <strong>Structural Pattern Matching</strong> with conditional
-                guard clauses
-              </li>
-              <li><strong>First-class functions</strong> & lexical closures</li>
-              <li>
-                <strong>Safe traits</strong> with explicit static
-                implementations
-              </li>
-              <li>
-                <strong>No undefined behaviors</strong> or runtime reflection
-                lookup errors
-              </li>
-            </ul>
-          </div>
-          <div class="showcase-visual glass">
-            <div class="visual-header">Console Output Demo</div>
-            <div class="visual-body font-mono">
-              <span class="prompt">$</span> ferrite check model.fe<br />
-              <span class="success">✓ Type check passed in 0.8ms</span
-              ><br /><br />
-              <span class="prompt">$</span> ferrite run model.fe<br />
-              <span class="output"
-                >[Epoch 1/5] loss: 0.4218 - accuracy: 89.2%</span
-              ><br />
-              <span class="output"
-                >[Epoch 2/5] loss: 0.2811 - accuracy: 93.4%</span
-              ><br />
-              <span class="output"
-                >[Epoch 3/5] loss: 0.1989 - accuracy: 96.1%</span
-              ><br />
-              <span class="success"
-                >✓ Training completed successfully. Output saved to
-                weights.fe</span
-              >
-            </div>
-          </div>
-        </section>
-
-        <!-- About Section -->
-        <section class="about-section container">
-          <div class="about-header">
-            <h2 class="section-title">
-              About <span class="text-gradient">Ferrite</span>
-            </h2>
-            <p class="section-subtitle">
-              The statically-typed, ML-first systems programming language.
-            </p>
-          </div>
-          <div class="about-grid">
-            <div class="about-card glass">
-              <h3>Our Mission</h3>
-              <p>
-                Ferrite exists because Artificial Intelligence deserves a
-                programming language designed specifically for it—not a
-                general-purpose language extended with libraries. <br />
-                <br />
-                Instead of treating tensors, models, and training as runtime
-                abstractions, Ferrite makes them first-class language concepts
-                that the compiler understands, verifies, and optimizes before
-                execution.
-              </p>
-            </div>
-            <div class="about-card glass">
-              <h3>Design Philosophy</h3>
-              <ul class="about-list">
-                <li>
-                  <strong>Zero Coercion:</strong> No implicit type conversions
-                  to prevent silent bugs.
-                </li>
-                <li>
-                  <strong>ML Native:</strong> Tensors with compile-time shape
-                  verification.
-                </li>
-                <li>
-                  <strong>Dual Execution:</strong> JIT for fast iteration, AOT
-                  for deployment.
-                </li>
-              </ul>
-            </div>
-            <div class="about-card glass">
-              <h3>The Creator</h3>
-              <p>
-                Created and maintained by <strong>Vishwanath M M</strong>, built
-                entirely in Rust from the ground up for maximum safety and
-                performance.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Installer Prompt -->
-        <section class="home-download container">
-          <div class="download-banner glass">
-            <h3>Get Ferrite Today</h3>
-            <p>
-              Install the Ferrite compiler v2.4.0 natively on your operating
-              system.
-            </p>
-
-            <div class="download-platforms">
-              <!-- Windows Card -->
-              <div class="platform-card glass">
-                <span class="platform-icon">🪟</span>
-                <h4>Windows</h4>
-                <p>
-                  Bundle includes compiler, tree-walk interpreter, and path
-                  setup wizard.
-                </p>
-                <a
-                  href="https://github.com/vishwanathdvgmm/ferrite/releases/download/v2.4.0/ferrite-v2.4.0-setup.exe"
-                  class="btn btn-primary"
-                  style="margin-top: 1rem"
-                  >Download Installer (.exe)</a
-                >
-              </div>
-
-              <!-- macOS Card -->
-              <div class="platform-card glass">
-                <span class="platform-icon">🍏</span>
-                <h4>macOS</h4>
-                <p>
-                  Install via Homebrew tap or download static Apple
-                  Silicon/Intel binaries.
-                </p>
-                <code class="platform-cmd"
-                  >brew install vishwanathdvgmm/tap/ferrite</code
-                >
-              </div>
-
-              <!-- Linux Card -->
-              <div class="platform-card glass">
-                <span class="platform-icon">🐧</span>
-                <h4>Linux</h4>
-                <p>
-                  Download precompiled binaries or install instantly via curl
-                  script.
-                </p>
-                <code class="platform-cmd"
-                  >curl -fsSL https://ferrite-lang.org/install.sh | sh</code
-                >
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+</div>
+</main>
 
     <!-- Shared Footer -->
     <div id="footer-slot"></div>
