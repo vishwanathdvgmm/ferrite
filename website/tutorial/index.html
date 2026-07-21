@@ -103,12 +103,13 @@ println(message);</code></pre>
                 <h5>Chapter 1: Basics</h5>
                 <ul>
                   <li>
-                    <a href="#tut-hello" class="docs-link active"
-                      >Hello World</a
-                    >
+                    <a href="#tut-hello" class="docs-link active">Hello World</a>
                   </li>
                   <li>
                     <a href="#tut-vars" class="docs-link">Variables & Types</a>
+                  </li>
+                  <li>
+                    <a href="#tut-functions" class="docs-link">Functions & Closures</a>
                   </li>
                 </ul>
               </div>
@@ -134,9 +135,10 @@ println(message);</code></pre>
                 <ul>
                   <li><a href="#tut-groups" class="docs-link">Groups</a></li>
                   <li>
-                    <a href="#tut-traits" class="docs-link"
-                      >Traits (Interfaces)</a
-                    >
+                    <a href="#tut-traits" class="docs-link">Traits (Interfaces)</a>
+                  </li>
+                  <li>
+                    <a href="#tut-modules" class="docs-link">Modules & Imports</a>
                   </li>
                 </ul>
               </div>
@@ -197,6 +199,26 @@ keep pi: float = 3.14159;</code></pre>
                 <pre><code class="language-ferrite">keep count: int = 1;
 count = count + 1; // Allowed
 // count = "two"; // Error: Type mismatch</code></pre>
+              </div>
+
+              <!-- Functions & Closures -->
+              <div id="tut-functions" class="docs-section-content">
+                <h2>Chapter 1.3: Functions & Closures</h2>
+                <p>
+                  Functions in Ferrite use the <code>fun</code> keyword. You can declare parameters and return types explicitly. Ferrite also supports inline closures.
+                </p>
+
+                <pre><code class="language-ferrite">
+<span class="keyword">fun</span> calculate_area(width: <span class="type">float</span>, height: <span class="type">float</span>) -&gt; <span class="type">float</span> {
+    <span class="keyword">return</span> width * height;
+}
+
+<span class="comment">// Closures use the arrow syntax and can capture variables</span>
+<span class="keyword">keep</span> multiplier = <span class="number">2.0</span>;
+<span class="keyword">keep</span> scale = (x: <span class="type">float</span>) =&gt; x * multiplier;
+
+println(<span class="string">"Area: "</span> + str(calculate_area(<span class="number">10.0</span>, <span class="number">5.0</span>)));
+println(<span class="string">"Scaled: "</span> + str(scale(<span class="number">10.0</span>)));</code></pre>
               </div>
 
               <!-- If / Else -->
@@ -307,6 +329,28 @@ impl Display for Vector2 {
 }
 
 println(position.format());</code></pre>
+              </div>
+
+              <!-- Modules & Imports -->
+              <div id="tut-modules" class="docs-section-content">
+                <h2>Chapter 4.3: Modules & Imports</h2>
+                <p>
+                  Once your Ferrite program grows, you'll want to split it into multiple files. You can use <code>import</code> and <code>from</code> to manage scope.
+                  Remember that all symbols are private by default, so you must use <code>pub</code> to expose them.
+                </p>
+
+                <pre><code class="language-ferrite">
+<span class="comment">// geometry.fe</span>
+<span class="keyword">pub</span> <span class="keyword">fun</span> area(w: <span class="type">float</span>, h: <span class="type">float</span>) -&gt; <span class="type">float</span> {
+    <span class="keyword">return</span> w * h;
+}
+
+<span class="comment">// main.fe</span>
+<span class="keyword">import</span> <span class="string">"geometry"</span>;
+<span class="keyword">from</span> <span class="string">"math"</span> <span class="keyword">take</span> { pi };
+
+<span class="keyword">keep</span> a = geometry.area(<span class="number">10.0</span>, <span class="number">5.0</span>);
+println(<span class="string">"Area is: "</span> + str(a));</code></pre>
               </div>
 
               <!-- Tensors -->
