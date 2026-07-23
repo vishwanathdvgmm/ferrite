@@ -233,6 +233,7 @@
               page.
             </p>
             <form
+              id="newsletter-form"
               action="https://formspree.io/f/xqerdwno"
               method="POST"
               style="
@@ -247,13 +248,9 @@
                 name="_subject"
                 value="🎉 New Ferrite Newsletter Subscriber!"
               />
-              <input
-                type="hidden"
-                name="_next"
-                value="https://ferrite-lang.org/community/?subscribed=true"
-              />
 
               <input
+                id="newsletter-email"
                 name="email"
                 type="email"
                 placeholder="enter.your@email.com"
@@ -261,12 +258,15 @@
                 style="
                   flex: 1;
                   padding: 0.8rem 1rem;
-                  border: 1px solid var(--text-primary);
+                  background-color: #ffffff !important;
+                  color: var(--text-primary) !important;
+                  border: 2px solid var(--text-primary);
                   border-radius: 4px;
                   font-size: 0.95rem;
                 "
               />
               <button
+                id="newsletter-btn"
                 type="submit"
                 class="btn btn-primary classic-btn"
                 style="white-space: nowrap"
@@ -288,15 +288,54 @@
                 display: none;
               "
             >
-              🎉 Thank you for subscribing! Your email has been registered for
-              updates.
+              🎉 Thank you for subscribing! Your email has been registered for updates.
             </div>
 
             <script>
+              // Clean up legacy URL parameter if present
               if (window.location.search.includes("subscribed=true")) {
-                const banner = document.getElementById("newsletter-success");
-                if (banner) banner.style.display = "block";
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path: cleanUrl}, '', cleanUrl);
               }
+
+              // AJAX Formspree submission handler
+              document.getElementById('newsletter-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const form = e.target;
+                const btn = document.getElementById('newsletter-btn');
+                const status = document.getElementById('newsletter-success');
+
+                btn.disabled = true;
+                btn.innerText = 'Subscribing...';
+
+                try {
+                  const response = await fetch('https://formspree.io/f/xqerdwno', {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'Accept': 'application/json' }
+                  });
+
+                  if (response.ok) {
+                    status.style.display = 'block';
+                    status.style.color = '#27c93f';
+                    status.style.background = 'rgba(39, 201, 63, 0.1)';
+                    status.style.borderColor = '#27c93f';
+                    status.innerText = '🎉 Thank you for subscribing! Your email has been registered for updates.';
+                    form.reset();
+                  } else {
+                    throw new Error('Formspree submission error');
+                  }
+                } catch (err) {
+                  status.style.display = 'block';
+                  status.style.color = '#d9534f';
+                  status.style.background = 'rgba(217, 83, 79, 0.1)';
+                  status.style.borderColor = '#d9534f';
+                  status.innerText = 'Oops! There was a problem submitting your email. Please try again.';
+                } finally {
+                  btn.disabled = false;
+                  btn.innerText = 'Get Updates';
+                }
+              });
             </script>
           </div>
         </section>
