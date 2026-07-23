@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ferrite (programming language) - Wikipedia Entry</title>
+    <meta
+      name="description"
+      content="Wikipedia article draft for Ferrite (programming language) - A statically-typed, ahead-of-time compiled programming language for AI and systems."
+    />
+    <meta
+      name="keywords"
+      content="Ferrite, Programming Language, Wikipedia, Compiler, Systems Programming, Machine Learning, Rust"
+    />
+    <meta name="author" content="Vishwanath M M" />
+    <link rel="canonical" href="https://ferrite-lang.org/wikipedia/" />
+
+    <!-- Open Graph -->
+    <meta
+      property="og:title"
+      content="Ferrite (programming language) - Wikipedia Entry"
+    />
+    <meta
+      property="og:description"
+      content="Wikipedia article draft for Ferrite (programming language)."
+    />
+    <meta property="og:url" content="https://ferrite-lang.org/wikipedia/" />
+    <meta
+      property="og:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Ferrite (programming language) - Wikipedia Entry"
+    />
+    <meta
+      name="twitter:description"
+      content="Wikipedia article draft for Ferrite (programming language)."
+    />
+    <meta
+      name="twitter:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&family=Linux+Libertine:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=2" />
+  </head>
+
+  <body>
+    <!-- Shared Header -->
+    <div id="header-slot"></div>
+
+    <main class="page-container" style="padding-top: 70px; background: #fafafa">
+      <div class="page active">
+        <div class="classic-wiki-layout">
+          <!-- Navigation Sidebar -->
+          <aside class="classic-wiki-sidebar">
+            <div class="docs-menu-group">
+              <h5>Wikipedia Article</h5>
+              <ul>
+                <li><a href="#lead" class="docs-link active">Lead</a></li>
+                <li><a href="#history" class="docs-link">History</a></li>
+                <li>
+                  <a href="#philosophy" class="docs-link"
+                    >Design & Philosophy</a
+                  >
+                </li>
+                <li>
+                  <a href="#syntax" class="docs-link">Syntax & Semantics</a>
+                </li>
+                <li><a href="#examples" class="docs-link">Examples</a></li>
+                <li>
+                  <a href="#implementation" class="docs-link">Implementation</a>
+                </li>
+                <li><a href="#references" class="docs-link">References</a></li>
+              </ul>
+            </div>
+            <div
+              style="
+                margin-top: 2rem;
+                padding: 1rem;
+                background: rgba(50, 110, 250, 0.05);
+                border-radius: 6px;
+                border: 1px solid rgba(50, 110, 250, 0.2);
+              "
+            >
+              <p
+                style="
+                  font-size: 0.82rem;
+                  color: var(--text-secondary);
+                  margin: 0;
+                "
+              >
+                ℹ️ <strong>Wikitext Ready:</strong> Raw MediaWiki markup is
+                available in <code>WIKIPEDIA.md</code> for publishing to
+                Wikipedia.org.
+              </p>
+            </div>
+          </aside>
+
+          <!-- Main Article Area -->
+          <article
+            class="classic-wiki-content"
+            style="
+              font-family:
+                &quot;Linux Libertine&quot;, Georgia,
+                &quot;Times New Roman&quot;, serif;
+              font-size: 1.05rem;
+              line-height: 1.7;
+            "
+          >
+            <!-- Article Header -->
+            <div
+              style="
+                border-bottom: 1px solid var(--text-primary);
+                padding-bottom: 0.5rem;
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+              "
+            >
+              <h1
+                style="
+                  font-size: 2.2rem;
+                  font-weight: 700;
+                  margin: 0;
+                  font-family: sans-serif;
+                "
+              >
+                Ferrite (programming language)
+              </h1>
+              <span
+                style="
+                  font-size: 0.85rem;
+                  font-family: sans-serif;
+                  color: var(--text-muted);
+                "
+                >From Wikipedia, the free encyclopedia</span
+              >
+            </div>
+
+            <!-- Infobox Floating Card -->
+            <div
+              style="
+                float: right;
+                width: 300px;
+                margin: 0 0 1.5rem 1.5rem;
+                background: #ffffff;
+                border: 1px solid var(--text-primary);
+                border-radius: 6px;
+                padding: 1rem;
+                font-family: sans-serif;
+                font-size: 0.88rem;
+                box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.05);
+              "
+            >
+              <div
+                style="
+                  text-align: center;
+                  font-weight: 800;
+                  font-size: 1.1rem;
+                  padding-bottom: 0.5rem;
+                  border-bottom: 2px solid var(--accent-primary);
+                "
+              >
+                Ferrite
+              </div>
+              <div style="text-align: center; padding: 1rem 0">
+                <img
+                  src="/assets/images/logo.png"
+                  alt="Ferrite Logo"
+                  style="width: 70px; height: 70px; border-radius: 8px"
+                />
+              </div>
+              <table
+                style="width: 100%; border-collapse: collapse; text-align: left"
+              >
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    Paradigm
+                  </th>
+                  <td style="padding: 4px 0">
+                    Multi-paradigm (Functional, Imperative, Tensor)
+                  </td>
+                </tr>
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    Designed by
+                  </th>
+                  <td style="padding: 4px 0">Vishwanath M M</td>
+                </tr>
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    First appeared
+                  </th>
+                  <td style="padding: 4px 0">January 2026</td>
+                </tr>
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    Stable release
+                  </th>
+                  <td style="padding: 4px 0">2.4.1 (July 2026)</td>
+                </tr>
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    Typing
+                  </th>
+                  <td style="padding: 4px 0">
+                    Static, Strong, Nominal, Inferred
+                  </td>
+                </tr>
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    Implementation
+                  </th>
+                  <td style="padding: 4px 0">Rust</td>
+                </tr>
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    License
+                  </th>
+                  <td style="padding: 4px 0">MIT / Apache-2.0</td>
+                </tr>
+                <tr>
+                  <th style="padding: 4px 0; color: var(--text-muted)">
+                    Website
+                  </th>
+                  <td style="padding: 4px 0">
+                    <a href="https://www.ferrite-lang.org/">ferrite-lang.org</a>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Lead Section -->
+            <div id="lead" style="margin-bottom: 2rem">
+              <p>
+                <strong>Ferrite</strong> is a statically-typed, ahead-of-time
+                compiled, and interpreted programming language developed
+                specifically for artificial intelligence, machine learning, and
+                systems programming. Designed and created by Vishwanath M M in
+                2026, the reference compiler implementation is written in Rust.
+              </p>
+              <p>
+                Ferrite features native multi-dimensional tensor primitives with
+                compile-time shape verification, zero implicit type coercion,
+                compiler-generated automatic differentiation, and
+                scope-delimited execution contexts (such as
+                <code>train</code> and <code>infer</code> blocks).
+              </p>
+            </div>
+
+            <!-- History -->
+            <div id="history" style="margin-bottom: 2rem">
+              <h2
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.5rem;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 0.3rem;
+                "
+              >
+                History
+              </h2>
+              <p>
+                Development of Ferrite began in early 2026 to address
+                productivity and runtime safety challenges in machine learning
+                software development. While languages such as Python dominate
+                machine learning research due to dynamic flexibility, they
+                frequently suffer from runtime shape mismatch errors, heavy
+                interpreter overhead, and dynamic typing bugs. Conversely,
+                native systems languages such as C++ or Rust require complex
+                foreign function interface (FFI) bindings to interface with
+                high-level tensor computing libraries.
+              </p>
+              <p>
+                Ferrite was designed as an "AI-Native" compiled language that
+                integrates tensor algebra directly into the language
+                specification and type checker.
+              </p>
+              <ul style="line-height: 1.8; margin-left: 1.5rem">
+                <li>
+                  <strong>v1.0.0 (Jan 2026):</strong> Initial release featuring
+                  the core lexer, recursive descent parser, and tree-walk
+                  interpreter supporting primitive types and basic control flow.
+                </li>
+                <li>
+                  <strong>v1.4.0 (Mar 2026):</strong> Introduced nominal struct
+                  types (<code>group</code>), interface contracts
+                  (<code>trait</code>), and algebraic data types
+                  (<code>enum</code>) with pattern matching.
+                </li>
+                <li>
+                  <strong>v2.0.0 (May 2026):</strong> Integrated compile-time
+                  shaped tensor generics (<code>Tensor&lt;T, Shape&gt;</code>)
+                  and matrix multiplication operators.
+                </li>
+                <li>
+                  <strong>v2.4.0 (Jul 2026):</strong> Added a full module
+                  import/export system with symbol visibility controls
+                  (<code>pub</code>) and explicit symbol aliasing.
+                </li>
+                <li>
+                  <strong>v2.4.1 (Jul 2026):</strong> Added first-class function
+                  closures and published the 21-chapter Engineering Knowledge
+                  Base (EKB) compiler specification.
+                </li>
+              </ul>
+            </div>
+
+            <!-- Philosophy -->
+            <div id="philosophy" style="margin-bottom: 2rem">
+              <h2
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.5rem;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 0.3rem;
+                "
+              >
+                Design and philosophy
+              </h2>
+
+              <h3
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.15rem;
+                  color: var(--text-primary);
+                "
+              >
+                Strict type safety and zero coercion
+              </h3>
+              <p>
+                Ferrite enforces absolute type safety. The compiler does not
+                perform implicit type coercion (such as automatically promoting
+                an integer to a floating-point number or evaluating non-boolean
+                values in conditional statements). Numeric conversions require
+                explicit cast invocation (e.g., <code>float(x)</code>).
+              </p>
+
+              <h3
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.15rem;
+                  color: var(--text-primary);
+                "
+              >
+                Compile-time tensor shape verification
+              </h3>
+              <p>
+                Tensors in Ferrite are first-class language primitives. Tensor
+                dimensions are declared within generic type signatures (e.g.,
+                <code>Tensor&lt;float, (100, 784)&gt;</code>). During semantic
+                analysis, the compiler validates matrix operations (such as
+                matrix multiplication via the <code>@</code> operator) against
+                dimension compatibility rules at compile-time, eliminating
+                runtime dimension mismatch errors.
+              </p>
+
+              <h3
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.15rem;
+                  color: var(--text-primary);
+                "
+              >
+                Execution context blocks
+              </h3>
+              <p>
+                Ferrite provides dedicated language blocks to declare execution
+                intent:
+              </p>
+              <ul style="margin-left: 1.5rem">
+                <li>
+                  <code>train { ... }</code>: Enables automatic differentiation
+                  tracking and gradient calculation buffers.
+                </li>
+                <li>
+                  <code>infer { ... }</code>: Disables gradient tracking and
+                  backpropagation overhead, optimizing execution purely for
+                  forward-pass inference.
+                </li>
+              </ul>
+            </div>
+
+            <!-- Syntax -->
+            <div id="syntax" style="margin-bottom: 2rem">
+              <h2
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.5rem;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 0.3rem;
+                "
+              >
+                Syntax and semantics
+              </h2>
+
+              <h3 style="font-family: sans-serif; font-size: 1.15rem">
+                Variables and mutability
+              </h3>
+              <p>
+                Variables declared with the <code>keep</code> keyword are
+                immutable by default.
+              </p>
+              <pre
+                style="
+                  background: #ffffff;
+                  border: 1px solid var(--text-primary);
+                  border-radius: 6px;
+                  padding: 1rem;
+                "
+              ><code class="language-ferrite"><span class="comment">// Immutable constant</span>
+<span class="keyword">keep</span> pi: <span class="type">float</span> = <span class="number">3.14159</span>;
+
+<span class="comment">// Reassignable variable</span>
+<span class="keyword">keep</span> count: <span class="type">int</span> = <span class="number">0</span>;
+count = count + <span class="number">1</span>;</code></pre>
+
+              <h3 style="font-family: sans-serif; font-size: 1.15rem">
+                Pattern matching
+              </h3>
+              <pre
+                style="
+                  background: #ffffff;
+                  border: 1px solid var(--text-primary);
+                  border-radius: 6px;
+                  padding: 1rem;
+                "
+              ><code class="language-ferrite"><span class="keyword">enum</span> Result&lt;T&gt; {
+    Ok(T);
+    Err(<span class="type">string</span>);
+}
+
+<span class="keyword">match</span> status {
+    <span class="keyword">case</span> Ok(code) <span class="keyword">if</span> code == <span class="number">200</span> =&gt; println(<span class="string">"Success"</span>);
+    <span class="keyword">case</span> Err(msg) =&gt; println(<span class="string">"Error: "</span> + msg);
+}</code></pre>
+            </div>
+
+            <!-- Examples -->
+            <div id="examples" style="margin-bottom: 2rem">
+              <h2
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.5rem;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 0.3rem;
+                "
+              >
+                Examples
+              </h2>
+              <h3 style="font-family: sans-serif; font-size: 1.15rem">
+                Tensor matrix multiplication
+              </h3>
+              <pre
+                style="
+                  background: #ffffff;
+                  border: 1px solid var(--text-primary);
+                  border-radius: 6px;
+                  padding: 1rem;
+                "
+              ><code class="language-ferrite"><span class="keyword">import</span> <span class="string">"math"</span>;
+
+<span class="comment">// Validated matrix dimensions: (100, 784) x (784, 10) =&gt; (100, 10)</span>
+<span class="keyword">param</span> inputs: <span class="type">Tensor</span>&lt;<span class="type">float</span>, (<span class="number">100</span>, <span class="number">784</span>)&gt; = ones();
+<span class="keyword">param</span> weights: <span class="type">Tensor</span>&lt;<span class="type">float</span>, (<span class="number">784</span>, <span class="number">10</span>)&gt; = rand();
+
+<span class="keyword">infer</span> {
+    <span class="keyword">keep</span> logits = inputs @ weights;
+    println(<span class="string">"Output tensor computed successfully."</span>);
+}</code></pre>
+            </div>
+
+            <!-- Implementation -->
+            <div id="implementation" style="margin-bottom: 2rem">
+              <h2
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.5rem;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 0.3rem;
+                "
+              >
+                Implementation
+              </h2>
+              <p>
+                The reference implementation of the Ferrite compiler is written
+                in Rust. Its pipeline comprises a Lexer, Recursive Descent
+                Parser, Semantic Analyzer for shape unification, and dual
+                execution targets (Tree-Walk interpreter and LLVM AOT codegen).
+              </p>
+            </div>
+
+            <!-- References -->
+            <div id="references" style="margin-bottom: 2rem">
+              <h2
+                style="
+                  font-family: sans-serif;
+                  font-size: 1.5rem;
+                  border-bottom: 1px solid #ccc;
+                  padding-bottom: 0.3rem;
+                "
+              >
+                References
+              </h2>
+              <ol
+                style="
+                  font-size: 0.9rem;
+                  font-family: sans-serif;
+                  margin-left: 1.5rem;
+                  line-height: 1.6;
+                "
+              >
+                <li>
+                  <a href="https://www.ferrite-lang.org/"
+                    >Ferrite Official Website</a
+                  >
+                  - Ferrite Language Specification.
+                </li>
+                <li>
+                  <a
+                    href="https://github.com/vishwanathdvgmm/ferrite/tree/main/documentation"
+                    >Ferrite Engineering Knowledge Base (EKB)</a
+                  >
+                  - Architecture & Compiler Architecture.
+                </li>
+                <li>
+                  <a href="https://github.com/vishwanathdvgmm/ferrite"
+                    >Ferrite GitHub Repository</a
+                  >
+                  - Compiler Source Code.
+                </li>
+              </ol>
+            </div>
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <!-- Shared Footer -->
+    <div id="footer-slot"></div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/layout.js"></script>
+  </body>
+</html>
