@@ -6,11 +6,11 @@
     <title>Ferrite Community - Join the Conversation</title>
     <meta
       name="description"
-      content="Join the Ferrite community. Participate in GitHub Discussions, chat on Discord or Matrix, and contribute to the AI-native programming language."
+      content="Join the Ferrite community. Participate in GitHub Discussions and Issues, and contribute to the AI-native programming language."
     />
     <meta
       name="keywords"
-      content="Ferrite, Community, GitHub Discussions, Discord, Matrix, Open Source, Programming Language"
+      content="Ferrite, Community, GitHub Discussions, Open Source, Programming Language"
     />
     <meta name="author" content="Vishwanath M M" />
     <link rel="canonical" href="https://ferrite-lang.org/community/" />
@@ -22,7 +22,7 @@
     />
     <meta
       property="og:description"
-      content="Join the Ferrite community. Connect on GitHub Discussions, Discord, and Matrix."
+      content="Join the Ferrite community. Connect on GitHub Discussions and Issues."
     />
     <meta property="og:url" content="https://ferrite-lang.org/community/" />
     <meta
@@ -39,7 +39,7 @@
     />
     <meta
       name="twitter:description"
-      content="Join the Ferrite community. Connect on GitHub Discussions, Discord, and Matrix."
+      content="Join the Ferrite community. Connect on GitHub Discussions and Issues."
     />
     <meta
       name="twitter:image"
@@ -86,15 +86,9 @@
         <!-- Community Channels Grid -->
         <section
           class="container"
-          style="max-width: 1100px; margin-bottom: 5rem"
+          style="max-width: 900px; margin-bottom: 4rem"
         >
-          <div
-            style="
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-              gap: 2rem;
-            "
-          >
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
             <!-- Channel 1: GitHub Discussions -->
             <div
               style="
@@ -134,13 +128,13 @@
                 href="https://github.com/vishwanathdvgmm/ferrite/discussions"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="btn btn-secondary classic-btn"
+                class="btn btn-primary classic-btn"
               >
                 Join Discussions →
               </a>
             </div>
 
-            <!-- Channel 2: Discord Server -->
+            <!-- Channel 2: GitHub Issues & Contributions -->
             <div
               style="
                 background: #ffffff;
@@ -152,7 +146,7 @@
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
               "
             >
-              <div style="font-size: 2.5rem; margin-bottom: 1rem">👾</div>
+              <div style="font-size: 2.5rem; margin-bottom: 1rem">🐛</div>
               <h3
                 style="
                   font-size: 1.4rem;
@@ -161,7 +155,7 @@
                   color: var(--text-primary);
                 "
               >
-                Discord Server
+                GitHub Issues & RFCs
               </h3>
               <p
                 style="
@@ -171,57 +165,22 @@
                   flex: 1;
                 "
               >
-                Real-time chat with the community. Discuss language design, get
-                help with code snippets, and participate in virtual compiler
-                office hours.
+                Report compiler bugs, track feature requests, review pull
+                requests, and contribute to the Ferrite compiler codebase.
               </p>
-              <a href="#" class="btn btn-secondary classic-btn">
-                Join Discord →
-              </a>
-            </div>
-
-            <!-- Channel 3: Matrix / Open Chat -->
-            <div
-              style="
-                background: #ffffff;
-                border: 1px solid rgba(0, 0, 0, 0.1);
-                border-radius: 8px;
-                padding: 2.5rem;
-                display: flex;
-                flex-direction: column;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
-              "
-            >
-              <div style="font-size: 2.5rem; margin-bottom: 1rem">🛡️</div>
-              <h3
-                style="
-                  font-size: 1.4rem;
-                  font-weight: 700;
-                  margin-bottom: 0.8rem;
-                  color: var(--text-primary);
-                "
+              <a
+                href="https://github.com/vishwanathdvgmm/ferrite/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-secondary classic-btn"
               >
-                Matrix Space
-              </h3>
-              <p
-                style="
-                  color: var(--text-secondary);
-                  line-height: 1.6;
-                  margin-bottom: 1.5rem;
-                  flex: 1;
-                "
-              >
-                Decentralized, open real-time discussion for privacy-conscious
-                developers and matrix client users bridged to our channels.
-              </p>
-              <a href="#" class="btn btn-secondary classic-btn">
-                Join Matrix Space →
+                Explore Issues →
               </a>
             </div>
           </div>
         </section>
 
-        <!-- Newsletter Signup Section -->
+        <!-- Newsletter Section -->
         <section
           class="container"
           style="max-width: 800px; margin-bottom: 5rem"
@@ -245,7 +204,7 @@
                 color: var(--text-primary);
               "
             >
-              Ferrite Technical Newsletter
+              Ferrite Updates & Newsletter
             </h3>
             <p
               style="
@@ -254,16 +213,31 @@
                 max-width: 600px;
                 margin-left: auto;
                 margin-right: auto;
+                line-height: 1.6;
               "
             >
-              Receive deep-dive technical articles every 2–4 weeks detailing
-              LLVM compiler design, tensor performance benchmarks, and release
-              features.
+              Stay up to date with compiler releases and technical deep dives.
+              You can follow our
+              <a
+                href="/blog/"
+                style="color: var(--accent-primary); font-weight: 600"
+                >Blog & Release Notes</a
+              >
+              or follow the
+              <a
+                href="https://github.com/vishwanathdvgmm/ferrite/releases"
+                target="_blank"
+                style="color: var(--accent-primary); font-weight: 600"
+                >GitHub Releases</a
+              >
+              page.
             </p>
             <form
               onsubmit="
                 event.preventDefault();
-                alert('Thank you for subscribing to the Ferrite Newsletter!');
+                alert(
+                  'Thank you! We will notify you when the mailing list integration goes live.',
+                );
               "
               style="
                 display: flex;
@@ -289,7 +263,7 @@
                 class="btn btn-primary classic-btn"
                 style="white-space: nowrap"
               >
-                Subscribe
+                Get Updates
               </button>
             </form>
           </div>
