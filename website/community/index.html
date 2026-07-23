@@ -233,7 +233,8 @@
               page.
             </p>
             <form
-              id="newsletter-form"
+              action="https://formsubmit.co/vishwanathdvgmm@gmail.com"
+              method="POST"
               style="
                 display: flex;
                 gap: 0.8rem;
@@ -242,7 +243,18 @@
               "
             >
               <input
-                id="newsletter-email"
+                type="hidden"
+                name="_subject"
+                value="🎉 New Ferrite Newsletter Subscriber!"
+              />
+              <input type="hidden" name="_captcha" value="false" />
+              <input
+                type="hidden"
+                name="_next"
+                value="https://ferrite-lang.org/community/?subscribed=true"
+              />
+
+              <input
                 name="email"
                 type="email"
                 placeholder="enter.your@email.com"
@@ -256,7 +268,6 @@
                 "
               />
               <button
-                id="newsletter-btn"
                 type="submit"
                 class="btn btn-primary classic-btn"
                 style="white-space: nowrap"
@@ -264,59 +275,29 @@
                 Get Updates
               </button>
             </form>
+
             <div
-              id="newsletter-status"
-              style="margin-top: 1rem; font-weight: 600; display: none"
-            ></div>
+              id="newsletter-success"
+              style="
+                margin-top: 1.5rem;
+                font-weight: 600;
+                color: #27c93f;
+                background: rgba(39, 201, 63, 0.1);
+                border: 1px solid #27c93f;
+                padding: 0.8rem;
+                border-radius: 6px;
+                display: none;
+              "
+            >
+              🎉 Thank you for subscribing! Your email has been registered for
+              updates.
+            </div>
 
             <script>
-              document
-                .getElementById("newsletter-form")
-                .addEventListener("submit", async function (e) {
-                  e.preventDefault();
-                  const btn = document.getElementById("newsletter-btn");
-                  const status = document.getElementById("newsletter-status");
-                  const email =
-                    document.getElementById("newsletter-email").value;
-
-                  btn.disabled = true;
-                  btn.innerText = "Subscribing...";
-
-                  try {
-                    const res = await fetch(
-                      "https://formsubmit.co/ajax/vishwanathdvgmm@gmail.com",
-                      {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                          Accept: "application/json",
-                        },
-                        body: JSON.stringify({
-                          email: email,
-                          _subject: "🎉 New Ferrite Newsletter Subscriber!",
-                        }),
-                      },
-                    );
-
-                    if (res.ok) {
-                      status.style.display = "block";
-                      status.style.color = "#27C93F";
-                      status.innerText =
-                        "🎉 Thank you! You are subscribed to Ferrite updates.";
-                      this.reset();
-                    } else {
-                      throw new Error("Submission error");
-                    }
-                  } catch (err) {
-                    status.style.display = "block";
-                    status.style.color = "#d9534f";
-                    status.innerText =
-                      "Subscribed! (If first time, please confirm the FormSubmit email sent to your inbox).";
-                  } finally {
-                    btn.disabled = false;
-                    btn.innerText = "Get Updates";
-                  }
-                });
+              if (window.location.search.includes("subscribed=true")) {
+                const banner = document.getElementById("newsletter-success");
+                if (banner) banner.style.display = "block";
+              }
             </script>
           </div>
         </section>
