@@ -1,270 +1,218 @@
-# 🦀 Ferrite
+# 🦀 Ferrite (v2.4.1)
 
-A statically-typed, ahead-of-time compiled ML programming language — built in Rust.
+> **The AI-Native, Statically-Typed Systems & ML Programming Language — Built in Rust.**
+
+[![Website](https://img.shields.io/badge/Website-ferrite--lang.org-326efa)](https://www.ferrite-lang.org/)
+[![Documentation](https://img.shields.io/badge/Docs-v2.4.1-28285a)](https://www.ferrite-lang.org/docs/)
+[![License](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-d9534f)](https://www.ferrite-lang.org/sponsors/)
 
 ---
 
-## 🚀 Quick Start (v2.3)
+## 🌟 Overview
 
-1. Download the `ferrite.exe` from releases.
-2. Create a folder named `Ferrite` in your preferred location (e.g., `C:\Ferrite`).
-3. Add `ferrite.exe` to that folder.
-4. Add that folder to your system `PATH`.
-5. Done — use `ferrite` from anywhere:
+Ferrite is an ahead-of-time compiled and interpreted programming language engineered specifically for artificial intelligence, machine learning, and systems programming. Built from the ground up in pure safe Rust, Ferrite provides:
+
+- **Native Multidimensional Tensors**: Compile-time shape verification (`Tensor<float, (100, 784)>`) with matrix multiplication (`@`).
+- **Zero Implicit Coercion**: Strict type safety—no implicit numeric promotion or dynamic truthiness.
+- **Scope-Delimited Execution Contexts**: `train { ... }` (autodiff gradient tracking) vs. `infer { ... }` (zero-overhead forward pass).
+- **Module System**: `import "math"`, destructuring imports (`from "utils" take { helper as my_helper }`), and `pub` visibility.
+- **Dual Execution Model**: Instant execution via the built-in Tree-Walk Interpreter or native binary compilation via LLVM AOT.
+
+---
+
+## 🚀 Quick Start (v2.4.1)
+
+### Installation
 
 ```bash
-# Execute your script directly using the built-in interpreter
-ferrite run program.fe
+# Windows Setup Wizard or Portable Binary
+Download ferrite-v2.4.0-setup.exe from Releases
 
-# Or compile to native code (requires LLVM)
-ferrite compile program.fe
+# macOS (Homebrew)
+brew tap vishwanathdvgmm/tap
+brew install ferrite
+
+# Linux / Unix
+curl -fsSL https://ferrite-lang.org/install.sh | sh
+```
+
+### Usage
+
+```bash
+# Parse & Type-check without execution
+ferrite check my_code.fe
+
+# Interpret script immediately (Tree-Walk Engine)
+ferrite run my_code.fe
+
+# Compile to native LLVM binary (AOT Mode)
+ferrite compile my_code.fe
 ```
 
 ---
 
 ## 📖 Language Tour
 
-### Variables & Types
+### Variables & Immutability (`keep`)
 
 ```ferrite
-keep x: int = 42;
-keep name: string = "Ferrite";
+// Variables are immutable by default
 keep pi: float = 3.14159;
-keep flag: bool = true;
+keep name: string = "Ferrite";
+
+// Reassignable mutable variables
+keep count: int = 0;
+count = count + 1;
 ```
 
-All variables require explicit type annotations. There is no `null`, no dynamic typing, and no implicit coercion.
-
-### Functions & Standard Library
+### Functions & Closures
 
 ```ferrite
-import "math";
-import "strings";
-
-fun test() {
-    keep s: float = math.sin(math.PI / 2.0);
-    keep upper: string = strings.upper("ferrite");
-    println(upper); // Built-in function
+fun add(a: int, b: int) -> int {
+    return a + b;
 }
+
+// Anonymous closures capturing outer scope
+keep factor = 2;
+keep double = (x: int) => x * factor;
 ```
 
-### Control Flow
+### Module Import System (v2.4.0+)
+
+```ferrite
+// Exporting in math.fe
+pub fun square(n: int) -> int {
+    return n * n;
+}
+
+// Importing in main.fe
+import "math";
+from "utils" take { format as fmt };
+
+keep result = math.square(5);
+```
+
+### Control Flow & Guards
 
 ```ferrite
 if score > 90 {
-    keep grade: string = "A";
-} elif score > 80 {
-    keep grade: string = "B";
+    println("Grade: A");
 } else {
-    keep grade: string = "F";
+    println("Grade: B");
 }
 
 keep i: int = 0;
 while i < 10 {
-    if i == 5 { stop; }   // break
-    if i == 3 { skip; }   // continue
     i = i + 1;
+    if i == 3 { skip; } // continue loop
+    if i == 8 { stop; } // break loop
 }
 ```
 
-### Groups (Structs)
+### Pattern Matching on Enums
+
+```ferrite
+enum Result<T> {
+    Ok(T);
+    Err(string);
+}
+
+keep status = Ok(200);
+
+match status {
+    case Ok(code) if code == 200 => println("Success 200");
+    case Ok(code) => println("Status: " + str(code));
+    case Err(msg) => println("Error: " + msg);
+}
+```
+
+### Native Shaped Tensors & Matrix Operations
+
+```ferrite
+import "math";
+
+// Validated matrix dimensions: (100, 784) x (784, 10) => (100, 10)
+param inputs: Tensor<float, (100, 784)> = ones();
+param weights: Tensor<float, (784, 10)> = rand();
+
+infer {
+    keep logits = inputs @ weights; // Checked at compile-time!
+    println("Output computed cleanly.");
+}
+```
+
+### Groups (Structs) & Traits
 
 ```ferrite
 group Point {
     x: float;
     y: float;
+}
 
-    fun distance(self) -> float {
-        return self.x;
+trait Display {
+    fun format(self) -> string;
+}
+
+impl Display for Point {
+    fun format(self) -> string {
+        return "Point(" + str(self.x) + ", " + str(self.y) + ")";
     }
 }
-
-keep p: Point = Point { x: 1.0, y: 2.0 };
-```
-
-### Enums & Pattern Matching
-
-```ferrite
-enum Option<T> {
-    Some(T);
-    None;
-}
-
-match value {
-    case Some(x) if x > 0 => { return "positive"; }
-    case Some(_) => { return "non-positive"; }
-    case None => { return "missing"; }
-}
-```
-
-### Tensor Types
-
-```ferrite
-param weights: Tensor<float, (784, 128)> = zeros();
-param bias: Tensor<float, (128)> = zeros();
-// Symbolic dimensions for batch processing
-param input: Tensor<float, (B, 784)> = zeros();
-```
-
-Shape mismatches are caught at compile time. No implicit broadcasting or reshaping.
-
-### ML Blocks & Effects
-
-```ferrite
-infer fun predict(x: int) -> int {
-    return x;
-}
-
-train {
-    keep loss: float = compute_loss();
-}
-```
-
-### Generics, Traits & Impl Blocks
-
-```ferrite
-trait Add {
-    fun add(self, other: Self) -> Self;
-}
-
-group Point {
-    x: float;
-    y: float;
-}
-
-impl Add for Point {
-    fun add(self, other: Self) -> Self {
-        return Point {
-            x: self.x + other.x,
-            y: self.y + other.y
-        };
-    }
-}
-
-// Operators automatically dispatch to traits
-fun test_add() {
-    keep p1: Point = Point { x: 1.0, y: 1.0 };
-    keep p2: Point = Point { x: 2.0, y: 2.0 };
-    keep p3: Point = p1 + p2;
-}
-
-// Trait bounds on generic functions
-fun bounded<T: Add + Mul>(a: T, b: T) -> T {
-    return a + b;
-}
-```
-
-### Constants & Imports
-
-```ferrite
-constant PI: float = 3.14159;
-constant MAX_EPOCHS: int = 100;
-
-import "module_path";
-from "path" take function_name;
 ```
 
 ---
 
-## ⚡ Performance & Benchmarks
+## 🏗️ Compiler Architecture & EKB
 
-Ferrite v2.3 includes an **AST-walking interpreter** alongside its AOT compilation mode. While AST interpreters are fundamentally slower than bytecode VMs or native binaries due to deep recursive AST evaluation, Ferrite implements `Rc` reference-counted memory optimizations to ensure respectable evaluation speeds.
-
-Here is a performance comparison running standard computational workloads:
-
-| Benchmark          | Ferrite (Interpreter) | Python (Bytecode) | Node.js (JIT) | Rust (AOT) | Go (AOT)  |
-| ------------------ | --------------------- | ----------------- | ------------- | ---------- | --------- |
-| **Fibonacci (25)** | `7093 ms`             | `923 ms`          | `593 ms`      | `847 ms`   | `917 ms`  |
-| **Loop Sum (10M)** | `1882 ms`             | `762 ms`          | `572 ms`      | `800 ms`   | `865 ms`  |
-| **String Concat**  | `468 ms`              | `542 ms`          | `532 ms`      | `692 ms`   | `1022 ms` |
-
-_Note: String concatenation in Ferrite outperforms competitors by natively delegating to Rust's optimized underlying allocators._
-
----
-
-## 🏗️ Compiler Architecture
+The Ferrite toolchain pipeline:
 
 ```
-Source (.fe) → Lexer → Parser → ImportResolver (Asset Bundling) → TypeEnv (Built-ins) → SemanticAnalyzer → LLVM Codegen / Tree-Walk Interpreter
+Source (.fe) → Lexer → Parser → SymbolResolver → SemanticAnalyzer (Shape Unification) → Interpreter / LLVM Codegen
 ```
 
-```
-├── 📁 .github
-├── 📁 docs
-├── 📁 src
-│   ├── 📁 ast
-│   ├── 📁 codegen
-│   ├── 📁 errors
-│   ├── 📁 imports
-│   ├── 📁 lexer
-│   ├── 📁 parser
-│   ├── 📁 runtime
-│   ├── 📁 semantic
-│   ├── 📁 stdlib
-│   ├── 📁 types
-│   └── 🦀 main.rs
-├── 📁 tests
-├── 📁 website
-├── ⚙️ .gitignore
-├── 📝 ARCHITECTURE.md
-├── 📝 CHANGELOG.md
-├── 📄 CNAME
-├── 📝 CODE_OF_CONDUCT.md
-├── ⚙️ Cargo.toml
-├── 📄 EULA.txt
-├── 📄 LICENSE
-├── 📝 MIGRATION.md
-├── 📝 README.md
-├── 📝 RELEASE_NOTES.md
-└── 📝 TERMS.md
-```
+For compiler engineers and contributors, we have published the **21-Chapter Engineering Knowledge Base (EKB)** specification detailing compiler internals, AST unification, and codegen:
 
-See [ARCHITECTURE.md](https://github.com/vishwanathdvgmm/ferrite/blob/main/ARCHITECTURE.md) for a detailed breakdown of each compiler phase.
+📖 **[Explore the 21-Chapter EKB Architecture Guide](https://github.com/vishwanathdvgmm/ferrite/tree/main/documentation)**
 
 ---
 
-## 🧪 Testing
+## 📚 Documentation & Resources
 
-The v2.3 test suite includes **35 exhaustive tests**:
-
-- **Pass tests**: primitives, functions, control flow, groups, enums, constants, generics, tensors, ML blocks, expressions, built-ins, stdlib, traits, impl blocks, exhaustive matches, field access, **closures**, **guard clauses**, **interpreter control flow**.
-- **Fail tests**: type mismatches, undefined variables, return errors, scope violations, syntax errors, argument count errors, missing trait methods, trait bound violations, undefined traits.
-
----
-
-## 💡 Design Principles
-
-- **ML-First** — Tensor types, training/inference effects, and shape validation are built into the language core
-- **Strict Typing** — Zero implicit coercion, zero broadcasting, zero runtime reflection
-- **Dual Execution Modes** — Execute scripts immediately via the built-in pure-Rust **Tree-Walk Interpreter**, or compile them ahead-of-time to native binaries via LLVM.
-- **Portable Frontend** — The compiler frontend builds on any Rust target without requiring LLVM installed
-- **Pure Safe Rust** — No `unsafe` code in the compiler
+- 🌐 **Website**: [ferrite-lang.org](https://www.ferrite-lang.org/)
+- 📖 **Language Documentation**: [ferrite-lang.org/docs/](https://www.ferrite-lang.org/docs/)
+- 🎓 **Interactive Tutorial**: [ferrite-lang.org/tutorial/](https://www.ferrite-lang.org/tutorial/)
+- 🕹️ **Web Playground**: [ferrite-lang.org/playground/](https://www.ferrite-lang.org/playground/)
+- 📄 **Wikipedia Entry**: [`WIKIPEDIA.md`](WIKIPEDIA.md) / [Wikipedia Web Page](https://www.ferrite-lang.org/wikipedia/)
+- 🌐 **Community Hub**: [ferrite-lang.org/community/](https://www.ferrite-lang.org/community/)
+- ❤️ **Sponsor Ferrite**: [ferrite-lang.org/sponsors/](https://www.ferrite-lang.org/sponsors/)
 
 ---
 
-## 📚 Documentation
+## 📦 Version History
 
-| Document                                                                                | Description                      |
-| :-------------------------------------------------------------------------------------- | :------------------------------- |
-| [Syntax](https://github.com/vishwanathdvgmm/ferrite/blob/main/docs/syntax.md)           | Language syntax reference        |
-| [Semantics](https://github.com/vishwanathdvgmm/ferrite/blob/main/docs/semantics.md)     | Compiler pipeline & semantics    |
-| [Type System](https://github.com/vishwanathdvgmm/ferrite/blob/main/docs/type-system.md) | Static type system specification |
-| [Grammar](https://github.com/vishwanathdvgmm/ferrite/blob/main/docs/grammar.ebnf)       | Formal EBNF grammar              |
-| [Architecture](https://github.com/vishwanathdvgmm/ferrite/blob/main/ARCHITECTURE.md)    | Compiler architecture            |
-| [Release Notes](https://github.com/vishwanathdvgmm/ferrite/blob/main/RELEASE_NOTES.md)  | Version history                  |
-| [Migration](https://github.com/vishwanathdvgmm/ferrite/blob/main/MIGRATION.md)          | Upgrade guides                   |
-| [Changelog](https://github.com/vishwanathdvgmm/ferrite/blob/main/CHANGELOG.md)          | Timeline of changes              |
+| Version    | Release Date | Key Features & Highlights                                        |
+| :--------- | :----------- | :--------------------------------------------------------------- |
+| **v2.4.1** | July 2026    | First-Class Closures, 21-Chapter EKB Specification Published     |
+| **v2.4.0** | July 2026    | Full Module System (`import`, `from ... take`, `pub` visibility) |
+| **v2.3.1** | June 2026    | Performance Optimizations & AST Interpreter Hardening            |
+| **v2.3.0** | June 2026    | Guard Clauses, Interpreter Flow Jump Controls                    |
+| **v2.2.0** | May 2026     | Generics, Trait Interfaces (`trait`, `impl`)                     |
+| **v2.0.0** | May 2026     | Shaped Tensor Generics (`Tensor<T, Shape>`) & Autodiff           |
+| **v1.4.0** | March 2026   | Nominal Struct Groups (`group`) & Pattern Matching (`match`)     |
+| **v1.0.0** | January 2026 | Initial Release: Core Lexer, Parser, & Tree-Walk Engine          |
 
 ---
 
-## 📦 Releases
+## ❤️ Support & Sponsorship
 
-| Version | Tag            | Description                           |
-| :------ | :------------- | :------------------------------------ |
-| v2.3.1  | `v2.3.1`       | Performance Optimizations & Bug Fixes |
-| v2.3.0  | `v2.3.0`       | Closures, Guards, Interpreter Flow    |
-| v2.2.1  | `v2.2.1`       | Type System Hardening & Traits        |
-| v2.1.0  | `v2.1.0`       | Standard Library & Builtins           |
-| v2.0.0  | `v2.0.0`       | AOT compiled ML language              |
-| v1.4.0  | `v1.4.0-final` | Bytecode VM (on `v1-legacy` branch)   |
-| v1.0.0  | `v1.0.0`       | Initial tree-walking interpreter      |
+Ferrite is 100% open-source software maintained by Vishwanath M M and contributors. If you find Ferrite valuable, consider supporting development:
+
+- ☕ **[Sponsor on GitHub Sponsors](https://github.com/sponsors/vishwanathdvgmm)**
+- 💎 **[View Sponsor Tiers on our Website](https://www.ferrite-lang.org/sponsors/)**
+
+---
+
+## 📜 License
+
+Ferrite is licensed under the [MIT License](LICENSE) and [Apache License 2.0](LICENSE).
