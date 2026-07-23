@@ -4,23 +4,47 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ferrite Playground - Try Ferrite in Your Browser</title>
-    <meta name="description" content="Write and execute Ferrite code directly in your browser with our interactive playground." />
-    <meta name="keywords" content="Ferrite, Programming Language, Compiler, Systems Programming, Machine Learning" />
+    <meta
+      name="description"
+      content="Write and execute Ferrite code directly in your browser with our interactive playground."
+    />
+    <meta
+      name="keywords"
+      content="Ferrite, Programming Language, Compiler, Systems Programming, Machine Learning"
+    />
     <meta name="author" content="Vishwanath M M" />
     <link rel="canonical" href="https://ferrite-lang.org/playground/" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Ferrite Playground - Try Ferrite in Your Browser" />
-    <meta property="og:description" content="Write and execute Ferrite code directly in your browser with our interactive playground." />
+    <meta
+      property="og:title"
+      content="Ferrite Playground - Try Ferrite in Your Browser"
+    />
+    <meta
+      property="og:description"
+      content="Write and execute Ferrite code directly in your browser with our interactive playground."
+    />
     <meta property="og:url" content="https://ferrite-lang.org/playground/" />
-    <meta property="og:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+    <meta
+      property="og:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
     <meta property="og:type" content="website" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Ferrite Playground - Try Ferrite in Your Browser" />
-    <meta name="twitter:description" content="Write and execute Ferrite code directly in your browser with our interactive playground." />
-    <meta name="twitter:image" content="https://ferrite-lang.org/assets/images/logo.png" />
+    <meta
+      name="twitter:title"
+      content="Ferrite Playground - Try Ferrite in Your Browser"
+    />
+    <meta
+      name="twitter:description"
+      content="Write and execute Ferrite code directly in your browser with our interactive playground."
+    />
+    <meta
+      name="twitter:image"
+      content="https://ferrite-lang.org/assets/images/logo.png"
+    />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -47,40 +71,22 @@
       <div class="page active">
         <section class="playground-section container">
           <div class="playground-layout">
-            <!-- Left templates sidebar -->
-            <div class="play-sidebar glass">
-              <h4>Examples</h4>
-              <ul class="example-list">
-                <li class="example-item" data-example="blank">✨ New File</li>
-                <li class="example-item active" data-example="hello">
-                  1. Hello, Ferrite!
-                </li>
-                <li class="example-item" data-example="tensors">
-                  2. Tensor Multiplications
-                </li>
-                <li class="example-item" data-example="matching">
-                  3. Match Guards & Enums
-                </li>
-                <li class="example-item" data-example="traits">
-                  4. Traits & Groups
-                </li>
-                <li class="example-item" data-example="closures">
-                  5. Closures & Loops
-                </li>
-              </ul>
-              <div class="play-help">
-                <p>
-                  <strong>Note:</strong> This is a client-side execution
-                  environment for Ferrite code. Some heavy tensor operations may
-                  run slower than native.
-                </p>
-              </div>
-            </div>
-
             <!-- Right Code Editor and Console -->
             <div class="play-editor-container">
               <div class="play-editor-header glass">
-                <div class="editor-title font-mono">sandbox.fe</div>
+                <div class="editor-title font-mono">
+                  <select
+                    id="preset-selector"
+                    class="preset-dropdown font-mono"
+                  >
+                    <option value="hello">Hello, Ferrite!</option>
+                    <option value="tensors">Tensor Multiplications</option>
+                    <option value="matching">Match Guards & Enums</option>
+                    <option value="traits">Traits & Groups</option>
+                    <option value="closures">Closures & Loops</option>
+                    <option value="blank">✨ New File</option>
+                  </select>
+                </div>
                 <div class="editor-actions">
                   <button id="btn-run" class="btn btn-primary">
                     <span class="icon">▶</span> Run Code
@@ -119,7 +125,7 @@ println("Hello, Ferrite!");</textarea
             </div>
           </div>
         </section>
-      </div>      </div>
+      </div>
     </main>
 
     <!-- Shared Footer (loaded via JS) -->

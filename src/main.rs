@@ -5,6 +5,7 @@ pub mod errors;
 pub mod imports;
 pub mod lexer;
 pub mod parser;
+pub mod pkg;
 pub mod runtime;
 pub mod semantic;
 pub mod stdlib;
@@ -18,11 +19,13 @@ use ast::{ImportDecl, TopDecl, Visibility};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let version_str = "Ferrite v2.4.0 Compiler (AOT ML Language)";
+    let version_str = "Ferrite v3.0.0-dev Compiler (AOT ML Language)";
     let usage_str = "Usage:
   ferrite run     <file.fe>   # Execute via Tree-Walk Interpreter
   ferrite check   <file.fe>   # Parse and Type-check only
   ferrite compile <file.fe>   # Compile to native LLVM IR / Object
+  ferrite init                # Initialize a Ferrite project in the current directory
+  ferrite new     <name>      # Create a new Ferrite project
   ferrite --version           # Print compiler version
   ferrite --help              # Print this help message";
 
@@ -34,7 +37,50 @@ fn main() {
         } else if arg == "--help" || arg == "-h" {
             println!("{}\n\n{}", version_str, usage_str);
             return;
+        } else if arg == "init" {
+            // `ferrite init` — initialize project in current directory
+            let cwd = std::env::current_dir().unwrap_or_else(|e| {
+                eprintln!("Error: Cannot determine current directory: {}", e);
+                std::process::exit(1);
+            });
+            match pkg::scaffold::init_project(&cwd) {
+                Ok(()) => {
+                    println!("✅ Initialized Ferrite project in '{}'", cwd.display());
+                    println!("   Created: ferrite.toml");
+                    println!("   Created: src/main.fe");
+                }
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    std::process::exit(1);
+                }
+            }
+            return;
         }
+    }
+
+    // Commands that take a single argument (not a .fe file)
+    if args.len() == 3 && args[1] == "new" {
+        let name = &args[2];
+        let cwd = std::env::current_dir().unwrap_or_else(|e| {
+            eprintln!("Error: Cannot determine current directory: {}", e);
+            std::process::exit(1);
+        });
+        match pkg::scaffold::new_project(&cwd, name) {
+            Ok(()) => {
+                println!("✅ Created new Ferrite project '{}'", name);
+                println!("   Created: {}/ferrite.toml", name);
+                println!("   Created: {}/src/main.fe", name);
+                println!("   Created: {}/tests/test_main.fe", name);
+                println!("\n   Get started:");
+                println!("     cd {}", name);
+                println!("     ferrite run src/main.fe");
+            }
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
+            }
+        }
+        return;
     }
 
     if args.len() < 3 {
