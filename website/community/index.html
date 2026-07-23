@@ -57,7 +57,7 @@
     <!-- Styles -->
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/assets/css/style.css?v=4" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=5" />
   </head>
 
   <body>
@@ -88,7 +88,7 @@
           class="container"
           style="max-width: 900px; margin-bottom: 4rem"
         >
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
+          <div class="community-grid">
             <!-- Channel 1: GitHub Discussions -->
             <div
               style="
@@ -234,14 +234,9 @@
             </p>
             <form
               id="newsletter-form"
+              class="newsletter-form-container"
               action="https://formspree.io/f/xqerdwno"
               method="POST"
-              style="
-                display: flex;
-                gap: 0.8rem;
-                max-width: 500px;
-                margin: 0 auto;
-              "
             >
               <input
                 type="hidden"
