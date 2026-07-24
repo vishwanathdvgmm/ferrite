@@ -1,6 +1,9 @@
 import "math";
+
 import "strings";
+
 import "collections";
+
 import "io";
 
 fun test_math() {
@@ -13,16 +16,14 @@ fun test_strings() {
     keep hello: string = "hello world";
     keep upper_str: string = upper(hello);
     keep has_world: bool = contains(upper_str, "WORLD");
-    
     // Test collections with strings
     keep parts: List<string> = split(hello, " ");
 }
 
 fun test_collections() {
-    keep nums: List<int> = List { ignore: 0 };
+    keep nums: List<int> = /* complex expr */;
     push(nums, 42);
-    
-    keep map: Map<string, int> = Map { ignore: 0 };
+    keep map: Map<string, int> = /* complex expr */;
     map_set(map, "key", 100);
 }
 

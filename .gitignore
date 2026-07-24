@@ -7,3 +7,6 @@ release/
 implementation_plan.md
 *.iss
 Output/
+editors/vscode/out/
+*.vsix
+editors/vscode/node_modules/

@@ -1,6 +1,5 @@
 // ── PASS TEST 03: Control flow: if/elif/else, while, for, stop, skip ──
 // Expected: ferrite check → ✅
-
 fun check_sign(n: int) -> int {
     if n > 0 {
         return 1;

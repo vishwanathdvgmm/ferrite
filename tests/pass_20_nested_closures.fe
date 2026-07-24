@@ -3,11 +3,9 @@
 // Actually, this should be a FAIL test if it crashes the program, but we don't have a catch mechanism yet.
 // Wait, the plan was: "Negative list indexing should produce a clean runtime error".
 // So I will make it fail_19_negative_index.fe instead.
-
 fun main() {
     keep offset: int = 100;
     // Nested closure immediately invoked
-    keep result: int = ((x: int) => ((y: int) => x + y + offset)(5))(10);
-    
+    keep result: int = (x: int) => (y: int) => x + y + offset(5)(10);
     assert(result == 115, "fail");
 }

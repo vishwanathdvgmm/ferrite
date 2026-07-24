@@ -1,7 +1,6 @@
 // ── FAIL TEST: Private symbol access ──
 // Expected: ferrite check → ❌ (internal_helper is not pub)
-
-from "math_utils" take internal_helper;
+from "math_utils" take { internal_helper };
 
 fun main() -> int {
     keep result: int = internal_helper();

@@ -1,6 +1,5 @@
 // ── PASS TEST 18: Guard Clauses in Match ──
 // Expected: ferrite run → prints correct guard results
-
 fun classify(x: int) -> string {
     match x {
         case n if n < 0 => {
@@ -12,7 +11,7 @@ fun classify(x: int) -> string {
         case n if n > 100 => {
             return "large";
         }
-        default => {
+        case _ => {
             return "positive";
         }
     }

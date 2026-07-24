@@ -1,5 +1,4 @@
 // EXPECT_ERROR: Function expects 2 arguments, but got 1
-
 import "math";
 
 fun main() {

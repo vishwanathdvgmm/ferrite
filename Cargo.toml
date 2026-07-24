@@ -1,6 +1,6 @@
 [package]
 name    = "ferrite"
-version = "2.4.1"
+version = "3.0.0"
 edition = "2021"
 authors = ["Vishwanath M M"]
 description = "The Ferrite programming language – fast, friendly, built in Rust."
@@ -12,6 +12,8 @@ path = "src/main.rs"
 [dependencies]
 inkwell = { version = "0.8.0", features = ["llvm15-0"], optional = true }
 rustyline = "18.0.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
 
 [features]
 llvm = ["inkwell"]

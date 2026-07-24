@@ -1,5 +1,4 @@
 // Test: Exhaustive match on enums — all variants covered
-
 enum Direction {
     North;
     South;
@@ -9,28 +8,43 @@ enum Direction {
 
 fun describe(d: Direction) -> string {
     match d {
-        case North => { return "north"; }
-        case South => { return "south"; }
-        case East  => { return "east"; }
-        case West  => { return "west"; }
+        case North => {
+            return "north";
+        }
+        case South => {
+            return "south";
+        }
+        case East => {
+            return "east";
+        }
+        case West => {
+            return "west";
+        }
     }
     return "unknown";
 }
 
 // Test with default/wildcard
-enum Color { Red; Green; Blue; }
+enum Color {
+    Red;
+    Green;
+    Blue;
+}
 
 fun color_name(c: Color) -> string {
     match c {
-        case Red => { return "red"; }
-        default => { return "other"; }
+        case Red => {
+            return "red";
+        }
+        case _ => {
+            return "other";
+        }
     }
 }
 
 fun main() {
     keep dir: Direction = North;
     keep name: string = describe(dir);
-    
     keep col: Color = Red;
     keep cname: string = color_name(col);
 }

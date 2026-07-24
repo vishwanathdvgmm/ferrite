@@ -1,12 +1,14 @@
 // ═══════════════════════════════════════════════════════════
 //  Ferrite v2.1 — Complete Feature Showcase
 // ═══════════════════════════════════════════════════════════
-
 // ── Top-level Constants ─────────────────────────────────────
-constant PI: float = 3.14159;
-constant MAX_EPOCHS: int = 100;
-constant MODEL_NAME: string = "FerriteMLP";
-constant DEBUG: bool = false;
+keep PI: float = 3.14159;
+
+keep MAX_EPOCHS: int = 100;
+
+keep MODEL_NAME: string = "FerriteMLP";
+
+keep DEBUG: bool = false;
 
 // ── Enums (Algebraic Data Types) ────────────────────────────
 enum Color {
@@ -24,11 +26,9 @@ enum Option<T> {
 group Vector2 {
     x: float;
     y: float;
-
     fun magnitude(self) -> float {
         return self.x;
     }
-
     fun scale(self, factor: float) -> float {
         return self.x;
     }
@@ -64,7 +64,6 @@ train fun optimize(loss: float) -> float {
 
 // ── Tensor Types with Shape Validation ──────────────────────
 // A built-in array stub `zeros()` is provided by the compiler
-
 fun build_model() {
     param weights: Tensor<float, (784, 128)> = zeros();
     param bias: Tensor<float, (128)> = zeros();
@@ -82,12 +81,10 @@ fun expressions_demo() {
     keep prod: int = a * b;
     keep quot: int = a / b;
     keep rem: int = a % b;
-
     // Unary
     keep neg: int = -a;
     keep flag: bool = true;
     keep flipped: bool = !flag;
-
     // Comparison
     keep lt: bool = a < b;
     keep gt: bool = a > b;
@@ -95,11 +92,9 @@ fun expressions_demo() {
     keep ge: bool = a >= b;
     keep eq: bool = a == b;
     keep ne: bool = a != b;
-
     // Logical
     keep both: bool = flag && !flag;
     keep either: bool = flag || !flag;
-
     // Float arithmetic
     keep radius: float = 5.0;
     keep area: float = PI * radius * radius;
@@ -151,7 +146,7 @@ fun describe(code: int) -> string {
         case 500 => {
             return "Server Error";
         }
-        default => {
+        case _ => {
             return "Unknown";
         }
     }
@@ -164,7 +159,6 @@ fun training_loop() {
         keep momentum: float = 0.9;
         keep loss: float = 42.0;
     }
-
     infer {
         keep prediction: int = predict(10);
     }
@@ -174,10 +168,8 @@ fun training_loop() {
 fun create_objects() {
     keep origin: Vector2 = Vector2 { x: 0.0, y: 0.0 };
     keep point: Vector2 = Vector2 { x: 3.0, y: 4.0 };
-
     keep fc1: Layer = Layer { units: 128, activation: "relu" };
     keep fc2: Layer = Layer { units: 10, activation: "softmax" };
-
     keep mag: float = point.magnitude();
     keep scaled: float = point.scale(2.5);
 }
@@ -186,7 +178,7 @@ fun create_objects() {
 fun scoping_demo() {
     keep x: int = 1;
     if true {
-        keep x: int = 2;         // Shadowing across scopes — allowed
+        keep x: int = 2; // Shadowing across scopes — allowed
         keep inner: int = x + 1; // inner = 3
     }
     // x is still 1 here, inner is not accessible
@@ -199,13 +191,11 @@ fun main() -> int {
     keep grade: string = classify(score);
     keep status: string = describe(200);
     keep count: int = countdown(10);
-
     expressions_demo();
     loop_control();
     training_loop();
     create_objects();
     scoping_demo();
     build_model();
-
     return 0;
 }

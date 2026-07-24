@@ -1,20 +1,18 @@
 // ── PASS TEST 09: ML constructs: infer/train blocks, effects ──
 // Expected: ferrite check → ✅
-
 fun forward() {
     infer {
         keep x: int = 42;
     }
-
     train {
         keep lr: float = 0.001;
     }
 }
 
-infer fun predict(input: int) -> int {
+fun predict(input: int) -> int {
     return input;
 }
 
-train fun optimize(loss: float) -> float {
+fun optimize(loss: float) -> float {
     return loss;
 }

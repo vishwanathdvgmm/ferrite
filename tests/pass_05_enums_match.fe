@@ -1,6 +1,5 @@
 // ── PASS TEST 05: Enums and pattern matching ──
 // Expected: ferrite check → ✅
-
 enum Color {
     Red;
     Green;
@@ -20,7 +19,7 @@ fun describe(x: int) -> int {
         case 1 => {
             return 1;
         }
-        default => {
+        case _ => {
             return -1;
         }
     }

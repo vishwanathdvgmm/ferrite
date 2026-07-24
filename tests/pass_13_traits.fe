@@ -1,5 +1,4 @@
 // Test: Trait declarations, trait implementation, and operator overloading
-
 trait Add {
     fun add(self, other: Self) -> Self;
 }

@@ -12,6 +12,7 @@ pub struct Lexer {
     pos: usize,
     line: u32,
     col: u32,
+    pub comments: Vec<(u32, String)>,
 }
 
 impl Lexer {
@@ -22,6 +23,7 @@ impl Lexer {
             pos: 0,
             line: 1,
             col: 1,
+            comments: Vec::new(),
         }
     }
 
@@ -117,9 +119,13 @@ impl Lexer {
 
             // Skip line comments: // ...
             if self.peek() == '/' && self.peek_next() == '/' {
+                let comment_line = self.line;
+                let mut comment_text = String::new();
                 while !self.at_end() && self.peek() != '\n' {
+                    comment_text.push(self.peek());
                     self.advance();
                 }
+                self.comments.push((comment_line, comment_text));
                 continue;
             }
 

@@ -2,6 +2,7 @@ pub mod ast;
 #[cfg(feature = "llvm")]
 pub mod codegen;
 pub mod errors;
+pub mod fmt;
 pub mod imports;
 pub mod lexer;
 pub mod lsp;
@@ -32,6 +33,7 @@ fn main() {
   ferrite clean               # Clean the Ferrite project target directory
   ferrite add     <pkg>       # Add a dependency to ferrite.toml
   ferrite remove  <pkg>       # Remove a dependency from ferrite.toml
+  ferrite fmt     <file>      # Format a Ferrite source file in-place
   ferrite repl                # Start the interactive Read-Eval-Print Loop
   ferrite lsp                 # Start the Language Server Protocol process
   ferrite --version           # Print compiler version
@@ -144,6 +146,40 @@ fn main() {
                 std::process::exit(1);
             }
             println!("✅ Removed dependency '{}' from ferrite.toml", arg2);
+            return;
+        } else if cmd == "fmt" {
+            let path = PathBuf::from(arg2);
+            if !path.exists() {
+                eprintln!("Error: File not found: {}", arg2);
+                std::process::exit(1);
+            }
+            let source = match std::fs::read_to_string(&path) {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("Error reading file: {}", e);
+                    std::process::exit(1);
+                }
+            };
+            let mut diag = errors::DiagnosticBag::new();
+            let mut lexer = lexer::Lexer::new(&source, path.clone());
+            let tokens = lexer.tokenize(&mut diag);
+            if diag.has_errors() {
+                diag.emit_all();
+                std::process::exit(1);
+            }
+            let mut parser = parser::Parser::new(tokens, &mut diag);
+            let program = parser.parse_program();
+            if diag.has_errors() {
+                diag.emit_all();
+                std::process::exit(1);
+            }
+            let mut formatter = fmt::Formatter::new(lexer.comments);
+            let formatted = formatter.format_program(&program);
+            if let Err(e) = std::fs::write(&path, formatted) {
+                eprintln!("Error writing formatted file: {}", e);
+                std::process::exit(1);
+            }
+            println!("Formatted {}", arg2);
             return;
         }
     }

@@ -1,0 +1,70 @@
+{
+  "name": "ferrite-language",
+  "displayName": "Ferrite Programming Language",
+  "description": "Official VS Code extension for the Ferrite Programming Language",
+  "version": "1.0.0",
+  "license": "MIT",
+  "icon": "icon.png",
+  "publisher": "vishwanathdvgmm",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:ferrite"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ferrite",
+        "aliases": [
+          "Ferrite",
+          "ferrite"
+        ],
+        "extensions": [
+          ".fe"
+        ],
+        "icon": {
+          "light": "./file-icon.png",
+          "dark": "./file-icon.png"
+        },
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ferrite",
+        "scopeName": "source.ferrite",
+        "path": "./syntaxes/ferrite.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Ferrite",
+      "properties": {
+        "ferrite.executablePath": {
+          "type": "string",
+          "default": "ferrite",
+          "description": "Path to the ferrite compiler executable."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "@types/node": "^16.11.7",
+    "typescript": "^4.9.5"
+  }
+}

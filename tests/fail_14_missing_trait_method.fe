@@ -1,6 +1,5 @@
 // FAIL: Impl block missing a required trait method
 // Expected error: "Missing method"
-
 trait Printable {
     fun display(self) -> string;
     fun debug(self) -> string;

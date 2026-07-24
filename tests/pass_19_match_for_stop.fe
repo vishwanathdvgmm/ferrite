@@ -1,6 +1,5 @@
 // ── PASS TEST 19: Match with Enum Destructuring, Stop, Skip ──
 // Expected: ferrite run → prints output below
-
 enum Shape {
     Circle(int);
     Rect(int, int);
@@ -25,13 +24,10 @@ fun main() {
     // Test match with enum destructuring
     keep c: Shape = Circle(5);
     println(describe_shape(c));
-
     keep r: Shape = Rect(3, 7);
     println(describe_shape(r));
-
     keep u: Shape = Unknown;
     println(describe_shape(u));
-
     // Test while with stop and skip
     keep i: int = 0;
     while i < 10 {

@@ -1,11 +1,48 @@
+use crate::fmt::format_source;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::HashMap;
 use std::io::{self, BufRead, Read, Write};
+
+#[derive(Serialize, Deserialize)]
+struct JsonRpcRequest {
+    jsonrpc: String,
+    id: Option<Value>,
+    method: Option<String>,
+    params: Option<Value>,
+}
+
+#[derive(Serialize)]
+struct JsonRpcResponse {
+    jsonrpc: String,
+    id: Value,
+    result: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<Value>,
+}
+
+fn send_response(id: Value, result: Option<Value>, error: Option<Value>) {
+    let response = JsonRpcResponse {
+        jsonrpc: "2.0".to_string(),
+        id,
+        result,
+        error,
+    };
+    if let Ok(json) = serde_json::to_string(&response) {
+        let payload = format!("Content-Length: {}\r\n\r\n{}", json.len(), json);
+        let mut stdout = io::stdout();
+        let _ = stdout.write_all(payload.as_bytes());
+        let _ = stdout.flush();
+    }
+}
 
 pub fn run_lsp_server() {
     let stdin = io::stdin();
-    let mut stdout = io::stdout();
     let mut handle = stdin.lock();
 
     eprintln!("Ferrite LSP server started.");
+
+    let mut documents: HashMap<String, String> = HashMap::new();
 
     loop {
         let mut content_length: Option<usize> = None;
@@ -18,7 +55,7 @@ pub fn run_lsp_server() {
                 Ok(_) => {
                     let line = line.trim();
                     if line.is_empty() {
-                        break; // End of headers
+                        break;
                     }
                     if line.to_lowercase().starts_with("content-length:") {
                         let parts: Vec<&str> = line.split(':').collect();
@@ -29,61 +66,106 @@ pub fn run_lsp_server() {
                         }
                     }
                 }
-                Err(e) => {
-                    eprintln!("LSP Read Error: {}", e);
-                    return;
-                }
+                Err(_) => return,
             }
         }
 
         if let Some(len) = content_length {
             let mut body = vec![0; len];
             if handle.read_exact(&mut body).is_ok() {
-                let body_str = String::from_utf8_lossy(&body);
-                // Very basic JSON-RPC parsing for "initialize"
-                if body_str.contains("\"method\":\"initialize\"")
-                    || body_str.contains("\"method\": \"initialize\"")
-                {
-                    // Extract ID
-                    let mut id_val = "null".to_string();
-                    if let Some(id_idx) = body_str.find("\"id\":") {
-                        let rest = &body_str[id_idx + 5..];
-                        let end_idx = rest.find(',').unwrap_or(rest.len());
-                        let potential_id = rest[..end_idx].trim();
-                        // simplistic cleanup
-                        id_val = potential_id.replace("}", "").trim().to_string();
-                    }
+                if let Ok(req) = serde_json::from_slice::<JsonRpcRequest>(&body) {
+                    if let Some(method) = req.method {
+                        match method.as_str() {
+                            "initialize" => {
+                                if let Some(id) = req.id {
+                                    send_response(
+                                        id,
+                                        Some(serde_json::json!({
+                                            "capabilities": {
+                                                "textDocumentSync": 1, // 1 = Full sync
+                                                "documentFormattingProvider": true,
+                                                "hoverProvider": true,
+                                                "completionProvider": {
+                                                    "resolveProvider": false,
+                                                    "triggerCharacters": ["."]
+                                                }
+                                            }
+                                        })),
+                                        None,
+                                    );
+                                }
+                            }
+                            "textDocument/didOpen" => {
+                                if let Some(params) = req.params {
+                                    if let (Some(uri), Some(text)) = (
+                                        params["textDocument"]["uri"].as_str(),
+                                        params["textDocument"]["text"].as_str(),
+                                    ) {
+                                        documents.insert(uri.to_string(), text.to_string());
+                                    }
+                                }
+                            }
+                            "textDocument/didChange" => {
+                                if let Some(params) = req.params {
+                                    if let Some(uri) = params["textDocument"]["uri"].as_str() {
+                                        if let Some(changes) = params["contentChanges"].as_array() {
+                                            if let Some(first_change) = changes.first() {
+                                                if let Some(text) = first_change["text"].as_str() {
+                                                    documents
+                                                        .insert(uri.to_string(), text.to_string());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            "textDocument/formatting" => {
+                                if let (Some(id), Some(params)) = (req.id, req.params) {
+                                    if let Some(uri) = params["textDocument"]["uri"].as_str() {
+                                        // Try to get document from in-memory sync state first
+                                        let source_opt =
+                                            documents.get(uri).cloned().or_else(|| {
+                                                // Fallback to disk
+                                                let path_str = uri
+                                                    .replace("file:///", "")
+                                                    .replace("%3A", ":")
+                                                    .replace("%3a", ":");
+                                                let path = std::path::PathBuf::from(path_str);
+                                                std::fs::read_to_string(&path).ok()
+                                            });
 
-                    // Respond with basic capabilities
-                    let response = format!(
-                        "{{\"jsonrpc\":\"2.0\",\"id\":{},\"result\":{{\"capabilities\":{{\"textDocumentSync\":1,\"hoverProvider\":true,\"completionProvider\":{{\"resolveProvider\":false,\"triggerCharacters\":[\".\"]}}}}}}}}",
-                        id_val
-                    );
-
-                    let payload = format!("Content-Length: {}\r\n\r\n{}", response.len(), response);
-                    if stdout.write_all(payload.as_bytes()).is_err() {
-                        break;
+                                        if let Some(source) = source_opt {
+                                            if let Ok(formatted) = format_source(&source) {
+                                                send_response(
+                                                    id,
+                                                    Some(serde_json::json!([
+                                                        {
+                                                            "range": {
+                                                                "start": { "line": 0, "character": 0 },
+                                                                "end": { "line": 999999, "character": 0 }
+                                                            },
+                                                            "newText": formatted
+                                                        }
+                                                    ])),
+                                                    None,
+                                                );
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                    // Fallback: return null if formatting fails
+                                    send_response(id, Some(Value::Null), None);
+                                }
+                            }
+                            "shutdown" => {
+                                if let Some(id) = req.id {
+                                    send_response(id, Some(Value::Null), None);
+                                }
+                            }
+                            "exit" => break,
+                            _ => {}
+                        }
                     }
-                    stdout.flush().unwrap();
-                } else if body_str.contains("\"method\":\"shutdown\"")
-                    || body_str.contains("\"method\": \"shutdown\"")
-                {
-                    // Extract ID
-                    let mut id_val = "null".to_string();
-                    if let Some(id_idx) = body_str.find("\"id\":") {
-                        let rest = &body_str[id_idx + 5..];
-                        let end_idx = rest.find(',').unwrap_or(rest.len());
-                        id_val = rest[..end_idx].trim().replace("}", "").to_string();
-                    }
-                    let response =
-                        format!("{{\"jsonrpc\":\"2.0\",\"id\":{},\"result\":null}}", id_val);
-                    let payload = format!("Content-Length: {}\r\n\r\n{}", response.len(), response);
-                    let _ = stdout.write_all(payload.as_bytes());
-                    let _ = stdout.flush();
-                } else if body_str.contains("\"method\":\"exit\"")
-                    || body_str.contains("\"method\": \"exit\"")
-                {
-                    break;
                 }
             }
         }

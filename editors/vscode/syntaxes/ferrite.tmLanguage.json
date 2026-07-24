@@ -1,0 +1,99 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Ferrite",
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#functions"
+        },
+        {
+            "include": "#numbers"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.ferrite",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.ferrite",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.ferrite",
+                    "match": "\\b(if|else|while|for|match|case|return|stop|skip)\\b"
+                },
+                {
+                    "name": "keyword.other.ferrite",
+                    "match": "\\b(fun|keep|param|group|enum|trait|impl|import|from|take|infer|train|async|select|pub)\\b"
+                },
+                {
+                    "name": "constant.language.boolean.ferrite",
+                    "match": "\\b(true|false)\\b"
+                }
+            ]
+        },
+        "strings": {
+            "name": "string.quoted.double.ferrite",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.ferrite",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "support.type.ferrite",
+                    "match": "\\b(int|float|string|bool|Tensor|Self)\\b"
+                },
+                {
+                    "name": "entity.name.type.ferrite",
+                    "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "entity.name.function.ferrite",
+                    "match": "\\b([a-z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.float.ferrite",
+                    "match": "\\b\\d+\\.\\d+\\b"
+                },
+                {
+                    "name": "constant.numeric.integer.ferrite",
+                    "match": "\\b\\d+\\b"
+                }
+            ]
+        }
+    },
+    "scopeName": "source.ferrite"
+}

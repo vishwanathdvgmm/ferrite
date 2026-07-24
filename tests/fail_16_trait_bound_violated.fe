@@ -1,6 +1,5 @@
 // FAIL: Trait bound violated — calling function with type that doesn't implement required trait
 // Expected error: "does not implement trait"
-
 trait Sortable {
     fun compare(self, other: Self) -> int;
 }
@@ -10,7 +9,6 @@ group Apple {
 }
 
 // Apple does NOT implement Sortable
-
 // This function tries to use + on Apple, which requires Add trait
 fun try_add(a: Apple, b: Apple) -> Apple {
     return a + b;

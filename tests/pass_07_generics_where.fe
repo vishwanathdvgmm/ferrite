@@ -1,6 +1,5 @@
 // ── PASS TEST 07: Generics, trait bounds, where clauses ──
 // Expected: ferrite check → ✅
-
 group Container<T> {
     value: T;
 }
