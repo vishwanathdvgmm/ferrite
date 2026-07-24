@@ -44,6 +44,7 @@ impl fmt::Display for TensorShape {
                 ShapeDim::Symbolic(s) => write!(f, "{}", s)?,
             }
         }
-        write!(f, ")")
+        write!(f, ")")?;
+        Ok(())
     }
 }

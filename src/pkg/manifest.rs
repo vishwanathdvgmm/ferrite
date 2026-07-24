@@ -49,12 +49,13 @@ pub enum ManifestError {
 impl fmt::Display for ManifestError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ManifestError::IoError(e) => write!(f, "I/O error reading manifest: {}", e),
-            ManifestError::ParseError(msg) => write!(f, "Manifest parse error: {}", msg),
+            ManifestError::IoError(e) => write!(f, "I/O error reading manifest: {}", e)?,
+            ManifestError::ParseError(msg) => write!(f, "Manifest parse error: {}", msg)?,
             ManifestError::MissingField(field) => {
-                write!(f, "Missing required field '{}' in [package]", field)
+                write!(f, "Missing required field '{}' in [package]", field)?
             }
-        }
+        };
+        Ok(())
     }
 }
 
@@ -347,7 +348,7 @@ impl Manifest {
 
     /// Generate a default `ferrite.toml` string for a new project.
     pub fn default_toml(project_name: &str) -> String {
-        format!(
+        let s = format!(
             r#"[package]
 name = "{}"
 version = "0.1.0"
@@ -367,7 +368,8 @@ opt-level = 3
 debug = false
 "#,
             project_name
-        )
+        );
+        s
     }
 }
 

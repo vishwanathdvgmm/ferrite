@@ -609,7 +609,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const consoleOutput = document.getElementById("console-output");
   const btnRun = document.getElementById("btn-run");
   const btnClear = document.getElementById("btn-clear");
-  const presetSelect = document.getElementById("preset-selector");
 
   // Templates map
   const codeTemplates = {
@@ -637,16 +636,42 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Switch playground script examples
-  if (presetSelect) {
-    presetSelect.addEventListener("change", (e) => {
-      const scriptType = e.target.value;
-      const scriptName = e.target.options[e.target.selectedIndex].text;
+  const customDropdown = document.getElementById("preset-dropdown");
+  const dropdownCurrent = document.getElementById("dropdown-current");
+  const presetOptions = document.getElementById("preset-options");
 
-      if (codeTemplates[scriptType]) {
-        codeEditor.value = codeTemplates[scriptType];
-        updateLineNumbers();
-        consoleOutput.innerHTML = `<span class="comment">// Editor switched to ${scriptName}.\n// Press 'Run Code' to execute.</span>`;
-      }
+  if (customDropdown && dropdownCurrent && presetOptions) {
+    // Toggle dropdown open/close
+    customDropdown.addEventListener("click", (e) => {
+      customDropdown.classList.toggle("open");
+      e.stopPropagation();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", () => {
+      customDropdown.classList.remove("open");
+    });
+
+    // Handle option selection
+    const options = presetOptions.querySelectorAll("li:not(.divider)");
+    options.forEach(option => {
+      option.addEventListener("click", (e) => {
+        // Update active class
+        options.forEach(opt => opt.classList.remove("active"));
+        option.classList.add("active");
+
+        // Update selected text
+        const scriptName = option.innerText;
+        dropdownCurrent.innerText = scriptName;
+
+        // Load code template
+        const scriptType = option.getAttribute("data-value");
+        if (codeTemplates[scriptType]) {
+          codeEditor.value = codeTemplates[scriptType];
+          updateLineNumbers();
+          consoleOutput.innerHTML = `<span class="comment">// Editor switched to ${scriptName}.\n// Press 'Run Code' to execute.</span>`;
+        }
+      });
     });
   }
 

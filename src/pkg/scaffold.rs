@@ -19,11 +19,10 @@ pub enum ScaffoldError {
 impl std::fmt::Display for ScaffoldError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ScaffoldError::IoError(e) => write!(f, "I/O error: {}", e),
-            ScaffoldError::AlreadyExists(path) => {
-                write!(f, "'{}' already exists", path)
-            }
-        }
+            ScaffoldError::IoError(e) => write!(f, "I/O error: {}", e)?,
+            ScaffoldError::AlreadyExists(path) => write!(f, "'{}' already exists", path)?,
+        };
+        Ok(())
     }
 }
 

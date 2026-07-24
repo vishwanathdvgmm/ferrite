@@ -57,7 +57,7 @@
     <!-- Styles -->
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="stylesheet" href="/assets/css/style.css?v=5" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=9" />
   </head>
 
   <body>
@@ -75,17 +75,33 @@
             <div class="play-editor-container">
               <div class="play-editor-header glass">
                 <div class="editor-title font-mono">
-                  <select
-                    id="preset-selector"
-                    class="preset-dropdown font-mono"
-                  >
-                    <option value="hello">Hello, Ferrite!</option>
-                    <option value="tensors">Tensor Multiplications</option>
-                    <option value="matching">Match Guards & Enums</option>
-                    <option value="traits">Traits & Groups</option>
-                    <option value="closures">Closures & Loops</option>
-                    <option value="blank">✨ New File</option>
-                  </select>
+                  <div class="custom-dropdown" id="preset-dropdown">
+                    <div class="dropdown-selected">
+                      <span id="dropdown-current">Hello, Ferrite!</span>
+                      <svg
+                        class="chevron"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </div>
+                    <ul class="dropdown-options font-mono" id="preset-options">
+                      <li data-value="hello" class="active">Hello, Ferrite!</li>
+                      <li data-value="tensors">Tensor Multiplications</li>
+                      <li data-value="matching">Match Guards & Enums</li>
+                      <li data-value="traits">Traits & Groups</li>
+                      <li data-value="closures">Closures & Loops</li>
+                      <li class="divider"></li>
+                      <li data-value="blank">✨ New File</li>
+                    </ul>
+                  </div>
                 </div>
                 <div class="editor-actions">
                   <button id="btn-run" class="btn btn-primary">
@@ -133,6 +149,6 @@ println("Hello, Ferrite!");</textarea
 
     <!-- Scripts -->
     <script src="/assets/js/layout.js?v=3"></script>
-    <script src="/assets/js/script.js"></script>
+    <script src="/assets/js/script.js?v=2"></script>
   </body>
 </html>

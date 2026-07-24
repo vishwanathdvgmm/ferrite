@@ -703,25 +703,100 @@ code {
   height: 680px;
 }
 
-.preset-dropdown {
-  background: transparent;
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  min-width: 240px;
+}
+
+.dropdown-selected {
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text-primary);
   border: 1px solid var(--glass-border);
-  border-radius: 4px;
-  padding: 0.3rem 0.5rem;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
   font-weight: 500;
 }
 
-.preset-dropdown:focus {
-  border-color: var(--primary-color);
+.dropdown-selected:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-.preset-dropdown option {
-  background: var(--bg-color);
+.custom-dropdown.open .dropdown-selected {
+  border-color: var(--primary-color);
+  background: rgba(50, 110, 250, 0.05);
+}
+
+.dropdown-selected .chevron {
+  transition: transform 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.custom-dropdown.open .dropdown-selected .chevron {
+  transform: rotate(180deg);
+}
+
+.dropdown-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: rgba(240, 242, 248, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  list-style: none;
+  padding: 0.35rem;
+  margin: 0;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: none;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.custom-dropdown.open .dropdown-options {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-options li {
+  padding: 0.5rem 0.8rem;
+  cursor: pointer;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.dropdown-options li:hover:not(.divider) {
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
+}
+
+.dropdown-options li.active {
+  background: rgba(50, 110, 250, 0.1);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.dropdown-options .divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 0.35rem 0;
+  padding: 0;
 }
 
 .play-help {
@@ -751,6 +826,8 @@ code {
   align-items: center;
   border-radius: 16px 16px 0 0;
   border-bottom: none;
+  position: relative;
+  z-index: 10;
 }
 
 .editor-title {
@@ -776,6 +853,8 @@ code {
   border: 1px solid var(--glass-border);
   border-radius: 0 0 16px 16px;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .code-area {
