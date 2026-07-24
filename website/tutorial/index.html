@@ -152,6 +152,12 @@ println(message);</code></pre>
                   </li>
                 </ul>
               </div>
+              <div class="docs-menu-group">
+                <h5>Chapter 6: AI Examples</h5>
+                <ul>
+                  <li><a href="#tut-nn" class="docs-link">Building a Neural Net</a></li>
+                </ul>
+              </div>
             </aside>
             <!-- Tutorial Content -->
             <article class="docs-content glass">
@@ -392,6 +398,62 @@ train {
     // Operations here will track gradients
     keep loss = compute_gradients(inputs);
 }</code></pre>
+              </div>
+              <!-- AI Examples: Neural Net -->
+              <div id="tut-nn" class="docs-section-content">
+                <h2>Chapter 6.1: Building a Neural Network</h2>
+                <p>
+                  Ferrite makes machine learning models incredibly concise by treating tensors as first-class citizens. You don't need third-party libraries; neural networks can be expressed purely using Ferrite's native syntax.
+                </p>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Defining the Model Structure</h3>
+                <pre><code class="language-ferrite">struct MLP {
+    w1: Tensor<float, (784, 128)>, // 2D Weight matrix
+    b1: Tensor<float, (128,)>,     // 1D Bias vector
+    w2: Tensor<float, (128, 10)>,
+    b2: Tensor<float, (10,)>,
+}
+
+impl MLP {
+    fun new() -> Self {
+        return MLP {
+            w1: randn(784, 128),
+            b1: zeros(128),
+            w2: randn(128, 10),
+            b2: zeros(10),
+        };
+    }
+}</code></pre>
+
+                <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">The Forward Pass</h3>
+                <p>
+                  Because Ferrite natively supports tensor broadcasting and overloaded matrix multiplication (<code>@</code>), the forward pass reads exactly like the mathematical formula.
+                </p>
+
+                <pre><code class="language-ferrite">impl MLP {
+    fun forward(self, x: Tensor<float, (32, 784)>) -> Tensor<float, (32, 10)> {
+        // x @ w1 computes the matrix multiplication
+        // + b1 broadcasts the bias to the batch size automatically
+        keep hidden = (x @ self.w1 + self.b1).relu();
+        
+        keep output = (hidden @ self.w2 + self.b2).sigmoid();
+        
+        return output;
+    }
+}
+
+keep model = MLP::new();
+keep dummy_input = randn(32, 784); // Batch of 32 images
+
+keep predictions = model.forward(dummy_input);
+println("Predictions shape: " + str(predictions.shape()));</code></pre>
+                
+                <div style="background: rgba(50, 110, 250, 0.05); padding: 1.5rem; border-left: 4px solid var(--primary-color); border-radius: 0 8px 8px 0; margin-top: 2rem;">
+                  <h4 style="margin-top: 0; margin-bottom: 0.5rem; font-weight: 600;">🧠 AI-Native Advantage</h4>
+                  <p style="margin: 0; color: var(--text-secondary); line-height: 1.6;">
+                    Notice how we didn't have to import any external libraries. Matrix multiplication <code>@</code> and activation functions like <code>.relu()</code> are built directly into the language, allowing Ferrite to perform compile-time shape checking and memory optimizations!
+                  </p>
+                </div>
               </div>
             </article>
           </div>

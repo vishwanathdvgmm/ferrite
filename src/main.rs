@@ -26,6 +26,10 @@ fn main() {
   ferrite compile <file.fe>   # Compile to native LLVM IR / Object
   ferrite init                # Initialize a Ferrite project in the current directory
   ferrite new     <name>      # Create a new Ferrite project
+  ferrite build               # Build the Ferrite project in the current directory
+  ferrite clean               # Clean the Ferrite project target directory
+  ferrite add     <pkg>       # Add a dependency to ferrite.toml
+  ferrite remove  <pkg>       # Remove a dependency from ferrite.toml
   ferrite --version           # Print compiler version
   ferrite --help              # Print this help message";
 
@@ -55,6 +59,26 @@ fn main() {
                 }
             }
             return;
+        } else if arg == "build" {
+            let cwd = std::env::current_dir().unwrap_or_else(|e| {
+                eprintln!("Error: Cannot determine current directory: {}", e);
+                std::process::exit(1);
+            });
+            if let Err(e) = pkg::build::build_project(&cwd) {
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
+            }
+            return;
+        } else if arg == "clean" {
+            let cwd = std::env::current_dir().unwrap_or_else(|e| {
+                eprintln!("Error: Cannot determine current directory: {}", e);
+                std::process::exit(1);
+            });
+            if let Err(e) = pkg::build::clean_project(&cwd) {
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
+            }
+            return;
         }
     }
 
@@ -81,6 +105,31 @@ fn main() {
             }
         }
         return;
+    }
+
+    if args.len() == 3 {
+        let cmd = &args[1];
+        let arg2 = &args[2];
+        let cwd = std::env::current_dir().unwrap_or_else(|e| {
+            eprintln!("Error: Cannot determine current directory: {}", e);
+            std::process::exit(1);
+        });
+
+        if cmd == "add" {
+            if let Err(e) = pkg::deps::add_dependency(&cwd, arg2, "*") {
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
+            }
+            println!("✅ Added dependency '{}' to ferrite.toml", arg2);
+            return;
+        } else if cmd == "remove" {
+            if let Err(e) = pkg::deps::remove_dependency(&cwd, arg2) {
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
+            }
+            println!("✅ Removed dependency '{}' from ferrite.toml", arg2);
+            return;
+        }
     }
 
     if args.len() < 3 {
