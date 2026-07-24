@@ -4,8 +4,10 @@ pub mod codegen;
 pub mod errors;
 pub mod imports;
 pub mod lexer;
+pub mod lsp;
 pub mod parser;
 pub mod pkg;
+pub mod repl;
 pub mod runtime;
 pub mod semantic;
 pub mod stdlib;
@@ -30,8 +32,16 @@ fn main() {
   ferrite clean               # Clean the Ferrite project target directory
   ferrite add     <pkg>       # Add a dependency to ferrite.toml
   ferrite remove  <pkg>       # Remove a dependency from ferrite.toml
+  ferrite repl                # Start the interactive Read-Eval-Print Loop
+  ferrite lsp                 # Start the Language Server Protocol process
   ferrite --version           # Print compiler version
   ferrite --help              # Print this help message";
+
+    if args.len() == 1 {
+        // If no arguments, launch REPL by default for better DevX
+        repl::start_repl();
+        return;
+    }
 
     if args.len() == 2 {
         let arg = &args[1];
@@ -78,6 +88,12 @@ fn main() {
                 eprintln!("Error: {}", e);
                 std::process::exit(1);
             }
+            return;
+        } else if arg == "repl" {
+            repl::start_repl();
+            return;
+        } else if arg == "lsp" {
+            lsp::run_lsp_server();
             return;
         }
     }
