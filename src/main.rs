@@ -22,7 +22,7 @@ use ast::{ImportDecl, TopDecl, Visibility};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let version_str = "Ferrite v3.0.0-dev Compiler (AOT ML Language)";
+    let version_str = "Ferrite v3.0.0 Compiler (AOT ML Language)";
     let usage_str = "Usage:
   ferrite run     <file.fe>   # Execute via Tree-Walk Interpreter
   ferrite check   <file.fe>   # Parse and Type-check only
@@ -87,6 +87,16 @@ fn main() {
                 std::process::exit(1);
             });
             if let Err(e) = pkg::build::clean_project(&cwd) {
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
+            }
+            return;
+        } else if arg == "test" {
+            let cwd = std::env::current_dir().unwrap_or_else(|e| {
+                eprintln!("Error: Cannot determine current directory: {}", e);
+                std::process::exit(1);
+            });
+            if let Err(e) = pkg::test::test_project(&cwd) {
                 eprintln!("Error: {}", e);
                 std::process::exit(1);
             }
@@ -217,8 +227,10 @@ fn main() {
                     TopDecl::Group(g) => g.visibility == Visibility::Public,
                     TopDecl::Enum(e) => e.visibility == Visibility::Public,
                     TopDecl::Trait(t) => t.visibility == Visibility::Public,
-                    TopDecl::Impl(_) => true, // impl blocks are always public
-                    TopDecl::Import(_) => false, // don't re-export imports
+                    TopDecl::TestFunc(_) => false, // tests are not exported
+                    TopDecl::ExternBlock(_) => false, // extern blocks not exported by default
+                    TopDecl::Impl(_) => true,      // impl blocks are always public
+                    TopDecl::Import(_) => false,   // don't re-export imports
                 })
                 .cloned()
                 .collect();

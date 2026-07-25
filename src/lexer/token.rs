@@ -41,6 +41,7 @@ pub enum TokenKind {
     Pub,
     Extern,
     Unsafe,
+    Test,
     True,
     False,
 
@@ -124,6 +125,7 @@ impl fmt::Display for TokenKind {
             TokenKind::Pub => write!(f, "pub"),
             TokenKind::Extern => write!(f, "extern"),
             TokenKind::Unsafe => write!(f, "unsafe"),
+            TokenKind::Test => write!(f, "test"),
             TokenKind::True => write!(f, "true"),
             TokenKind::False => write!(f, "false"),
             TokenKind::Ident(s) => write!(f, "{}", s),
@@ -216,6 +218,7 @@ pub fn lookup_keyword(word: &str) -> Option<TokenKind> {
         "pub" => Some(TokenKind::Pub),
         "extern" => Some(TokenKind::Extern),
         "unsafe" => Some(TokenKind::Unsafe),
+        "test" => Some(TokenKind::Test),
         "true" => Some(TokenKind::True),
         "false" => Some(TokenKind::False),
         _ => None,

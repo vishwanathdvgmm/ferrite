@@ -267,6 +267,8 @@ impl Formatter {
             TopDecl::Group(g) => &g.span,
             TopDecl::Enum(e) => &e.span,
             TopDecl::Func(f) => &f.span,
+            TopDecl::TestFunc(f) => &f.span,
+            TopDecl::ExternBlock(eb) => &eb.span,
             TopDecl::Trait(t) => &t.span,
             TopDecl::Impl(i) => &i.span,
         };
@@ -462,6 +464,43 @@ impl Formatter {
                 self.indent();
                 self.output.push('}');
             }
+            TopDecl::TestFunc(f) => {
+                self.output.push_str(&format!("test fun {}() {{\n", f.name));
+                self.indent_level += 1;
+                for stmt in &f.body.stmts {
+                    self.format_stmt(stmt);
+                }
+                self.indent_level -= 1;
+                self.indent();
+                self.output.push('}');
+            }
+            TopDecl::ExternBlock(eb) => {
+                self.output.push_str(&format!("extern \"{}\" {{\n", eb.abi));
+                self.indent_level += 1;
+                for f in &eb.functions {
+                    self.indent();
+                    self.output.push_str(&format!("fun {}(", f.name));
+                    for (i, param) in f.params.iter().enumerate() {
+                        if i > 0 {
+                            self.output.push_str(", ");
+                        }
+                        self.output.push_str(&format!(
+                            "{}: {}",
+                            param.name,
+                            self.format_type(&param.ty)
+                        ));
+                    }
+                    self.output.push_str(")");
+                    if let Some(ret) = &f.return_type {
+                        self.output
+                            .push_str(&format!(" -> {}", self.format_type(ret)));
+                    }
+                    self.output.push_str(";\n");
+                }
+                self.indent_level -= 1;
+                self.indent();
+                self.output.push('}');
+            }
         }
         self.flush_comments(span.line, true);
     }
@@ -493,6 +532,7 @@ impl Formatter {
                     Expr::Lambda { span, .. } => span,
                     Expr::GroupLiteral { span, .. } => span,
                     Expr::Assign { span, .. } => span,
+                    Expr::UnsafeBlock(_, span) => span,
                 }
             }
         };
@@ -809,11 +849,20 @@ impl Formatter {
                     if i > 0 {
                         self.output.push_str(", ");
                     }
-                    self.output.push_str(field_name);
-                    self.output.push_str(": ");
+                    self.output.push_str(&format!("{}: ", field_name));
                     self.format_expr(field_expr);
                 }
                 self.output.push_str(" }");
+            }
+            Expr::UnsafeBlock(b, _) => {
+                self.output.push_str("unsafe {\n");
+                self.indent_level += 1;
+                for stmt in &b.stmts {
+                    self.format_stmt(stmt);
+                }
+                self.indent_level -= 1;
+                self.indent();
+                self.output.push('}');
             }
         }
     }

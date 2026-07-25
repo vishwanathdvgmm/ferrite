@@ -182,6 +182,11 @@ impl<'a> Parser<'a> {
             self.parse_trait_decl(visibility).map(TopDecl::Trait)
         } else if self.match_token(&[TokenKind::Impl]) {
             self.parse_impl_block().map(TopDecl::Impl)
+        } else if self.match_token(&[TokenKind::Test]) {
+            // A test function: test fun ...
+            self.parse_func_decl(visibility).map(TopDecl::TestFunc)
+        } else if self.match_token(&[TokenKind::Extern]) {
+            self.parse_extern_block().map(TopDecl::ExternBlock)
         } else {
             // Function declaration might start with `<`, `infer`, `train`, `async`, or `fun`
             // Let's rely on fact that func starts with `fun` eventually
@@ -579,6 +584,58 @@ impl<'a> Parser<'a> {
             }
         }
         Some(params)
+    }
+
+    fn parse_extern_block(&mut self) -> Option<ExternBlock> {
+        let start_span = self.previous().span.clone(); // The `extern` keyword
+
+        let mut abi = "Rust".to_string();
+        if let TokenKind::StringLit(s) = self.peek().kind.clone() {
+            abi = s;
+            self.advance();
+        }
+
+        self.consume(TokenKind::LBrace, "Expected '{' after extern ABI.")?;
+        let mut functions = Vec::new();
+
+        while !self.check(&TokenKind::RBrace) && !self.is_at_end() {
+            let func_start = self.peek().span.clone();
+            self.consume(TokenKind::Fun, "Expected 'fun' in extern block.")?;
+            let (name, _) = self.consume_ident("Expected function name.")?;
+            self.consume(TokenKind::LParen, "Expected '(' after function name.")?;
+
+            let mut params = Vec::new();
+            if !self.check(&TokenKind::RParen) {
+                params = self.parse_params()?;
+            }
+            self.consume(TokenKind::RParen, "Expected ')' after parameters.")?;
+
+            let mut return_type = None;
+            if self.match_token(&[TokenKind::Arrow]) {
+                return_type = Some(self.parse_type()?);
+            }
+            self.consume(
+                TokenKind::Semicolon,
+                "Expected ';' after extern function declaration.",
+            )?;
+
+            let func_span = self.merge_span(&func_start, &self.previous().span.clone());
+            functions.push(ExternFuncDecl {
+                name,
+                params,
+                return_type,
+                span: func_span,
+            });
+        }
+
+        self.consume(TokenKind::RBrace, "Expected '}' after extern block.")?;
+        let span = self.merge_span(&start_span, &self.previous().span.clone());
+
+        Some(ExternBlock {
+            abi,
+            functions,
+            span,
+        })
     }
 
     // ── Types & Generics ────────────────────────────────────────────
@@ -1432,6 +1489,11 @@ impl<'a> Parser<'a> {
 
             return Some(Expr::Ident(name, span));
         }
+        if self.match_token(&[TokenKind::Unsafe]) {
+            let block = self.parse_block()?;
+            let full_span = self.merge_span(&span, &block.span);
+            return Some(Expr::UnsafeBlock(block, full_span));
+        }
 
         if self.match_token(&[TokenKind::LParen]) {
             // Check if this is a lambda: (params) => body
@@ -1508,6 +1570,7 @@ impl Expr {
             Expr::Lambda { span, .. } => span.clone(),
             Expr::GroupLiteral { span, .. } => span.clone(),
             Expr::Assign { span, .. } => span.clone(),
+            Expr::UnsafeBlock(_, span) => span.clone(),
         }
     }
 }

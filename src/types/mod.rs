@@ -19,6 +19,7 @@ pub enum Type {
     Generic(String),                            // Resolved generic parameter
     GenericInst(String, Vec<Type>),             // Generic instantiation, e.g., List<int>
     Func(Vec<Type>, Box<Type>),                 // Function signature: param types and return type
+    ExternFunc(Vec<Type>, Box<Type>),           // External FFI function signature
     Unit,                                       // () function return
     Never,                                      // Type of `stop` or `skip` or divergent branches
     Error,    // Represents a failed type check to prevent cascading errors
@@ -75,6 +76,15 @@ impl fmt::Display for Type {
                 write!(f, "fun({}) -> {}", params_str, ret)?;
                 Ok(())
             }
+            Type::ExternFunc(params, ret) => {
+                let params_str = params
+                    .iter()
+                    .map(|t| t.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                write!(f, "extern fun({}) -> {}", params_str, ret)?;
+                Ok(())
+            }
             Type::Unit => {
                 write!(f, "()")?;
                 Ok(())
@@ -115,6 +125,10 @@ impl Type {
                 let new_params = params.iter().map(|p| p.substitute(subst)).collect();
                 Type::Func(new_params, Box::new(ret.substitute(subst)))
             }
+            Type::ExternFunc(params, ret) => {
+                let new_params = params.iter().map(|p| p.substitute(subst)).collect();
+                Type::ExternFunc(new_params, Box::new(ret.substitute(subst)))
+            }
             _ => self.clone(),
         }
     }
@@ -133,6 +147,10 @@ impl Type {
             Type::Func(params, ret) => {
                 let new_params = params.iter().map(|p| p.resolve_self(concrete)).collect();
                 Type::Func(new_params, Box::new(ret.resolve_self(concrete)))
+            }
+            Type::ExternFunc(params, ret) => {
+                let new_params = params.iter().map(|p| p.resolve_self(concrete)).collect();
+                Type::ExternFunc(new_params, Box::new(ret.resolve_self(concrete)))
             }
             _ => self.clone(),
         }

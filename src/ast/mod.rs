@@ -37,6 +37,8 @@ pub enum TopDecl {
     Func(FuncDecl),
     Trait(TraitDecl),
     Impl(ImplBlock),
+    TestFunc(FuncDecl),
+    ExternBlock(ExternBlock),
 }
 
 // ── Imports ──────────────────────────────────────────────────────
@@ -255,6 +257,21 @@ pub struct Param {
     pub span: Span,
 }
 
+#[derive(Debug, Clone)]
+pub struct ExternBlock {
+    pub abi: String,
+    pub functions: Vec<ExternFuncDecl>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct ExternFuncDecl {
+    pub name: String,
+    pub params: Vec<Param>,
+    pub return_type: Option<Type>,
+    pub span: Span,
+}
+
 // ── Types ────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
@@ -426,8 +443,10 @@ impl TopDecl {
             TopDecl::Group(g) => Some(g.name.clone()),
             TopDecl::Enum(e) => Some(e.name.clone()),
             TopDecl::Trait(t) => Some(t.name.clone()),
+            TopDecl::TestFunc(f) => Some(f.name.clone()),
             TopDecl::Impl(_) => None,
             TopDecl::Import(_) => None,
+            TopDecl::ExternBlock(_) => None,
         }
     }
 }
@@ -489,6 +508,8 @@ pub enum Expr {
         value: Box<Expr>,
         span: Span,
     },
+    /// Unsafe block: unsafe { ... }
+    UnsafeBlock(Block, Span),
 }
 
 // ── Literals ─────────────────────────────────────────────────────

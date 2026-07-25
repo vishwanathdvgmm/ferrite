@@ -43,12 +43,20 @@ impl<'ctx, 'a> LLVMCodegen<'ctx, 'a> {
         for decl in &program.decls {
             if let ast::TopDecl::Func(f) = decl {
                 self.declare_function(f)?;
+            } else if let ast::TopDecl::TestFunc(f) = decl {
+                self.declare_function(f)?;
+            } else if let ast::TopDecl::ExternBlock(eb) = decl {
+                for f in &eb.functions {
+                    self.declare_extern_function(f)?;
+                }
             }
         }
 
-        // Pass 2: Compile function bodies
+        // Pass 2: Definitions
         for decl in &program.decls {
             if let ast::TopDecl::Func(f) = decl {
+                self.compile_function(f)?;
+            } else if let ast::TopDecl::TestFunc(f) = decl {
                 self.compile_function(f)?;
             }
         }
@@ -69,6 +77,18 @@ impl<'ctx, 'a> LLVMCodegen<'ctx, 'a> {
         let void_type = self.context.void_type();
         let fn_type = void_type.fn_type(&[], false); // no params for now
         let function = self.module.add_function(&f.name, fn_type, None);
+        self.functions.insert(f.name.clone(), function);
+        Ok(())
+    }
+
+    fn declare_extern_function(&mut self, f: &ast::ExternFuncDecl) -> Result<(), String> {
+        // Map parameter types to LLVM
+        // For now, let's assume all parameters are i64 or void as stub
+        let void_type = self.context.void_type();
+        let fn_type = void_type.fn_type(&[], false); // no params for now
+        let function =
+            self.module
+                .add_function(&f.name, fn_type, Some(inkwell::module::Linkage::External));
         self.functions.insert(f.name.clone(), function);
         Ok(())
     }
@@ -183,6 +203,14 @@ impl<'ctx, 'a> LLVMCodegen<'ctx, 'a> {
                     }
                     _ => Err("Invalid binary operation types".into()),
                 }
+            }
+            ast::Expr::UnsafeBlock(block, _) => {
+                let mut last_val = None;
+                for stmt in &block.stmts {
+                    self.compile_stmt(stmt)?;
+                    // Optional: capture last value if blocks yield values
+                }
+                Ok(last_val)
             }
             _ => Ok(None),
         }

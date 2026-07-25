@@ -8,6 +8,7 @@ pub struct SemanticAnalyzer<'a> {
     module_exports: HashMap<String, Vec<TopDecl>>,
     in_loop: bool,
     in_func: bool,
+    in_unsafe: bool,
     current_return_type: Option<Type>,
     /// The type being implemented in the current `impl` block (for resolving `Self`)
     current_self_type: Option<Type>,
@@ -20,6 +21,7 @@ impl<'a> SemanticAnalyzer<'a> {
             module_exports,
             in_loop: false,
             in_func: false,
+            in_unsafe: false,
             current_return_type: None,
             current_self_type: None,
         }
@@ -105,7 +107,7 @@ impl<'a> SemanticAnalyzer<'a> {
                     let ty = self.env.resolve_ast_type(&c.ty);
                     self.env.declare_var(c.name.clone(), ty, &c.span);
                 }
-                TopDecl::Func(f) => {
+                TopDecl::Func(f) | TopDecl::TestFunc(f) => {
                     // Register the function name in the variable scope with its parameter types.
                     let generic_names: Vec<String> = f
                         .generics
@@ -133,6 +135,22 @@ impl<'a> SemanticAnalyzer<'a> {
 
                     let func_ty = Type::Func(param_tys, Box::new(ret_ty));
                     self.env.declare_var(f.name.clone(), func_ty, &f.span);
+                }
+                TopDecl::ExternBlock(eb) => {
+                    for f in &eb.functions {
+                        let ret_ty = match &f.return_type {
+                            Some(t) => self.env.resolve_ast_type(t),
+                            None => Type::Unit,
+                        };
+                        let param_tys: Vec<Type> = f
+                            .params
+                            .iter()
+                            .map(|p| self.env.resolve_ast_type(&p.ty))
+                            .collect();
+
+                        let func_ty = Type::ExternFunc(param_tys, Box::new(ret_ty));
+                        self.env.declare_var(f.name.clone(), func_ty, &f.span);
+                    }
                 }
                 TopDecl::Trait(t) => {
                     // Register trait definition
@@ -295,7 +313,8 @@ impl<'a> SemanticAnalyzer<'a> {
                 self.env.exit_scope();
             }
             TopDecl::Enum(_) => {}
-            TopDecl::Func(f) => {
+            TopDecl::ExternBlock(_) => {}
+            TopDecl::Func(f) | TopDecl::TestFunc(f) => {
                 let prev_func = self.in_func;
                 let prev_ret = self.current_return_type.clone();
                 self.in_func = true;
@@ -786,7 +805,18 @@ impl<'a> SemanticAnalyzer<'a> {
                 let callee_ty = self.analyze_expr(callee);
                 let mut ret_ty = Type::Error;
 
-                if let Type::Func(param_tys, func_ret_ty) = &callee_ty {
+                let is_extern = matches!(callee_ty, Type::ExternFunc(_, _));
+                if is_extern && !self.in_unsafe {
+                    self.env.diag.error(
+                        span.clone(),
+                        "Call to extern function is unsafe and requires an unsafe block"
+                            .to_string(),
+                    );
+                }
+
+                if let Type::Func(param_tys, func_ret_ty)
+                | Type::ExternFunc(param_tys, func_ret_ty) = &callee_ty
+                {
                     if args.len() != param_tys.len() {
                         self.env.diag.error(
                             span.clone(),
@@ -956,6 +986,15 @@ impl<'a> SemanticAnalyzer<'a> {
                 let val_ty = self.analyze_expr(value);
                 self.env.unify(&target_ty, &val_ty, span);
                 val_ty
+            }
+            Expr::UnsafeBlock(block, _span) => {
+                let prev_unsafe = self.in_unsafe;
+                self.in_unsafe = true;
+                self.env.enter_scope();
+                self.analyze_block(block);
+                self.env.exit_scope();
+                self.in_unsafe = prev_unsafe;
+                Type::Unit // For now, unsafe blocks evaluate to Unit. Or could be last expr if we support it.
             }
         }
     }

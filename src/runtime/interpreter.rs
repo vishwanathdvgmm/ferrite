@@ -183,6 +183,8 @@ impl Interpreter {
             for decl in &program.decls {
                 match decl {
                     TopDecl::Func(_)
+                    | TopDecl::TestFunc(_)
+                    | TopDecl::ExternBlock(_)
                     | TopDecl::Constant(_)
                     | TopDecl::Impl(_)
                     | TopDecl::Enum(_)
@@ -751,6 +753,10 @@ impl Interpreter {
                     Rc::new(*body.clone()),
                     Rc::new(captured_env),
                 ))
+            }
+            Expr::UnsafeBlock(block, _) => {
+                let (val, _) = self.exec_block(block)?;
+                Ok(val)
             }
         }
     }
