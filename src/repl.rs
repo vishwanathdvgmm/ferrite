@@ -9,7 +9,7 @@ use rustyline::DefaultEditor;
 use std::collections::HashMap;
 
 pub fn start_repl() {
-    println!("Ferrite v3.0.0-dev Interactive REPL");
+    println!("Ferrite v{} Interactive REPL", env!("CARGO_PKG_VERSION"));
     println!("Type 'exit' or press Ctrl-C to quit.\n");
 
     let mut rl = match DefaultEditor::new() {

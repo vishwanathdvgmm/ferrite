@@ -22,7 +22,10 @@ use ast::{ImportDecl, TopDecl, Visibility};
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    let version_str = "Ferrite v3.0.0 Compiler (AOT ML Language)";
+    let version_str = format!(
+        "Ferrite v{} Compiler (AOT ML Language)",
+        env!("CARGO_PKG_VERSION")
+    );
     let usage_str = "Usage:
   ferrite run     <file.fe>   # Execute via Tree-Walk Interpreter
   ferrite check   <file.fe>   # Parse and Type-check only

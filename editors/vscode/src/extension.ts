@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { spawnSync } from 'child_process';
 import { workspace, window, commands, ExtensionContext } from 'vscode';
 
@@ -50,7 +51,7 @@ function findFerriteExecutable(): string | undefined {
 }
 
 export function activate(context: ExtensionContext) {
-  const command = findFerriteExecutable();
+  let command = findFerriteExecutable();
   
   if (!command) {
     window.showErrorMessage(
@@ -62,6 +63,26 @@ export function activate(context: ExtensionContext) {
       }
     });
     return;
+  }
+
+  // Windows File Lock Workaround: 
+  // Copy ferrite.exe to a temp folder and run the copy so the original can be overwritten/deleted
+  if (process.platform === 'win32') {
+    try {
+      const tmpDir = os.tmpdir();
+      // Attempt to clean up old dead copies first
+      for (const f of fs.readdirSync(tmpDir)) {
+        if (f.startsWith('ferrite-lsp-') && f.endsWith('.exe')) {
+          try { fs.unlinkSync(path.join(tmpDir, f)); } catch (_) { /* Ignore if still running */ }
+        }
+      }
+      
+      const tmpPath = path.join(tmpDir, `ferrite-lsp-${Date.now()}.exe`);
+      fs.copyFileSync(command, tmpPath);
+      command = tmpPath;
+    } catch (e) {
+      console.warn('Failed to create temp copy of ferrite.exe, falling back to original which may lock.', e);
+    }
   }
 
   const run: Executable = {
