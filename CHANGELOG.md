@@ -2,6 +2,21 @@
 
 All notable changes to Ferrite are documented here.
 
+## [3.0.0]
+
+### 🚀 VS Code Extension & IDE Tooling
+
+Ferrite v3.0.0 introduces our official IDE tooling suite, bringing the language directly into your editor with full semantic support and smart automation.
+
+### Added
+
+- **VS Code Extension (v1.1.0)** — Published to the VS Code Marketplace and Open VSX Registry.
+- **Smart Compiler Discovery** — The extension automatically detects `ferrite.exe` in your system `PATH` or local workspace (`target/release/`, `target/debug/`), with a fallback UI prompt to configure the path if missing.
+- **Language Server Protocol (LSP)** — Real-time diagnostics, syntax highlighting, and formatting on save.
+- **LLVM Codegen Fixes** — Full native AOT compiler support for logical AND (`&&`), modulo (`%`), and unary minus (`-`) operators.
+
+---
+
 ## [2.3.1] — 2026-07-03
 
 ### Fixed

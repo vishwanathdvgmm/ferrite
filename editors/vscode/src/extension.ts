@@ -1,5 +1,7 @@
 import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
+import * as fs from 'fs';
+import { spawnSync } from 'child_process';
+import { workspace, window, commands, ExtensionContext } from 'vscode';
 
 import {
   LanguageClient,
@@ -10,10 +12,58 @@ import {
 
 let client: LanguageClient;
 
-export function activate(context: ExtensionContext) {
+function findFerriteExecutable(): string | undefined {
   const config = workspace.getConfiguration('ferrite');
-  const command = config.get<string>('executablePath') || 'ferrite';
+  const userConfigured = config.get<string>('executablePath');
   
+  // 1. If user explicitly configured something other than default 'ferrite', trust it
+  if (userConfigured && userConfigured !== 'ferrite') {
+    return userConfigured;
+  }
+
+  // 2. Check system PATH
+  const isWindows = process.platform === 'win32';
+  const binName = isWindows ? 'ferrite.exe' : 'ferrite';
+  
+  try {
+    const checkCmd = isWindows ? 'where' : 'which';
+    const result = spawnSync(checkCmd, [binName]);
+    if (result.status === 0) {
+      return binName; // Found in PATH
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // 3. Check local workspace (for developers building ferrite locally)
+  if (workspace.workspaceFolders) {
+    for (const folder of workspace.workspaceFolders) {
+      const releasePath = path.join(folder.uri.fsPath, 'target', 'release', binName);
+      if (fs.existsSync(releasePath)) return releasePath;
+      
+      const debugPath = path.join(folder.uri.fsPath, 'target', 'debug', binName);
+      if (fs.existsSync(debugPath)) return debugPath;
+    }
+  }
+
+  return undefined;
+}
+
+export function activate(context: ExtensionContext) {
+  const command = findFerriteExecutable();
+  
+  if (!command) {
+    window.showErrorMessage(
+      "Ferrite compiler not found. Please install it or configure 'ferrite.executablePath'.",
+      "Open Settings"
+    ).then(selection => {
+      if (selection === "Open Settings") {
+        commands.executeCommand('workbench.action.openSettings', 'ferrite.executablePath');
+      }
+    });
+    return;
+  }
+
   const run: Executable = {
     command,
     args: ['lsp'],

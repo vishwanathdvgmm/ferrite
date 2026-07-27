@@ -51,6 +51,12 @@ impl<'a> Parser<'a> {
             .unwrap_or_else(|| self.tokens.last().unwrap())
     }
 
+    fn peek_n(&self, n: usize) -> &Token {
+        self.tokens
+            .get(self.pos + n)
+            .unwrap_or_else(|| self.tokens.last().unwrap())
+    }
+
     fn previous(&self) -> &Token {
         &self.tokens[self.pos.saturating_sub(1)]
     }
@@ -1460,7 +1466,13 @@ impl<'a> Parser<'a> {
             // Check for group literal: Point { x: 1 }
             if self.check(&TokenKind::LBrace) {
                 // Peek ahead to ensure it's a field init (ident :) to avoid confusion with blocks
-                if let TokenKind::Ident(_) = self.peek_next().kind {
+                // We check if the token after '{' is an identifier and the token after that is ':',
+                // OR if the token after '{' is '}' (empty struct).
+                let next_is_rbrace = self.peek_next().kind == TokenKind::RBrace;
+                let next_is_field_init = matches!(self.peek_next().kind, TokenKind::Ident(_))
+                    && matches!(self.peek_n(2).kind, TokenKind::Colon);
+
+                if next_is_rbrace || next_is_field_init {
                     self.advance(); // consume {
                     let mut fields = Vec::new();
                     if !self.check(&TokenKind::RBrace) {

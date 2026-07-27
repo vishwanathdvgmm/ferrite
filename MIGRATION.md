@@ -2,6 +2,24 @@
 
 This document covers major changes and migration steps between Ferrite versions.
 
+## Migrating from Ferrite v2.4.1 to v3.0.0
+
+Ferrite v3.0.0 introduces official IDE tooling (VS Code Extension, Language Server, and Formatter) and enhances the AOT LLVM compiler backend. There are no breaking syntax changes in this release.
+
+### 1. IDE Tooling
+
+You no longer need to rely purely on CLI errors. Install the official "Ferrite Programming Language" extension (v1.1.0+) in VS Code or VSCodium. The extension automatically discovers your compiler in the system `PATH` or the local workspace, providing real-time diagnostics and formatting on save.
+
+### 2. Native LLVM Operators
+
+Operations that previously required workarounds or crashed the AOT compiler are now natively supported in LLVM IR when running `ferrite compile`. You no longer need to use hacks for:
+
+- **Logical AND / OR**: `&&` and `||` now compile cleanly.
+- **Modulo**: `%` is natively supported for integer remainders.
+- **Unary Minus**: `-x` is natively supported (previously required `0 - x`).
+
+---
+
 ## Migrating from Ferrite v2.2.1 to v2.3.1
 
 Ferrite v2.3.1 focuses on bringing the interpreter's capabilities to parity with the AOT compiler, specifically regarding closures and control flow. There are no breaking syntax changes in this release, but behavior inside `ferrite run` is vastly improved.

@@ -3,8 +3,8 @@ use std::collections::HashMap;
 
 use crate::types::{operator_trait, ImplDef, TraitDef, TraitMethodDef, Type, TypeEnv};
 
-pub struct SemanticAnalyzer<'a> {
-    pub env: &'a mut TypeEnv<'a>,
+pub struct SemanticAnalyzer<'a, 'b> {
+    pub env: &'a mut TypeEnv<'b>,
     module_exports: HashMap<String, Vec<TopDecl>>,
     in_loop: bool,
     in_func: bool,
@@ -14,8 +14,8 @@ pub struct SemanticAnalyzer<'a> {
     current_self_type: Option<Type>,
 }
 
-impl<'a> SemanticAnalyzer<'a> {
-    pub fn new(env: &'a mut TypeEnv<'a>, module_exports: HashMap<String, Vec<TopDecl>>) -> Self {
+impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
+    pub fn new(env: &'a mut TypeEnv<'b>, module_exports: HashMap<String, Vec<TopDecl>>) -> Self {
         Self {
             env,
             module_exports,

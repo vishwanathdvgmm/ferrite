@@ -3,10 +3,15 @@ target/
 _legacy/
 release/
 *.bak
-*.py
 implementation_plan.md
 *.iss
 Output/
 editors/vscode/out/
 *.vsix
 editors/vscode/node_modules/
+news*.md
+*.ll
+*.pdb
+*_ferrite
+*_go
+*_rs

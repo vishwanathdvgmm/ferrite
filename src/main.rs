@@ -311,11 +311,14 @@ fn main() {
 
         // Semantic Analysis Pass
         let mut type_env = types::TypeEnv::new(&mut diag);
-        let mut semantic = semantic::SemanticAnalyzer::new(&mut type_env, module_exports.clone());
+        {
+            let mut semantic =
+                semantic::SemanticAnalyzer::new(&mut type_env, module_exports.clone());
+            semantic.analyze_program(&merged_ast);
+        }
 
-        semantic.analyze_program(&merged_ast);
-        if diag.has_errors() {
-            diag.emit_all();
+        if type_env.diag.has_errors() {
+            type_env.diag.emit_all();
             std::process::exit(1);
         }
 

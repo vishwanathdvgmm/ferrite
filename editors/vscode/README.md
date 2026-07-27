@@ -10,10 +10,8 @@ Official Visual Studio Code extension for the **Ferrite** programming language.
 
 ## Requirements
 
-You must have the `ferrite` compiler installed and available in your system's `PATH`.
-
 1. Install Ferrite from the [official repository](https://github.com/vishwanathdvgmm/ferrite).
-2. Ensure `ferrite` is in your `PATH` or configure the absolute path in the extension settings.
+2. That's it! The extension will automatically find `ferrite` if it is in your system's `PATH`, or if you are developing locally inside the Ferrite workspace. If it cannot be found, it will prompt you to configure the absolute path in the extension settings.
 
 ## Getting Started
 
@@ -27,6 +25,12 @@ You must have the `ferrite` compiler installed and available in your system's `P
 See the [issue tracker](https://github.com/vishwanathdvgmm/ferrite/issues) for known issues.
 
 ## Release Notes
+
+### 1.1.0
+
+- **Smart Compiler Discovery**: The extension now intelligently locates the `ferrite.exe` compiler from your system `PATH` or local workspace automatically.
+- Removed redundant activation events for faster extension startup.
+- Added user-friendly UI prompt for configuring the compiler path if missing.
 
 ### 1.0.0
 

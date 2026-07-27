@@ -1,6 +1,26 @@
-# Ferrite v2.3.1 — Compiler Architecture
+# Ferrite v3.0.0 — Compiler Architecture
 
-This document describes the internal architecture of the Ferrite v2.3.1 AOT compiler.
+This document describes the internal architecture of the Ferrite v3.0.0 AOT compiler and IDE Tooling.
+
+---
+
+## What's New in v3.0
+
+### 🚀 Language Server (LSP) & VS Code Extension
+
+Ferrite now includes full IDE support powered by a native Language Server implementation.
+
+- **Smart Compiler Discovery**: The extension auto-detects `ferrite.exe` in system `PATH` and local workspace `target/` directories, removing the need for manual configuration.
+- **Diagnostics**: Real-time syntax and type errors using the semantic analyzer.
+- **Auto-Formatting**: Integrated code formatter (`ferrite fmt`) accessible via VS Code's "Format on Save" feature.
+
+### ⚡ LLVM Codegen Enhancements
+
+The AOT compiler backend (`src/codegen/llvm.rs`) has been significantly expanded to support complex native operations that were previously fallback-only:
+
+- **Logical Operators**: `&&` and `||` are natively compiled using LLVM control flow and Phi nodes for proper short-circuit evaluation.
+- **Arithmetic**: Full support for modulo (`%`) and unary minus (`-`) directly in LLVM IR.
+- **Opaque Pointers**: The compiler has been upgraded to properly utilize LLVM 15's opaque pointers (`ptr`), eliminating typed pointer deprecation warnings.
 
 ---
 

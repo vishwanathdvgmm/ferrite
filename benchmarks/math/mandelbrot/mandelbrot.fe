@@ -1,0 +1,31 @@
+// Ferrite Benchmark: Mandelbrot Iteration Counter
+fun mandelbrot(c_re: float, c_im: float) -> int {
+    keep z_re: float = c_re;
+    keep z_im: float = c_im;
+    keep iter: int = 0;
+    while iter < 1000 {
+        if z_re * z_re + z_im * z_im > 4.0 {
+            return iter;
+        }
+        keep new_re: float = z_re * z_re - z_im * z_im + c_re;
+        keep new_im: float = 2.0 * z_re * z_im + c_im;
+        z_re = new_re;
+        z_im = new_im;
+        iter = iter + 1;
+    }
+    return iter;
+}
+
+fun main() {
+    keep total_iter: int = 0;
+    keep y: float = -1.0;
+    while y <= 1.0 {
+        keep x: float = -2.0;
+        while x <= 1.0 {
+            total_iter = total_iter + mandelbrot(x, y);
+            x = x + 0.05;
+        }
+        y = y + 0.05;
+    }
+    println("Mandelbrot total iterations = " + str(total_iter));
+}

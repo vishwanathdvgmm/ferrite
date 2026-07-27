@@ -1,0 +1,27 @@
+// Ferrite Benchmark: Collatz Sequence Max Length
+fun collatz(n: int) -> int {
+    keep len: int = 0;
+    keep current: int = n;
+    while current > 1 {
+        if current % 2 == 0 {
+            current = current / 2;
+        } else {
+            current = 3 * current + 1;
+        }
+        len = len + 1;
+    }
+    return len;
+}
+
+fun main() {
+    keep max_len: int = 0;
+    keep i: int = 1;
+    while i <= 100000 {
+        keep clen: int = collatz(i);
+        if clen > max_len {
+            max_len = clen;
+        }
+        i = i + 1;
+    }
+    println("Max Collatz length up to 100000 = " + str(max_len));
+}
