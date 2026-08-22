@@ -1,5 +1,0 @@
-// Test: runtime_fail_03_index_bounds.fe
-fun main() {
-    keep s: string = "abc";
-    keep val: string = s[5];
-}

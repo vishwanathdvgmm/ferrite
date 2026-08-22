@@ -1,6 +1,6 @@
 [package]
 name    = "ferrite"
-version = "3.0.0"
+version = "3.1.0"
 edition = "2021"
 authors = ["Vishwanath M M"]
 description = "The Ferrite programming language – fast, friendly, built in Rust."
@@ -17,3 +17,6 @@ serde_json = "1.0.151"
 
 [features]
 llvm = ["inkwell"]
+
+[dev-dependencies]
+insta = { version = "1.39", features = ["json"] }

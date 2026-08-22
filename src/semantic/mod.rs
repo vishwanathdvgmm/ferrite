@@ -335,14 +335,20 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                     None => Some(Type::Unit),
                 };
 
-                self.env.enter_scope();
-                for param in &f.params {
-                    let pty = self.env.resolve_ast_type(&param.ty);
-                    self.env.declare_var(param.name.clone(), pty, &param.span);
+                let is_top_level = f.name == "__top_level__";
+                if !is_top_level {
+                    self.env.enter_scope();
+                    for param in &f.params {
+                        let pty = self.env.resolve_ast_type(&param.ty);
+                        self.env.declare_var(param.name.clone(), pty, &param.span);
+                    }
                 }
 
                 self.analyze_block(&f.body);
-                self.env.exit_scope();
+
+                if !is_top_level {
+                    self.env.exit_scope();
+                }
 
                 self.env.pop_generics(generic_names.len());
                 self.in_func = prev_func;
@@ -407,12 +413,18 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
         self.current_self_type = prev_self;
     }
 
-    fn analyze_block(&mut self, block: &Block) {
+    fn analyze_block(&mut self, block: &Block) -> Type {
         self.env.enter_scope();
         for stmt in &block.stmts {
             self.analyze_stmt(stmt);
         }
+        let ty = if let Some(expr) = &block.expr {
+            self.analyze_expr(expr)
+        } else {
+            Type::Unit
+        };
         self.env.exit_scope();
+        ty
     }
 
     fn analyze_stmt(&mut self, stmt: &Stmt) {
@@ -439,196 +451,9 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 self.env.unify(&decl_ty, &expr_ty, span);
                 self.env.declare_var(name.clone(), decl_ty, span);
             }
-            Stmt::ExprStmt(expr) => {
+            Stmt::ExprStmt(expr, _) => {
                 self.analyze_expr(expr);
             }
-            Stmt::Return { value, span } => {
-                if !self.in_func {
-                    self.env
-                        .diag
-                        .error(span.clone(), "Cannot return outside of a function.");
-                } else {
-                    let ret_ty = value
-                        .as_ref()
-                        .map(|e| self.analyze_expr(e))
-                        .unwrap_or(Type::Unit);
-                    if let Some(expected) = &self.current_return_type {
-                        self.env.unify(expected, &ret_ty, span);
-                    }
-                }
-            }
-            Stmt::If {
-                condition,
-                then_block,
-                elif_branches,
-                else_block,
-                span: _,
-            } => {
-                let cond_ty = self.analyze_expr(condition);
-                self.env.unify(&Type::Bool, &cond_ty, &condition.span());
-                self.analyze_block(then_block);
-                for (cond, blk) in elif_branches {
-                    let ct = self.analyze_expr(cond);
-                    self.env.unify(&Type::Bool, &ct, &cond.span());
-                    self.analyze_block(blk);
-                }
-                if let Some(blk) = else_block {
-                    self.analyze_block(blk);
-                }
-            }
-            Stmt::While {
-                condition,
-                body,
-                span: _,
-            } => {
-                let cond_ty = self.analyze_expr(condition);
-                self.env.unify(&Type::Bool, &cond_ty, &condition.span());
-
-                let prev_loop = self.in_loop;
-                self.in_loop = true;
-                self.analyze_block(body);
-                self.in_loop = prev_loop;
-            }
-            Stmt::For {
-                var,
-                iterable,
-                body,
-                span,
-            } => {
-                // Iteration logic checks can go here
-                let _iter_ty = self.analyze_expr(iterable);
-
-                let prev_loop = self.in_loop;
-                self.in_loop = true;
-
-                self.env.enter_scope();
-                self.env.declare_var(var.clone(), Type::Error, span); // stub until traits are fully evaluated
-                self.analyze_block(body);
-                self.env.exit_scope();
-
-                self.in_loop = prev_loop;
-            }
-            Stmt::Match {
-                subject,
-                cases,
-                span,
-            } => {
-                let subject_ty = self.analyze_expr(subject);
-
-                // Exhaustiveness checking for enum types
-                self.check_match_exhaustiveness(&subject_ty, cases, span);
-
-                for case in cases {
-                    self.env.enter_scope();
-                    self.analyze_pattern(&case.pattern, &subject_ty);
-                    // Type-check guard clause if present
-                    if let Some(ref guard) = case.guard {
-                        let guard_ty = self.analyze_expr(guard);
-                        self.env.unify(&Type::Bool, &guard_ty, &guard.span());
-                    }
-                    self.analyze_block(&case.body);
-                    self.env.exit_scope();
-                }
-            }
-            Stmt::Select { cases, span: _ } => {
-                for case in cases {
-                    self.env.enter_scope();
-                    if let Some((name, expr)) = &case.assignment {
-                        let ty = self.analyze_expr(expr);
-                        if name != "_" {
-                            self.env.declare_var(name.clone(), ty, &expr.span());
-                        }
-                    }
-                    self.analyze_block(&case.body);
-                    self.env.exit_scope();
-                }
-            }
-            Stmt::InferBlock(block) | Stmt::TrainBlock(block) => {
-                self.analyze_block(block);
-            }
-            Stmt::Stop(span) | Stmt::Skip(span) => {
-                if !self.in_loop {
-                    self.env.diag.error(
-                        span.clone(),
-                        "Cannot break/continue ('stop'/'skip') outside of a loop.",
-                    );
-                }
-            }
-        }
-    }
-
-    /// Check if a match statement on an enum type is exhaustive.
-    /// Emits a warning (not error) if variants are missing and no wildcard is present.
-    fn check_match_exhaustiveness(
-        &mut self,
-        subject_ty: &Type,
-        cases: &[MatchCase],
-        span: &crate::errors::Span,
-    ) {
-        let type_name = match subject_ty {
-            Type::Named(name) => name,
-            _ => return, // Only check enums
-        };
-
-        let variants = match self.env.enum_variants.get(type_name) {
-            Some(v) => v.clone(),
-            None => return, // Not an enum type — could be a group, skip
-        };
-
-        // Check if there's a wildcard/default pattern
-        let has_wildcard = cases
-            .iter()
-            .any(|c| matches!(&c.pattern, Pattern::Wildcard(_)));
-        if has_wildcard {
-            return; // Wildcard covers everything
-        }
-
-        // Check if there's a catch-all binding (single variable without constructor)
-        let has_binding_catchall = cases
-            .iter()
-            .any(|c| matches!(&c.pattern, Pattern::Binding(_, _)));
-        if has_binding_catchall {
-            return; // A binding pattern catches everything
-        }
-
-        // Collect matched variant names
-        let matched_variants: Vec<&str> = cases
-            .iter()
-            .filter_map(|c| match &c.pattern {
-                Pattern::Constructor { name, .. } => Some(name.as_str()),
-                Pattern::Binding(name, _) => {
-                    // Check if this binding name is actually a unit variant
-                    if variants.iter().any(|(vn, vf)| vn == name && vf.is_empty()) {
-                        Some(name.as_str())
-                    } else {
-                        None
-                    }
-                }
-                _ => None,
-            })
-            .collect();
-
-        // Find missing variants
-        let missing: Vec<&String> = variants
-            .iter()
-            .filter(|(vname, _)| !matched_variants.contains(&vname.as_str()))
-            .map(|(vname, _)| vname)
-            .collect();
-
-        if !missing.is_empty() {
-            let missing_list = missing
-                .iter()
-                .map(|s| format!("'{}'", s))
-                .collect::<Vec<_>>()
-                .join(", ");
-            self.env.diag.warning(
-                span.clone(),
-                format!(
-                    "Non-exhaustive match on enum '{}'. Missing variants: {}. \
-                     Consider adding a 'default' case.",
-                    type_name, missing_list
-                ),
-            );
         }
     }
 
@@ -714,6 +539,126 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
 
     fn analyze_expr(&mut self, expr: &Expr) -> Type {
         match expr {
+            Expr::Block(block) => self.analyze_block(block),
+            Expr::If {
+                condition,
+                then_block,
+                elif_branches,
+                else_block,
+                span,
+            } => {
+                let cond_ty = self.analyze_expr(condition);
+                self.env.unify(&Type::Bool, &cond_ty, &condition.span());
+
+                let then_ty = self.analyze_block(then_block);
+                let mut overall_ty = then_ty;
+
+                for (elif_cond, elif_block) in elif_branches {
+                    let elif_cond_ty = self.analyze_expr(elif_cond);
+                    self.env
+                        .unify(&Type::Bool, &elif_cond_ty, &elif_cond.span());
+                    let branch_ty = self.analyze_block(elif_block);
+                    self.env.unify(&overall_ty, &branch_ty, &elif_block.span);
+                    overall_ty = branch_ty;
+                }
+
+                if let Some(else_b) = else_block {
+                    let else_ty = self.analyze_block(else_b);
+                    self.env.unify(&overall_ty, &else_ty, &else_b.span);
+                    overall_ty = else_ty;
+                } else {
+                    // If there is no else, the overall type MUST be Unit (or Never).
+                    self.env.unify(&Type::Unit, &overall_ty, &span);
+                    overall_ty = Type::Unit;
+                }
+                overall_ty
+            }
+            Expr::While {
+                condition, body, ..
+            } => {
+                let cond_ty = self.analyze_expr(condition);
+                self.env.unify(&Type::Bool, &cond_ty, &condition.span());
+                let prev = self.in_loop;
+                self.in_loop = true;
+                self.analyze_block(body);
+                self.in_loop = prev;
+                Type::Unit
+            }
+            Expr::For {
+                iterable,
+                body,
+                var,
+                ..
+            } => {
+                let _iter_ty = self.analyze_expr(iterable);
+                // Assume array/list for now
+                self.env.enter_scope();
+                self.env
+                    .declare_var(var.clone(), Type::Error, &iterable.span());
+                let prev = self.in_loop;
+                self.in_loop = true;
+                self.analyze_block(body);
+                self.in_loop = prev;
+                self.env.exit_scope();
+                Type::Unit
+            }
+            Expr::Match {
+                subject,
+                cases,
+                span: _,
+            } => {
+                let subj_ty = self.analyze_expr(subject);
+                let mut overall_ty = Type::Error;
+
+                for (i, case) in cases.iter().enumerate() {
+                    self.env.enter_scope();
+                    self.analyze_pattern(&case.pattern, &subj_ty);
+                    if let Some(guard) = &case.guard {
+                        let g_ty = self.analyze_expr(guard);
+                        self.env.unify(&Type::Bool, &g_ty, &guard.span());
+                    }
+                    let branch_ty = self.analyze_block(&case.body);
+                    if i == 0 {
+                        overall_ty = branch_ty;
+                    } else {
+                        self.env.unify(&overall_ty, &branch_ty, &case.span);
+                        overall_ty = branch_ty;
+                    }
+                    self.env.exit_scope();
+                }
+                overall_ty
+            }
+            Expr::Select { cases: _, span: _ } => {
+                Type::Unit // Simplified for now
+            }
+            Expr::Return { value, span } => {
+                if !self.in_func {
+                    self.env
+                        .diag
+                        .error(span.clone(), "Cannot return outside of a function.");
+                } else {
+                    let ret_ty = value
+                        .as_ref()
+                        .map(|e| self.analyze_expr(e))
+                        .unwrap_or(Type::Unit);
+                    if let Some(expected) = &self.current_return_type {
+                        self.env.unify(expected, &ret_ty, &span);
+                    }
+                }
+                Type::Never
+            }
+            Expr::Stop(span) | Expr::Skip(span) => {
+                if !self.in_loop {
+                    self.env
+                        .diag
+                        .error(span.clone(), "Cannot use stop or skip outside of a loop.");
+                }
+                Type::Never
+            }
+            Expr::InferBlock(b) | Expr::TrainBlock(b) => {
+                self.analyze_block(b);
+                Type::Unit
+            }
             Expr::Lit(lit, _) => match lit {
                 Literal::Int(_) => Type::Int,
                 Literal::Float(_) => Type::Float,
@@ -838,6 +783,7 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                                 &arg_ty,
                                 &arg.span(),
                                 &mut subst,
+                                0,
                             );
                         }
                         ret_ty = func_ret_ty.substitute(&subst);

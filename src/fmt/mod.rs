@@ -509,17 +509,8 @@ impl Formatter {
         let span = match stmt {
             Stmt::Keep { span, .. } => span,
             Stmt::Param { span, .. } => span,
-            Stmt::Return { span, .. } => span,
-            Stmt::If { span, .. } => span,
-            Stmt::While { span, .. } => span,
-            Stmt::For { span, .. } => span,
-            Stmt::Match { span, .. } => span,
-            Stmt::InferBlock(b) => &b.span,
-            Stmt::TrainBlock(b) => &b.span,
-            Stmt::Select { span, .. } => span,
-            Stmt::Stop(span) => span,
-            Stmt::Skip(span) => span,
-            Stmt::ExprStmt(expr) => {
+
+            Stmt::ExprStmt(expr, _) => {
                 // Approximate span of expr stmt for comments
                 match expr {
                     Expr::Lit(_, span) => span,
@@ -533,6 +524,17 @@ impl Formatter {
                     Expr::GroupLiteral { span, .. } => span,
                     Expr::Assign { span, .. } => span,
                     Expr::UnsafeBlock(_, span) => span,
+                    Expr::Block(b) => &b.span,
+                    Expr::If { span, .. } => span,
+                    Expr::While { span, .. } => span,
+                    Expr::For { span, .. } => span,
+                    Expr::Match { span, .. } => span,
+                    Expr::InferBlock(b) => &b.span,
+                    Expr::TrainBlock(b) => &b.span,
+                    Expr::Select { span, .. } => span,
+                    Expr::Return { span, .. } => span,
+                    Expr::Stop(span) => span,
+                    Expr::Skip(span) => span,
                 }
             }
         };
@@ -550,6 +552,11 @@ impl Formatter {
                 self.format_expr(value);
                 self.output.push_str(";");
             }
+            Stmt::ExprStmt(expr, _) => {
+                self.format_expr(expr);
+                self.output.push_str(";");
+            }
+
             Stmt::Param {
                 name, ty, value, ..
             } => {
@@ -558,206 +565,12 @@ impl Formatter {
                 self.format_expr(value);
                 self.output.push_str(";");
             }
-            Stmt::Return { value, .. } => {
-                self.output.push_str("return");
-                if let Some(v) = value {
-                    self.output.push(' ');
-                    self.format_expr(v);
-                }
-                self.output.push_str(";");
-            }
-            Stmt::ExprStmt(expr) => {
-                self.format_expr(expr);
-                self.output.push_str(";");
-            }
-            Stmt::If {
-                condition,
-                then_block,
-                elif_branches,
-                else_block,
-                ..
-            } => {
-                self.output.push_str("if ");
-                self.format_expr(condition);
-                self.output.push_str(" {\n");
-                self.indent_level += 1;
-                for s in &then_block.stmts {
-                    self.format_stmt(s);
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push_str("}");
-                for (cond, block) in elif_branches {
-                    self.output.push_str(" elif ");
-                    self.format_expr(cond);
-                    self.output.push_str(" {\n");
-                    self.indent_level += 1;
-                    for s in &block.stmts {
-                        self.format_stmt(s);
-                    }
-                    self.indent_level -= 1;
-                    self.indent();
-                    self.output.push_str("}");
-                }
-                if let Some(block) = else_block {
-                    self.output.push_str(" else {\n");
-                    self.indent_level += 1;
-                    for s in &block.stmts {
-                        self.format_stmt(s);
-                    }
-                    self.indent_level -= 1;
-                    self.indent();
-                    self.output.push_str("}");
-                }
-            }
-            Stmt::While {
-                condition, body, ..
-            } => {
-                self.output.push_str("while ");
-                self.format_expr(condition);
-                self.output.push_str(" {\n");
-                self.indent_level += 1;
-                for s in &body.stmts {
-                    self.format_stmt(s);
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push_str("}");
-            }
-            Stmt::For {
-                var,
-                iterable,
-                body,
-                ..
-            } => {
-                self.output.push_str(&format!("for {} in ", var));
-                self.format_expr(iterable);
-                self.output.push_str(" {\n");
-                self.indent_level += 1;
-                for s in &body.stmts {
-                    self.format_stmt(s);
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push_str("}");
-            }
-            Stmt::Match { subject, cases, .. } => {
-                self.output.push_str("match ");
-                self.format_expr(subject);
-                self.output.push_str(" {\n");
-                self.indent_level += 1;
-                for case in cases {
-                    self.indent();
-                    self.output.push_str("case ");
-                    self.format_pattern(&case.pattern);
-                    if let Some(guard) = &case.guard {
-                        self.output.push_str(" if ");
-                        self.format_expr(guard);
-                    }
-                    self.output.push_str(" => {\n");
-                    self.indent_level += 1;
-                    for s in &case.body.stmts {
-                        self.format_stmt(s);
-                    }
-                    self.indent_level -= 1;
-                    self.indent();
-                    self.output.push_str("}\n");
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push_str("}");
-            }
-            Stmt::InferBlock(block) => {
-                self.output.push_str("infer {\n");
-                self.indent_level += 1;
-                for s in &block.stmts {
-                    self.format_stmt(s);
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push_str("}");
-            }
-            Stmt::TrainBlock(block) => {
-                self.output.push_str("train {\n");
-                self.indent_level += 1;
-                for s in &block.stmts {
-                    self.format_stmt(s);
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push_str("}");
-            }
-            Stmt::Select { cases, .. } => {
-                self.output.push_str("select {\n");
-                self.indent_level += 1;
-                for case in cases {
-                    self.indent();
-                    if case.is_default {
-                        self.output.push_str("default => {\n");
-                    } else if let Some((var, expr)) = &case.assignment {
-                        self.output.push_str(&format!("case {} = ", var));
-                        self.format_expr(expr);
-                        self.output.push_str(" => {\n");
-                    }
-                    self.indent_level += 1;
-                    for s in &case.body.stmts {
-                        self.format_stmt(s);
-                    }
-                    self.indent_level -= 1;
-                    self.indent();
-                    self.output.push_str("}\n");
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push_str("}");
-            }
-            Stmt::Stop(_) => self.output.push_str("stop;"),
-            Stmt::Skip(_) => self.output.push_str("skip;"),
         }
         if span.line > 0 {
             self.flush_comments(span.line, true);
         }
         if !self.output.ends_with('\n') {
             self.output.push('\n');
-        }
-    }
-
-    fn format_pattern(&mut self, pat: &Pattern) {
-        match pat {
-            Pattern::Literal(lit) => match lit {
-                Literal::Int(i) => self.output.push_str(&i.to_string()),
-                Literal::Float(f) => self.output.push_str(&format!("{:?}", f)),
-                Literal::Bool(b) => self.output.push_str(&b.to_string()),
-                Literal::String(s) => self.output.push_str(&format!("\"{}\"", s)),
-            },
-            Pattern::Wildcard(_) => self.output.push_str("_"),
-            Pattern::Binding(name, _) => self.output.push_str(name),
-            Pattern::Constructor { name, fields, .. } => {
-                self.output.push_str(name);
-                if !fields.is_empty() {
-                    self.output.push('(');
-                    for (i, field) in fields.iter().enumerate() {
-                        if i > 0 {
-                            self.output.push_str(", ");
-                        }
-                        self.format_pattern(field);
-                    }
-                    self.output.push(')');
-                }
-            }
-            Pattern::Struct { name, fields, .. } => {
-                self.output.push_str(name);
-                self.output.push_str(" { ");
-                for (i, (field_name, field_pat)) in fields.iter().enumerate() {
-                    if i > 0 {
-                        self.output.push_str(", ");
-                    }
-                    self.output.push_str(field_name);
-                    self.output.push_str(": ");
-                    self.format_pattern(field_pat);
-                }
-                self.output.push_str(" }");
-            }
         }
     }
 
@@ -863,6 +676,9 @@ impl Formatter {
                 self.indent_level -= 1;
                 self.indent();
                 self.output.push('}');
+            }
+            _ => {
+                self.output.push_str("/* TODO expr fmt */");
             }
         }
     }

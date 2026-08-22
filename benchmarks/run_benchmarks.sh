@@ -17,9 +17,14 @@ fi
 export LLVM_SYS_150_PREFIX="F:/Applications/LLVM_15/LLVM"
 export PATH="/f/Applications/LLVM_15/LLVM/bin:$PATH"
 
+# Fix for clang native windows paths inside MSYS2/Git Bash
+export TMP="$(cygpath -m /tmp)"
+export TEMP="$(cygpath -m /tmp)"
+export TMPDIR="$(cygpath -m /tmp)"
+
 # Build Ferrite in release mode
 echo "Building Ferrite (Release mode)..."
-cargo build --release --features llvm
+# cargo build --release --features llvm
 export PATH="/f/Softwares/lua-5.5.0/lua-5.5.0/src:$PATH"
 FERRITE_CMD="./target/release/ferrite.exe"
 
@@ -41,21 +46,21 @@ done
 
 # Build Rust and Go benchmarks
 echo "Building Rust and Go benchmarks..."
-for cat_dir in benchmarks/*; do
-    if [ -d "$cat_dir" ]; then
-        for test_dir in "$cat_dir"/*; do
-            if [ -d "$test_dir" ]; then
-                test=$(basename "$test_dir")
-                if [ -f "$test_dir/${test}.rs" ]; then
-                    rustc -O "$test_dir/${test}.rs" -o "$test_dir/${test}_rs"
-                fi
-                if [ -f "$test_dir/${test}.go" ]; then
-                    go build -o "$test_dir/${test}_go" "$test_dir/${test}.go"
-                fi
-            fi
-        done
-    fi
-done
+# for cat_dir in benchmarks/*; do
+#     if [ -d "$cat_dir" ]; then
+#         for test_dir in "$cat_dir"/*; do
+#             if [ -d "$test_dir" ]; then
+#                 test=$(basename "$test_dir")
+#                 if [ -f "$test_dir/${test}.rs" ]; then
+#                     rustc -O "$test_dir/${test}.rs" -o "$test_dir/${test}_rs"
+#                 fi
+#                 if [ -f "$test_dir/${test}.go" ]; then
+#                     go build -o "$test_dir/${test}_go" "$test_dir/${test}.go"
+#                 fi
+#             fi
+#         done
+#     fi
+# done
 
 run_benchmark() {
     local cmd="$1"

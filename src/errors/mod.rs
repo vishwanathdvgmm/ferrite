@@ -172,6 +172,11 @@ impl DiagnosticBag {
         self.diagnostics.push(diagnostic);
     }
 
+    pub fn clear(&mut self) {
+        self.diagnostics.clear();
+        self.source_cache.clear();
+    }
+
     pub fn error(&mut self, span: Span, message: impl Into<String>) {
         self.add(Diagnostic::error(span, message));
     }
@@ -182,6 +187,12 @@ impl DiagnosticBag {
 
     pub fn has_errors(&self) -> bool {
         self.diagnostics.iter().any(|d| d.level == Level::Error)
+    }
+
+    pub fn has_error_at(&self, span: &Span) -> bool {
+        self.diagnostics
+            .iter()
+            .any(|d| d.level == Level::Error && &d.span == span)
     }
 
     pub fn error_count(&self) -> usize {

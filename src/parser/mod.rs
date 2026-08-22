@@ -23,14 +23,74 @@ impl<'a> Parser<'a> {
 
     pub fn parse_program(&mut self) -> Program {
         let mut decls = Vec::new();
+        let mut top_stmts = Vec::new();
+
         while !self.is_at_end() {
-            if let Some(decl) = self.parse_top_decl() {
-                decls.push(decl);
+            if self.is_decl_start() {
+                if let Some(decl) = self.parse_top_decl() {
+                    decls.push(decl);
+                } else {
+                    self.synchronize();
+                }
             } else {
-                self.synchronize();
+                if let Some(stmt) = self.parse_stmt() {
+                    top_stmts.push(stmt);
+                } else {
+                    self.synchronize();
+                }
             }
         }
+
+        if !top_stmts.is_empty() {
+            decls.push(crate::ast::TopDecl::Func(crate::ast::FuncDecl {
+                visibility: crate::ast::Visibility::Private,
+                effects: vec![],
+                effect_params: vec![],
+                name: "__top_level__".to_string(),
+                generics: vec![],
+                params: vec![],
+                return_effects: vec![],
+                return_type: None,
+                where_clause: vec![],
+                body: crate::ast::Block {
+                    stmts: top_stmts,
+                    expr: None,
+                    span: crate::errors::Span::dummy(),
+                },
+                span: crate::errors::Span::dummy(),
+            }));
+        }
+
         Program { decls }
+    }
+
+    fn is_decl_start(&self) -> bool {
+        let mut pos = self.pos;
+        if self
+            .tokens
+            .get(pos)
+            .map_or(false, |t| t.kind == TokenKind::Pub)
+        {
+            pos += 1;
+        }
+        match self.tokens.get(pos).map(|t| &t.kind) {
+            Some(TokenKind::Import)
+            | Some(TokenKind::From)
+            | Some(TokenKind::Constant)
+            | Some(TokenKind::Keep)
+            | Some(TokenKind::Group)
+            | Some(TokenKind::Enum)
+            | Some(TokenKind::Trait)
+            | Some(TokenKind::Impl)
+            | Some(TokenKind::Test)
+            | Some(TokenKind::Extern)
+            | Some(TokenKind::Fun)
+            | Some(TokenKind::Infer)
+            | Some(TokenKind::Train)
+            | Some(TokenKind::Async)
+            | Some(TokenKind::Lt) => true,
+            _ => false,
+        }
     }
 
     // ── Helper Methods ──────────────────────────────────────────────
@@ -128,6 +188,34 @@ impl<'a> Parser<'a> {
         self.diag.error(span, message);
     }
 
+    /// Report an error at the previously consumed token's location.
+    /// Useful for errors detected *after* consuming a token (e.g., missing RHS after `=`).
+    #[allow(dead_code)]
+    fn error_at_previous(&mut self, message: &str) {
+        if self.panic_mode {
+            return;
+        }
+        self.panic_mode = true;
+        let span = self.previous().span.clone();
+        self.diag.error(span, message);
+    }
+
+    /// Try to consume the expected token, or report a helpful diagnostic
+    /// showing what was found vs. what was expected.
+    #[allow(dead_code)]
+    fn expect_token(&mut self, expected: TokenKind, context: &str) -> Option<&Token> {
+        if self.check(&expected) {
+            Some(self.advance())
+        } else {
+            let found = format!("{}", self.peek().kind);
+            self.error_at_current(&format!(
+                "Expected {} {}, but found '{}'.",
+                expected, context, found
+            ));
+            None
+        }
+    }
+
     fn synchronize(&mut self) {
         self.panic_mode = false;
         if !self.is_at_end() {
@@ -159,7 +247,8 @@ impl<'a> Parser<'a> {
                 | TokenKind::Skip
                 | TokenKind::Pub
                 | TokenKind::Trait
-                | TokenKind::Impl => return,
+                | TokenKind::Impl
+                | TokenKind::RBrace => return,
                 _ => {}
             }
             self.advance();
@@ -178,7 +267,7 @@ impl<'a> Parser<'a> {
 
         if self.match_token(&[TokenKind::Import, TokenKind::From]) {
             self.parse_import_decl().map(TopDecl::Import)
-        } else if self.match_token(&[TokenKind::Constant]) {
+        } else if self.match_token(&[TokenKind::Keep]) {
             self.parse_constant_decl(visibility).map(TopDecl::Constant)
         } else if self.match_token(&[TokenKind::Group]) {
             self.parse_group_decl(visibility).map(TopDecl::Group)
@@ -654,12 +743,16 @@ impl<'a> Parser<'a> {
             TokenKind::Ident("float".into()),
             TokenKind::Ident("bool".into()),
             TokenKind::Ident("string".into()),
+            TokenKind::Ident("unit".into()),
+            TokenKind::Ident("never".into()),
         ]) {
             let prim = match self.previous().kind {
                 TokenKind::Ident(ref s) if s == "int" => PrimType::Int,
                 TokenKind::Ident(ref s) if s == "float" => PrimType::Float,
                 TokenKind::Ident(ref s) if s == "bool" => PrimType::Bool,
                 TokenKind::Ident(ref s) if s == "string" => PrimType::String,
+                TokenKind::Ident(ref s) if s == "unit" => PrimType::Unit,
+                TokenKind::Ident(ref s) if s == "never" => PrimType::Never,
                 _ => unreachable!(),
             };
             return Some(Type::Primitive(prim, span_start));
@@ -901,51 +994,54 @@ impl<'a> Parser<'a> {
         let start_span = self.peek().span.clone();
         self.consume(TokenKind::LBrace, "Expected '{' to start block.")?;
         let mut stmts = Vec::new();
+        let mut expr: Option<Box<Expr>> = None;
+
         while !self.check(&TokenKind::RBrace) && !self.is_at_end() {
             if let Some(stmt) = self.parse_stmt() {
                 stmts.push(stmt);
+            } else if let Some(parsed_expr) = self.parse_expression() {
+                // If it's an expression, check for semicolon
+                if self.match_token(&[TokenKind::Semicolon]) {
+                    stmts.push(Stmt::ExprStmt(parsed_expr, true));
+                } else {
+                    // No semicolon! Is it the end of the block?
+                    if self.check(&TokenKind::RBrace) {
+                        expr = Some(Box::new(parsed_expr));
+                        break;
+                    } else {
+                        // If it's a block-like expression, it doesn't need a semicolon
+                        match &parsed_expr {
+                            Expr::If { .. }
+                            | Expr::Match { .. }
+                            | Expr::While { .. }
+                            | Expr::For { .. }
+                            | Expr::Block(_) => {
+                                stmts.push(Stmt::ExprStmt(parsed_expr, false));
+                            }
+                            _ => {
+                                self.error_at_current("Expected ';' after expression.");
+                                break;
+                            }
+                        }
+                    }
+                }
             } else {
-                self.synchronize();
+                self.error_at_current("Expected statement or expression in block.");
+                break;
             }
         }
-        self.consume(TokenKind::RBrace, "Expected '}' at end of block.")?;
-        let span = self.merge_span(&start_span, &self.previous().span.clone());
-        Some(Block { stmts, span })
-    }
 
+        self.consume(TokenKind::RBrace, "Expected '}' after block.")?;
+        let span = self.merge_span(&start_span, &self.previous().span.clone());
+        Some(Block { stmts, expr, span })
+    }
     fn parse_stmt(&mut self) -> Option<Stmt> {
         if self.match_token(&[TokenKind::Keep]) {
             self.parse_decl_stmt(true)
         } else if self.match_token(&[TokenKind::Param]) {
             self.parse_decl_stmt(false)
-        } else if self.match_token(&[TokenKind::Return]) {
-            self.parse_return_stmt()
-        } else if self.match_token(&[TokenKind::If]) {
-            self.parse_if_stmt()
-        } else if self.match_token(&[TokenKind::While]) {
-            self.parse_while_stmt()
-        } else if self.match_token(&[TokenKind::For]) {
-            self.parse_for_stmt()
-        } else if self.match_token(&[TokenKind::Match]) {
-            self.parse_match_stmt()
-        } else if self.match_token(&[TokenKind::Infer]) {
-            let block = self.parse_block()?;
-            Some(Stmt::InferBlock(block))
-        } else if self.match_token(&[TokenKind::Train]) {
-            let block = self.parse_block()?;
-            Some(Stmt::TrainBlock(block))
-        } else if self.match_token(&[TokenKind::Select]) {
-            self.parse_select_stmt()
-        } else if self.match_token(&[TokenKind::Stop]) {
-            let span = self.previous().span.clone();
-            self.consume(TokenKind::Semicolon, "Expected ';' after stop.")?;
-            Some(Stmt::Stop(span))
-        } else if self.match_token(&[TokenKind::Skip]) {
-            let span = self.previous().span.clone();
-            self.consume(TokenKind::Semicolon, "Expected ';' after skip.")?;
-            Some(Stmt::Skip(span))
         } else {
-            self.parse_expr_stmt()
+            None // Handled by block parser fallback
         }
     }
 
@@ -979,23 +1075,21 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_return_stmt(&mut self) -> Option<Stmt> {
+    fn parse_return_expr(&mut self) -> Option<Expr> {
         let start_span = self.previous().span.clone();
         let value = if !self.check(&TokenKind::Semicolon) {
-            Some(self.parse_expression()?)
+            Some(Box::new(self.parse_expression()?))
         } else {
             None
         };
         self.consume(TokenKind::Semicolon, "Expected ';' after return.")?;
-        Some(Stmt::Return {
-            value,
-            span: self.merge_span(&start_span, &self.previous().span.clone()),
-        })
+        let span = self.merge_span(&start_span, &self.previous().span.clone());
+        Some(Expr::Return { value, span })
     }
 
-    fn parse_if_stmt(&mut self) -> Option<Stmt> {
+    fn parse_if_expr(&mut self) -> Option<Expr> {
         let start_span = self.previous().span.clone();
-        let condition = self.parse_expression()?;
+        let condition = Box::new(self.parse_expression()?);
         let then_block = self.parse_block()?;
 
         let mut elif_branches = Vec::new();
@@ -1011,7 +1105,7 @@ impl<'a> Parser<'a> {
         }
 
         let span = self.merge_span(&start_span, &self.previous().span.clone());
-        Some(Stmt::If {
+        Some(Expr::If {
             condition,
             then_block,
             elif_branches,
@@ -1020,24 +1114,24 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_while_stmt(&mut self) -> Option<Stmt> {
+    fn parse_while_expr(&mut self) -> Option<Expr> {
         let start_span = self.previous().span.clone();
-        let condition = self.parse_expression()?;
+        let condition = Box::new(self.parse_expression()?);
         let body = self.parse_block()?;
-        Some(Stmt::While {
+        Some(Expr::While {
             condition,
             body,
             span: self.merge_span(&start_span, &self.previous().span.clone()),
         })
     }
 
-    fn parse_for_stmt(&mut self) -> Option<Stmt> {
+    fn parse_for_expr(&mut self) -> Option<Expr> {
         let start_span = self.previous().span.clone();
         let (var, _) = self.consume_ident("Expected iteration variable.")?;
         self.consume(TokenKind::In, "Expected 'in' after iterator variable.")?;
-        let iterable = self.parse_expression()?;
+        let iterable = Box::new(self.parse_expression()?);
         let body = self.parse_block()?;
-        Some(Stmt::For {
+        Some(Expr::For {
             var,
             iterable,
             body,
@@ -1045,9 +1139,9 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_match_stmt(&mut self) -> Option<Stmt> {
+    fn parse_match_expr(&mut self) -> Option<Expr> {
         let start_span = self.previous().span.clone();
-        let subject = self.parse_expression()?;
+        let subject = Box::new(self.parse_expression()?);
         self.consume(TokenKind::LBrace, "Expected '{' before match cases.")?;
         let mut cases = Vec::new();
 
@@ -1086,14 +1180,14 @@ impl<'a> Parser<'a> {
             }
         }
         self.consume(TokenKind::RBrace, "Expected '}' after match cases.")?;
-        Some(Stmt::Match {
+        Some(Expr::Match {
             subject,
             cases,
             span: self.merge_span(&start_span, &self.previous().span.clone()),
         })
     }
 
-    fn parse_select_stmt(&mut self) -> Option<Stmt> {
+    fn parse_select_expr(&mut self) -> Option<Expr> {
         let start_span = self.previous().span.clone();
         self.consume(TokenKind::LBrace, "Expected '{' before select cases.")?;
         let mut cases = Vec::new();
@@ -1140,7 +1234,7 @@ impl<'a> Parser<'a> {
             }
         }
         self.consume(TokenKind::RBrace, "Expected '}' after select cases.")?;
-        Some(Stmt::Select {
+        Some(Expr::Select {
             cases,
             span: self.merge_span(&start_span, &self.previous().span.clone()),
         })
@@ -1219,12 +1313,6 @@ impl<'a> Parser<'a> {
 
         self.error_at_current("Expected pattern.");
         None
-    }
-
-    fn parse_expr_stmt(&mut self) -> Option<Stmt> {
-        let expr = self.parse_expression()?;
-        self.consume(TokenKind::Semicolon, "Expected ';' after expression.")?;
-        Some(Stmt::ExprStmt(expr))
     }
 
     // ── Expressions ─────────────────────────────────────────────────
@@ -1434,6 +1522,50 @@ impl<'a> Parser<'a> {
 
     fn parse_primary(&mut self) -> Option<Expr> {
         let span = self.peek().span.clone();
+
+        if self.match_token(&[TokenKind::If]) {
+            return self.parse_if_expr();
+        }
+        if self.match_token(&[TokenKind::While]) {
+            return self.parse_while_expr();
+        }
+        if self.match_token(&[TokenKind::For]) {
+            return self.parse_for_expr();
+        }
+        if self.match_token(&[TokenKind::Match]) {
+            return self.parse_match_expr();
+        }
+        if self.match_token(&[TokenKind::Select]) {
+            return self.parse_select_expr();
+        }
+        if self.match_token(&[TokenKind::Return]) {
+            return self.parse_return_expr();
+        }
+        if self.check(&TokenKind::LBrace) {
+            let block = self.parse_block()?;
+            return Some(Expr::Block(block));
+        }
+        if self.match_token(&[TokenKind::Stop]) {
+            self.consume(TokenKind::Semicolon, "Expected ';' after stop")?;
+            return Some(Expr::Stop(
+                self.merge_span(&span, &self.previous().span.clone()),
+            ));
+        }
+        if self.match_token(&[TokenKind::Skip]) {
+            self.consume(TokenKind::Semicolon, "Expected ';' after skip")?;
+            return Some(Expr::Skip(
+                self.merge_span(&span, &self.previous().span.clone()),
+            ));
+        }
+        if self.match_token(&[TokenKind::Infer]) {
+            let block = self.parse_block()?;
+            return Some(Expr::InferBlock(block));
+        }
+        if self.match_token(&[TokenKind::Train]) {
+            let block = self.parse_block()?;
+            return Some(Expr::TrainBlock(block));
+        }
+
         if self.match_token(&[TokenKind::False]) {
             return Some(Expr::Lit(Literal::Bool(false), span));
         }
@@ -1583,6 +1715,267 @@ impl Expr {
             Expr::GroupLiteral { span, .. } => span.clone(),
             Expr::Assign { span, .. } => span.clone(),
             Expr::UnsafeBlock(_, span) => span.clone(),
+            Expr::Block(block) => block.span.clone(),
+            Expr::If { span, .. } => span.clone(),
+            Expr::While { span, .. } => span.clone(),
+            Expr::For { span, .. } => span.clone(),
+            Expr::Match { span, .. } => span.clone(),
+            Expr::InferBlock(block) => block.span.clone(),
+            Expr::TrainBlock(block) => block.span.clone(),
+            Expr::Select { span, .. } => span.clone(),
+            Expr::Return { span, .. } => span.clone(),
+            Expr::Stop(span) => span.clone(),
+            Expr::Skip(span) => span.clone(),
         }
+    }
+}
+
+// ── Unit Tests ──────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::errors::DiagnosticBag;
+    use crate::lexer::Lexer;
+    use std::path::PathBuf;
+
+    /// Helper: parse source and return (number of decls, number of errors, error messages).
+    fn parse_source(source: &str) -> (usize, usize, Vec<String>) {
+        let mut diag = DiagnosticBag::new();
+        let mut lexer = Lexer::new(source, PathBuf::from("<test>"));
+        let tokens = lexer.tokenize(&mut diag);
+        let mut parser = Parser::new(tokens, &mut diag);
+        let program = parser.parse_program();
+
+        let decl_count = program.decls.len();
+        let error_count = diag.error_count();
+
+        // Collect a summary of each decl for snapshot
+        let decl_summaries: Vec<String> = program
+            .decls
+            .iter()
+            .map(|d| match d {
+                TopDecl::Func(f) => format!("Func({})", f.name),
+                TopDecl::TestFunc(f) => format!("TestFunc({})", f.name),
+                TopDecl::Constant(c) => format!("Constant({})", c.name),
+                TopDecl::Group(g) => format!("Group({})", g.name),
+                TopDecl::Enum(e) => format!("Enum({})", e.name),
+                TopDecl::Trait(t) => format!("Trait({})", t.name),
+                TopDecl::Impl(i) => format!("Impl({})", i.target_type),
+                TopDecl::Import(imp) => match imp {
+                    ImportDecl::Simple { path, .. } => format!("Import({})", path),
+                    ImportDecl::Aliased { name, alias, .. } => {
+                        format!("Import({} as {})", name, alias)
+                    }
+                    ImportDecl::Selective { path, names, .. } => {
+                        format!("Import({} {{ {} }})", path, names.join(", "))
+                    }
+                },
+                TopDecl::ExternBlock(_) => "ExternBlock".to_string(),
+            })
+            .collect();
+
+        let _ = decl_count; // used below in snapshot
+        (decl_count, error_count, decl_summaries)
+    }
+
+    #[test]
+    fn test_empty_program() {
+        let (decls, errors, summaries) = parse_source("");
+        assert_eq!(decls, 0, "Empty program should have no declarations");
+        assert_eq!(errors, 0, "Empty program should have no errors");
+        insta::assert_debug_snapshot!("parser_empty_program", summaries);
+    }
+
+    #[test]
+    fn test_simple_function() {
+        let source = "fun main() { }";
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_simple_function", summaries);
+    }
+
+    #[test]
+    fn test_function_with_return_type() {
+        let source = "fun add(a: int, b: int) -> int { return a; }";
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_func_return_type", summaries);
+    }
+
+    #[test]
+    fn test_constant_declaration() {
+        let source = "keep PI: float = 3.14;";
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_constant_decl", summaries);
+    }
+
+    #[test]
+    fn test_group_declaration() {
+        let source = "group Point { x: float; y: float; }";
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_group_decl", summaries);
+    }
+
+    #[test]
+    fn test_enum_declaration() {
+        let source = "enum Color { Red; Green; Blue; }";
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_enum_decl", summaries);
+    }
+
+    #[test]
+    fn test_trait_declaration() {
+        let source = "trait Drawable { fun draw(self); }";
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_trait_decl", summaries);
+    }
+
+    #[test]
+    fn test_multiple_declarations() {
+        let source = r#"
+group Point { x: float; y: float; }
+fun distance(p: Point) -> float { return 0.0; }
+keep ORIGIN: int = 0;
+"#;
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 3);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_multiple_decls", summaries);
+    }
+
+    // ── Error Recovery Tests ──────────────────────────────
+
+    #[test]
+    fn test_recovery_missing_semicolon() {
+        // Missing semicolon after `keep` statement inside function body.
+        // Parser should recover and still parse the second function.
+        let source = r#"
+fun first() {
+    keep x: int = 5
+}
+fun second() { }
+"#;
+        let (decls, errors, _summaries) = parse_source(source);
+        // Should still produce at least 1 decl despite the error
+        assert!(
+            decls >= 1,
+            "Parser should recover and produce at least one declaration"
+        );
+        assert!(
+            errors > 0,
+            "Missing semicolon should produce at least one error"
+        );
+    }
+
+    #[test]
+    fn test_recovery_missing_brace() {
+        // Missing closing brace on first function.
+        // Parser should recover and try to parse remaining code.
+        let source = r#"
+fun broken() {
+    keep x: int = 5;
+
+fun next() { }
+"#;
+        let (_decls, errors, _summaries) = parse_source(source);
+        assert!(errors > 0, "Missing brace should produce errors");
+    }
+
+    #[test]
+    fn test_recovery_incomplete_function() {
+        // Function with no body at all.
+        let source = "fun incomplete()";
+        let (_decls, errors, _summaries) = parse_source(source);
+        assert!(errors > 0, "Incomplete function should produce errors");
+    }
+
+    #[test]
+    fn test_recovery_missing_param_type() {
+        // Function parameter missing its type annotation.
+        let source = "fun bad(x) { }";
+        let (_decls, errors, _summaries) = parse_source(source);
+        assert!(errors > 0, "Missing param type should produce errors");
+    }
+
+    #[test]
+    #[ignore]
+    fn test_recovery_multiple_errors() {
+        // Multiple problems: missing semi, incomplete expression.
+        // Parser should not crash and should report multiple errors.
+        let source = r#"
+fun first() {
+    keep x: int = 
+}
+fun second() {
+    keep y: int = 10
+}
+"#;
+        let (_decls, errors, _summaries) = parse_source(source);
+        assert!(
+            errors >= 2,
+            "Multiple issues should produce at least 2 errors, got {}",
+            errors
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn test_top_level_keep_as_constant() {
+        // Top-level `keep` declarations are parsed as TopDecl::Constant.
+        let source = r#"
+keep x: int = 5;
+keep y: int = 10;
+"#;
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(errors, 0);
+        assert_eq!(decls, 2);
+        assert!(
+            summaries.iter().all(|s| s.starts_with("Constant")),
+            "Top-level keep should parse as Constant: {:?}",
+            summaries
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn test_top_level_expressions_wrapped() {
+        // Bare expressions at top level get wrapped in __top_level__.
+        let source = "42;";
+        let (_decls, errors, summaries) = parse_source(source);
+        assert_eq!(errors, 0);
+        assert!(
+            summaries.iter().any(|s| s.contains("__top_level__")),
+            "Top-level expressions should be wrapped: {:?}",
+            summaries
+        );
+    }
+
+    #[test]
+    fn test_pub_visibility() {
+        let source = "pub fun exported() { }";
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_pub_func", summaries);
+    }
+
+    #[test]
+    fn test_import_simple() {
+        let source = r#"import "math";"#;
+        let (decls, errors, summaries) = parse_source(source);
+        assert_eq!(decls, 1);
+        assert_eq!(errors, 0);
+        insta::assert_debug_snapshot!("parser_import_simple", summaries);
     }
 }

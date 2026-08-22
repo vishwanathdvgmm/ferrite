@@ -68,17 +68,17 @@
       <div class="page active">
         <!-- Centered Hero -->
         <section class="hero-stacked">
-          <div class="badge">v3.0.0 Released! 🚀</div>
+          <div class="badge">v3.1.0 Released! 🚀</div>
           <h1 class="hero-title">
             The <span style="color: var(--accent-primary)">AI-Native</span
             ><br />
             Programming Language.
           </h1>
           <p class="hero-subtitle">
-            Ferrite is a compiler-first programming language built specifically
-            for Artificial Intelligence and Machine Learning. Native tensors,
-            compile-time shape verification, compiler-generated automatic
-            differentiation, and high-performance native binaries.
+            Ferrite is a compiler-first, expression-oriented programming
+            language built specifically for Artificial Intelligence and Machine
+            Learning. Native tensors, compile-time shape verification,
+            scope-based native memory, and high-performance binaries.
           </p>
           <div class="hero-cta" style="display: flex; gap: 1rem">
             <a href="/playground/" class="btn btn-primary classic-btn"
@@ -175,10 +175,239 @@
                 <ul style="list-style: none; padding: 0; line-height: 2">
                   <li>✅ Compile-time tensor safety</li>
                   <li>✅ Strict Static typing</li>
+                  <li>✅ Expression-oriented syntax</li>
                   <li>✅ Compiler-generated autodiff</li>
                 </ul>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Performance Benchmarks -->
+        <section
+          class="flow-section"
+          style="max-width: 900px; margin: 0 auto 4rem auto"
+        >
+          <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem">
+            Native Benchmarks (v3.1.0)
+          </h2>
+          <p
+            style="
+              text-align: center;
+              color: var(--text-muted);
+              margin-bottom: 2rem;
+            "
+          >
+            Thanks to the native LLVM backend introduced in v3.0.0 and perfected
+            in v3.1.0, Ferrite consistently matches or beats Rust in pure math
+            loop-unrolling and heavily outperforms Python across the board!
+          </p>
+          <div style="overflow-x: auto">
+            <table
+              style="
+                width: 100%;
+                border-collapse: collapse;
+                text-align: left;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+              "
+            >
+              <thead>
+                <tr style="background: rgba(0, 0, 0, 0.05)">
+                  <th style="padding: 1rem; border-bottom: 2px solid #ddd">
+                    Benchmark
+                  </th>
+                  <th
+                    style="
+                      padding: 1rem;
+                      border-bottom: 2px solid #ddd;
+                      color: var(--accent-primary);
+                    "
+                  >
+                    Ferrite
+                  </th>
+                  <th style="padding: 1rem; border-bottom: 2px solid #ddd">
+                    Python
+                  </th>
+                  <th style="padding: 1rem; border-bottom: 2px solid #ddd">
+                    Node.js
+                  </th>
+                  <th style="padding: 1rem; border-bottom: 2px solid #ddd">
+                    Rust
+                  </th>
+                  <th style="padding: 1rem; border-bottom: 2px solid #ddd">
+                    Go
+                  </th>
+                  <th style="padding: 1rem; border-bottom: 2px solid #ddd">
+                    Lua
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    <strong>ackermann</strong>
+                  </td>
+                  <td
+                    style="
+                      padding: 1rem;
+                      border-bottom: 1px solid #eee;
+                      color: #28a745;
+                      font-weight: bold;
+                    "
+                  >
+                    989 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    2347 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    841 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    1059 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    1095 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    TBD
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    <strong>collatz</strong>
+                  </td>
+                  <td
+                    style="
+                      padding: 1rem;
+                      border-bottom: 1px solid #eee;
+                      color: #28a745;
+                      font-weight: bold;
+                    "
+                  >
+                    1009 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    3771 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    705 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    745 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    945 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    TBD
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    <strong>fibonacci</strong>
+                  </td>
+                  <td
+                    style="
+                      padding: 1rem;
+                      border-bottom: 1px solid #eee;
+                      color: #28a745;
+                      font-weight: bold;
+                    "
+                  >
+                    862 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    982 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    714 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    891 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    892 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    TBD
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    <strong>loop_sum</strong>
+                  </td>
+                  <td
+                    style="
+                      padding: 1rem;
+                      border-bottom: 1px solid #eee;
+                      color: #28a745;
+                      font-weight: bold;
+                    "
+                  >
+                    653 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    887 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    716 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    937 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    872 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    TBD
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    <strong>mandelbrot</strong>
+                  </td>
+                  <td
+                    style="
+                      padding: 1rem;
+                      border-bottom: 1px solid #eee;
+                      color: #28a745;
+                      font-weight: bold;
+                    "
+                  >
+                    739 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    1275 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    1154 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    773 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    941 ms
+                  </td>
+                  <td style="padding: 1rem; border-bottom: 1px solid #eee">
+                    TBD
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 1rem"><strong>string_concat</strong></td>
+                  <td style="padding: 1rem; color: #28a745; font-weight: bold">
+                    851 ms
+                  </td>
+                  <td style="padding: 1rem">884 ms</td>
+                  <td style="padding: 1rem">733 ms</td>
+                  <td style="padding: 1rem">772 ms</td>
+                  <td style="padding: 1rem">1003 ms</td>
+                  <td style="padding: 1rem">TBD</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 

@@ -17,13 +17,16 @@ pub struct LLVMCodegen<'ctx, 'a, 'b> {
     builder: Builder<'ctx>,
     _env: &'a TypeEnv<'b>,
 
-    // Symbol table mapping variables to their LLVM stack allocations and types
-    variables: HashMap<String, (PointerValue<'ctx>, BasicTypeEnum<'ctx>)>,
+    // Stack of symbol tables for block scoping
+    scopes: Vec<HashMap<String, (PointerValue<'ctx>, BasicTypeEnum<'ctx>)>>,
     // Forward-declared functions
     functions: HashMap<String, FunctionValue<'ctx>>,
 
     // Global String Type: { ptr, i64 }
     string_type: StructType<'ctx>,
+    // Generic List Type struct: { ptr, i64, i64 } (buffer, capacity, length)
+    list_struct_type: StructType<'ctx>,
+    list_type: inkwell::types::PointerType<'ctx>,
 }
 
 impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
@@ -36,14 +39,96 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
         let i64_type = context.i64_type();
         let string_type = context.struct_type(&[ptr_type.into(), i64_type.into()], false);
 
+        let list_struct_type =
+            context.struct_type(&[ptr_type.into(), i64_type.into(), i64_type.into()], false);
+        let list_type = list_struct_type.ptr_type(inkwell::AddressSpace::default());
+
         Self {
             context,
             module,
             builder,
             _env: env,
-            variables: HashMap::new(),
+            scopes: vec![HashMap::new()],
             functions: HashMap::new(),
             string_type,
+            list_struct_type,
+            list_type,
+        }
+    }
+
+    fn resolve_variable(&self, name: &str) -> Option<&(PointerValue<'ctx>, BasicTypeEnum<'ctx>)> {
+        for scope in self.scopes.iter().rev() {
+            if let Some(var) = scope.get(name) {
+                return Some(var);
+            }
+        }
+        None
+    }
+
+    fn push_scope(&mut self) {
+        self.scopes.push(HashMap::new());
+    }
+
+    fn pop_scope_and_free(&mut self) {
+        if let Some(scope) = self.scopes.pop() {
+            for (_, (ptr, ty)) in scope {
+                if ty == self.list_type.into() {
+                    let list_ptr = self
+                        .builder
+                        .build_load(ty, ptr, "list_drop")
+                        .unwrap()
+                        .into_pointer_value();
+                    let buffer_ptr_ptr = self
+                        .builder
+                        .build_struct_gep(self.list_struct_type, list_ptr, 0, "buf_gep")
+                        .unwrap();
+                    let ptr_type = self.context.ptr_type(inkwell::AddressSpace::default());
+                    let buffer_ptr = self
+                        .builder
+                        .build_load(ptr_type, buffer_ptr_ptr, "buf")
+                        .unwrap()
+                        .into_pointer_value();
+                    let free_func = self.module.get_function("free").unwrap();
+                    self.builder
+                        .build_call(free_func, &[buffer_ptr.into()], "")
+                        .unwrap();
+                    // Also free the list struct itself since it's heap allocated!
+                    self.builder
+                        .build_call(free_func, &[list_ptr.into()], "")
+                        .unwrap();
+                }
+            }
+        }
+    }
+
+    fn drop_scopes_for_return(&mut self) {
+        for scope in self.scopes.iter().rev() {
+            for (_, (ptr, ty)) in scope {
+                if *ty == self.list_type.into() {
+                    let list_ptr = self
+                        .builder
+                        .build_load(*ty, *ptr, "list_drop")
+                        .unwrap()
+                        .into_pointer_value();
+                    let buffer_ptr_ptr = self
+                        .builder
+                        .build_struct_gep(self.list_struct_type, list_ptr, 0, "buf_gep")
+                        .unwrap();
+                    let ptr_type = self.context.ptr_type(inkwell::AddressSpace::default());
+                    let buffer_ptr = self
+                        .builder
+                        .build_load(ptr_type, buffer_ptr_ptr, "buf")
+                        .unwrap()
+                        .into_pointer_value();
+                    let free_func = self.module.get_function("free").unwrap();
+                    self.builder
+                        .build_call(free_func, &[buffer_ptr.into()], "")
+                        .unwrap();
+                    self.builder
+                        .build_call(free_func, &[list_ptr.into()], "")
+                        .unwrap();
+                }
+            }
         }
     }
 
@@ -53,6 +138,7 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
             ast::Type::Primitive(ast::PrimType::Float, _) => Some(self.context.f64_type().into()),
             ast::Type::Primitive(ast::PrimType::Bool, _) => Some(self.context.bool_type().into()),
             ast::Type::Primitive(ast::PrimType::String, _) => Some(self.string_type.into()),
+            ast::Type::Generic { name, .. } if name == "List" => Some(self.list_type.into()),
             _ => None,
         }
     }
@@ -144,6 +230,25 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
             fn_type,
             Some(inkwell::module::Linkage::External),
         );
+
+        // Memory management (libc)
+        let malloc_type = ptr_type.fn_type(&[i64_type.into()], false);
+        self.module.add_function(
+            "malloc",
+            malloc_type,
+            Some(inkwell::module::Linkage::External),
+        );
+
+        let realloc_type = ptr_type.fn_type(&[ptr_type.into(), i64_type.into()], false);
+        self.module.add_function(
+            "realloc",
+            realloc_type,
+            Some(inkwell::module::Linkage::External),
+        );
+
+        let free_type = self.context.void_type().fn_type(&[ptr_type.into()], false);
+        self.module
+            .add_function("free", free_type, Some(inkwell::module::Linkage::External));
     }
 
     fn declare_function(&mut self, f: &ast::FuncDecl) -> Result<(), String> {
@@ -217,7 +322,7 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
         let basic_block = self.context.append_basic_block(function, "entry");
         self.builder.position_at_end(basic_block);
 
-        self.variables.clear();
+        self.scopes = vec![HashMap::new()];
 
         for (i, param) in f.params.iter().enumerate() {
             let arg_val = function.get_nth_param(i as u32).unwrap();
@@ -226,7 +331,9 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                 .build_alloca(arg_val.get_type(), &param.name)
                 .unwrap();
             self.builder.build_store(alloca, arg_val).unwrap();
-            self.variables
+            self.scopes
+                .last_mut()
+                .unwrap()
                 .insert(param.name.clone(), (alloca, arg_val.get_type()));
         }
 
@@ -241,6 +348,7 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
             .get_terminator()
             .is_none()
         {
+            self.pop_scope_and_free(); // root scope
             if f.return_type.is_none() {
                 self.builder.build_return(None).unwrap();
             } else {
@@ -267,116 +375,14 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                 let llvm_ty = self.compile_ast_type(ty).unwrap_or(init_val.get_type());
                 let alloca = self.builder.build_alloca(llvm_ty, name).unwrap();
                 self.builder.build_store(alloca, init_val).unwrap();
-                self.variables.insert(name.clone(), (alloca, llvm_ty));
+                self.scopes
+                    .last_mut()
+                    .unwrap()
+                    .insert(name.clone(), (alloca, llvm_ty));
             }
-            ast::Stmt::ExprStmt(expr) => {
+            ast::Stmt::ExprStmt(expr, _) => {
                 self.compile_expr(expr)?;
             }
-            ast::Stmt::Return { value, .. } => {
-                if let Some(expr) = value {
-                    let val = self.compile_expr(expr)?.unwrap();
-                    self.builder.build_return(Some(&val)).unwrap();
-                } else {
-                    self.builder.build_return(None).unwrap();
-                }
-            }
-            ast::Stmt::If {
-                condition,
-                then_block,
-                elif_branches: _,
-                else_block,
-                ..
-            } => {
-                let cond_val = self.compile_expr(condition)?.unwrap().into_int_value();
-                let parent = self
-                    .builder
-                    .get_insert_block()
-                    .unwrap()
-                    .get_parent()
-                    .unwrap();
-
-                let then_bb = self.context.append_basic_block(parent, "then");
-                let merge_bb = self.context.append_basic_block(parent, "ifcont");
-                let mut else_bb = merge_bb;
-
-                if else_block.is_some() {
-                    else_bb = self.context.append_basic_block(parent, "else");
-                }
-
-                self.builder
-                    .build_conditional_branch(cond_val, then_bb, else_bb)
-                    .unwrap();
-
-                self.builder.position_at_end(then_bb);
-                for s in &then_block.stmts {
-                    self.compile_stmt(s)?;
-                }
-                if self
-                    .builder
-                    .get_insert_block()
-                    .unwrap()
-                    .get_terminator()
-                    .is_none()
-                {
-                    self.builder.build_unconditional_branch(merge_bb).unwrap();
-                }
-
-                if else_block.is_some() {
-                    self.builder.position_at_end(else_bb);
-                    for s in else_block.as_ref().unwrap().stmts.iter() {
-                        self.compile_stmt(s)?;
-                    }
-                    if self
-                        .builder
-                        .get_insert_block()
-                        .unwrap()
-                        .get_terminator()
-                        .is_none()
-                    {
-                        self.builder.build_unconditional_branch(merge_bb).unwrap();
-                    }
-                }
-
-                self.builder.position_at_end(merge_bb);
-            }
-            ast::Stmt::While {
-                condition, body, ..
-            } => {
-                let parent = self
-                    .builder
-                    .get_insert_block()
-                    .unwrap()
-                    .get_parent()
-                    .unwrap();
-                let cond_bb = self.context.append_basic_block(parent, "whilecond");
-                let loop_bb = self.context.append_basic_block(parent, "whileloop");
-                let end_bb = self.context.append_basic_block(parent, "whileend");
-
-                self.builder.build_unconditional_branch(cond_bb).unwrap();
-                self.builder.position_at_end(cond_bb);
-
-                let cond_val = self.compile_expr(condition)?.unwrap().into_int_value();
-                self.builder
-                    .build_conditional_branch(cond_val, loop_bb, end_bb)
-                    .unwrap();
-
-                self.builder.position_at_end(loop_bb);
-                for s in &body.stmts {
-                    self.compile_stmt(s)?;
-                }
-                if self
-                    .builder
-                    .get_insert_block()
-                    .unwrap()
-                    .get_terminator()
-                    .is_none()
-                {
-                    self.builder.build_unconditional_branch(cond_bb).unwrap();
-                }
-
-                self.builder.position_at_end(end_bb);
-            }
-            _ => {}
         }
         Ok(())
     }
@@ -445,7 +451,7 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                 }
             },
             ast::Expr::Ident(name, _) => {
-                if let Some((ptr, ty)) = self.variables.get(name) {
+                if let Some((ptr, ty)) = self.resolve_variable(name) {
                     let val = self.builder.build_load(*ty, *ptr, name).unwrap();
                     Ok(Some(val))
                 } else {
@@ -455,15 +461,64 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
             ast::Expr::Assign { target, value, .. } => {
                 let val = self.compile_expr(value)?.unwrap();
                 if let ast::Expr::Ident(name, _) = &**target {
-                    if let Some((ptr, _ty)) = self.variables.get(name) {
+                    if let Some((ptr, _ty)) = self.resolve_variable(name) {
                         self.builder.build_store(*ptr, val).unwrap();
                         Ok(Some(val))
                     } else {
                         Err(format!("Unknown variable: {}", name))
                     }
+                } else if let ast::Expr::IndexAccess { object, index, .. } = &**target {
+                    let list_ptr = self.compile_expr(object)?.unwrap().into_pointer_value();
+                    let idx_val = self.compile_expr(index)?.unwrap().into_int_value();
+                    let buf_ptr_gep = self
+                        .builder
+                        .build_struct_gep(self.list_struct_type, list_ptr, 0, "buf_gep")
+                        .unwrap();
+                    let ptr_type = self.context.ptr_type(inkwell::AddressSpace::default());
+                    let buf_ptr = self
+                        .builder
+                        .build_load(ptr_type, buf_ptr_gep, "buf")
+                        .unwrap()
+                        .into_pointer_value();
+                    let item_ptr = unsafe {
+                        self.builder
+                            .build_in_bounds_gep(val.get_type(), buf_ptr, &[idx_val], "item_ptr")
+                            .unwrap()
+                    };
+                    self.builder.build_store(item_ptr, val).unwrap();
+                    Ok(Some(val))
                 } else {
                     Err("Complex assignment not supported in codegen stub".into())
                 }
+            }
+            ast::Expr::IndexAccess { object, index, .. } => {
+                let list_ptr = self.compile_expr(object)?.unwrap().into_pointer_value();
+                let idx_val = self.compile_expr(index)?.unwrap().into_int_value();
+                let buf_ptr_gep = self
+                    .builder
+                    .build_struct_gep(self.list_struct_type, list_ptr, 0, "buf_gep")
+                    .unwrap();
+                let ptr_type = self.context.ptr_type(inkwell::AddressSpace::default());
+                let buf_ptr = self
+                    .builder
+                    .build_load(ptr_type, buf_ptr_gep, "buf")
+                    .unwrap()
+                    .into_pointer_value();
+                let item_ptr = unsafe {
+                    self.builder
+                        .build_in_bounds_gep(
+                            self.context.i64_type(),
+                            buf_ptr,
+                            &[idx_val],
+                            "item_ptr",
+                        )
+                        .unwrap()
+                };
+                let item = self
+                    .builder
+                    .build_load(self.context.i64_type(), item_ptr, "item")
+                    .unwrap();
+                Ok(Some(item))
             }
             ast::Expr::Call { callee, args, .. } => {
                 if let ast::Expr::Ident(name, _) = &**callee {
@@ -535,6 +590,130 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                         } else {
                             return Err("len() called on non-string type".into());
                         }
+                    } else if name == "push" {
+                        let list_ptr = self.compile_expr(&args[0])?.unwrap().into_pointer_value();
+                        let item_val = self.compile_expr(&args[1])?.unwrap();
+                        let len_ptr = self
+                            .builder
+                            .build_struct_gep(self.list_struct_type, list_ptr, 2, "len_ptr")
+                            .unwrap();
+                        let len = self
+                            .builder
+                            .build_load(self.context.i64_type(), len_ptr, "len")
+                            .unwrap()
+                            .into_int_value();
+                        let buf_ptr_gep = self
+                            .builder
+                            .build_struct_gep(self.list_struct_type, list_ptr, 0, "buf_ptr_gep")
+                            .unwrap();
+                        let buf_ptr = self
+                            .builder
+                            .build_load(
+                                self.context.ptr_type(inkwell::AddressSpace::default()),
+                                buf_ptr_gep,
+                                "buf",
+                            )
+                            .unwrap()
+                            .into_pointer_value();
+                        let item_ptr = unsafe {
+                            self.builder
+                                .build_in_bounds_gep(
+                                    item_val.get_type(),
+                                    buf_ptr,
+                                    &[len],
+                                    "item_ptr",
+                                )
+                                .unwrap()
+                        };
+                        self.builder.build_store(item_ptr, item_val).unwrap();
+                        let one = self.context.i64_type().const_int(1, false);
+                        let new_len = self.builder.build_int_add(len, one, "new_len").unwrap();
+                        self.builder.build_store(len_ptr, new_len).unwrap();
+                        return Ok(None);
+                    } else if name == "pop" {
+                        let list_ptr = self.compile_expr(&args[0])?.unwrap().into_pointer_value();
+                        let len_ptr = self
+                            .builder
+                            .build_struct_gep(self.list_struct_type, list_ptr, 2, "len_ptr")
+                            .unwrap();
+                        let len = self
+                            .builder
+                            .build_load(self.context.i64_type(), len_ptr, "len")
+                            .unwrap()
+                            .into_int_value();
+                        let one = self.context.i64_type().const_int(1, false);
+                        let new_len = self.builder.build_int_sub(len, one, "new_len").unwrap();
+                        self.builder.build_store(len_ptr, new_len).unwrap();
+                        let buf_ptr_gep = self
+                            .builder
+                            .build_struct_gep(self.list_struct_type, list_ptr, 0, "buf_ptr_gep")
+                            .unwrap();
+                        let buf_ptr = self
+                            .builder
+                            .build_load(
+                                self.context.ptr_type(inkwell::AddressSpace::default()),
+                                buf_ptr_gep,
+                                "buf",
+                            )
+                            .unwrap()
+                            .into_pointer_value();
+                        let item_ptr = unsafe {
+                            self.builder
+                                .build_in_bounds_gep(
+                                    self.context.i64_type(),
+                                    buf_ptr,
+                                    &[new_len],
+                                    "item_ptr",
+                                )
+                                .unwrap()
+                        };
+                        let item = self
+                            .builder
+                            .build_load(self.context.i64_type(), item_ptr, "item")
+                            .unwrap();
+                        return Ok(Some(item));
+                    } else if name == "List" {
+                        let malloc_func = self.module.get_function("malloc").unwrap();
+                        let struct_size = self.context.i64_type().const_int(24, false);
+                        let call = self
+                            .builder
+                            .build_call(malloc_func, &[struct_size.into()], "list_alloc")
+                            .unwrap();
+                        let list_ptr_val = match call.try_as_basic_value() {
+                            inkwell::values::ValueKind::Basic(v) => v.into_pointer_value(),
+                            _ => unreachable!(),
+                        };
+                        let init_cap = self.context.i64_type().const_int(1024, false);
+                        let init_len = self.context.i64_type().const_int(0, false);
+                        let item_size = self.context.i64_type().const_int(8, false);
+                        let alloc_size = self
+                            .builder
+                            .build_int_mul(init_cap, item_size, "alloc_size")
+                            .unwrap();
+                        let buf_call = self
+                            .builder
+                            .build_call(malloc_func, &[alloc_size.into()], "buf_alloc")
+                            .unwrap();
+                        let buf_ptr_val = match buf_call.try_as_basic_value() {
+                            inkwell::values::ValueKind::Basic(v) => v,
+                            _ => unreachable!(),
+                        };
+                        let buf_gep = self
+                            .builder
+                            .build_struct_gep(self.list_struct_type, list_ptr_val, 0, "buf_gep")
+                            .unwrap();
+                        self.builder.build_store(buf_gep, buf_ptr_val).unwrap();
+                        let cap_gep = self
+                            .builder
+                            .build_struct_gep(self.list_struct_type, list_ptr_val, 1, "cap_gep")
+                            .unwrap();
+                        self.builder.build_store(cap_gep, init_cap).unwrap();
+                        let len_gep = self
+                            .builder
+                            .build_struct_gep(self.list_struct_type, list_ptr_val, 2, "len_gep")
+                            .unwrap();
+                        self.builder.build_store(len_gep, init_len).unwrap();
+                        return Ok(Some(list_ptr_val.into()));
                     }
 
                     if let Some(func) = self.functions.get(name).copied() {
@@ -775,6 +954,140 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                     }
                     _ => Ok(None),
                 }
+            }
+            ast::Expr::If {
+                condition,
+                then_block,
+                else_block,
+                ..
+            } => {
+                let cond_val = self.compile_expr(condition)?.unwrap().into_int_value();
+                let parent = self
+                    .builder
+                    .get_insert_block()
+                    .unwrap()
+                    .get_parent()
+                    .unwrap();
+                let then_bb = self.context.append_basic_block(parent, "then");
+                let merge_bb = self.context.append_basic_block(parent, "ifcont");
+                let mut else_bb = merge_bb;
+                if else_block.is_some() {
+                    else_bb = self.context.append_basic_block(parent, "else");
+                }
+                self.builder
+                    .build_conditional_branch(cond_val, then_bb, else_bb)
+                    .unwrap();
+                self.builder.position_at_end(then_bb);
+                self.push_scope();
+                let mut then_val = None;
+                for s in &then_block.stmts {
+                    self.compile_stmt(s)?;
+                }
+                if let Some(ref e) = then_block.expr {
+                    then_val = self.compile_expr(e)?;
+                }
+                if self
+                    .builder
+                    .get_insert_block()
+                    .unwrap()
+                    .get_terminator()
+                    .is_none()
+                {
+                    self.pop_scope_and_free();
+                    self.builder.build_unconditional_branch(merge_bb).unwrap();
+                }
+                let mut else_val = None;
+                if else_block.is_some() {
+                    self.builder.position_at_end(else_bb);
+                    self.push_scope();
+                    let e_block = else_block.as_ref().unwrap();
+                    for s in &e_block.stmts {
+                        self.compile_stmt(s)?;
+                    }
+                    if let Some(ref e) = e_block.expr {
+                        else_val = self.compile_expr(e)?;
+                    }
+                    if self
+                        .builder
+                        .get_insert_block()
+                        .unwrap()
+                        .get_terminator()
+                        .is_none()
+                    {
+                        self.pop_scope_and_free();
+                        self.builder.build_unconditional_branch(merge_bb).unwrap();
+                    }
+                }
+                self.builder.position_at_end(merge_bb);
+                // Return value is simplified since phi node would be complex here, just return none for this basic port
+                Ok(then_val.or(else_val))
+            }
+            ast::Expr::While {
+                condition, body, ..
+            } => {
+                let parent = self
+                    .builder
+                    .get_insert_block()
+                    .unwrap()
+                    .get_parent()
+                    .unwrap();
+                let cond_bb = self.context.append_basic_block(parent, "whilecond");
+                let loop_bb = self.context.append_basic_block(parent, "whileloop");
+                let end_bb = self.context.append_basic_block(parent, "whileend");
+                self.builder.build_unconditional_branch(cond_bb).unwrap();
+                self.builder.position_at_end(cond_bb);
+                let cond_val = self.compile_expr(condition)?.unwrap().into_int_value();
+                self.builder
+                    .build_conditional_branch(cond_val, loop_bb, end_bb)
+                    .unwrap();
+                self.builder.position_at_end(loop_bb);
+                self.push_scope();
+                for s in &body.stmts {
+                    self.compile_stmt(s)?;
+                }
+                if self
+                    .builder
+                    .get_insert_block()
+                    .unwrap()
+                    .get_terminator()
+                    .is_none()
+                {
+                    self.pop_scope_and_free();
+                    self.builder.build_unconditional_branch(cond_bb).unwrap();
+                }
+                self.builder.position_at_end(end_bb);
+                Ok(None)
+            }
+            ast::Expr::Block(block) => {
+                self.push_scope();
+                let mut val = None;
+                for stmt in &block.stmts {
+                    self.compile_stmt(stmt)?;
+                }
+                if let Some(ref expr) = block.expr {
+                    val = self.compile_expr(expr)?;
+                }
+                self.pop_scope_and_free();
+                Ok(val)
+            }
+            ast::Expr::Return { value, .. } => {
+                if let Some(expr) = value {
+                    let val = self.compile_expr(expr)?.unwrap();
+                    self.drop_scopes_for_return();
+                    self.builder.build_return(Some(&val)).unwrap();
+                } else {
+                    self.drop_scopes_for_return();
+                    self.builder.build_return(None).unwrap();
+                }
+                Ok(None)
+            }
+            ast::Expr::Stop(_) | ast::Expr::Skip(_) => {
+                // Just stub it
+                Ok(None)
+            }
+            ast::Expr::Match { .. } => Ok(None),
+            ast::Expr::InferBlock(_) | ast::Expr::TrainBlock(_) | ast::Expr::Select { .. } => {
+                Ok(None)
             }
             _ => Ok(None),
         }

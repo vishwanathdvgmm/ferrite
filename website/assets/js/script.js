@@ -615,7 +615,7 @@ document.addEventListener("DOMContentLoaded", () => {
     blank: "// Write your Ferrite code here\n\n",
     hello: 'println("Hello, Ferrite!");',
     tensors: `import "math";\n\nparam inputs: Tensor<float, (1, 4)> = rand(1, 4);\nparam weights: Tensor<float, (4, 2)> = ones(4, 2);\n\ninfer {\n    keep outputs = inputs @ weights;\n    println("Inputs:  " + str(inputs));\n    println("Outputs: " + str(outputs));\n}`,
-    matching: `enum Device {\n    Cpu;\n    Gpu(int);\n}\n\nkeep current = Gpu(1);\n\nmatch current {\n    case Cpu => {\n        println("Running on Host CPU");\n    }\n    case Gpu(id) if id == 0 => {\n        println("Primary GPU active");\n    }\n    case Gpu(id) => {\n        println("Secondary GPU (ID: 1)");\n    }\n}`,
+    matching: `enum Device {\n    Cpu;\n    Gpu(int);\n}\n\nkeep current = Gpu(1);\n\nkeep msg = match current {\n    case Cpu => {\n        "Running on Host CPU"\n    }\n    case Gpu(id) if id == 0 => {\n        "Primary GPU active"\n    }\n    case Gpu(id) => {\n        "Secondary GPU (ID: 1)"\n    }\n};\n\nprintln(msg);`,
     traits: `group Point {\n    x: float;\n    y: float;\n}\n\ntrait Scale {\n    fun scale(self, factor: float) -> Point;\n}\n\nimpl Scale for Point {\n    fun scale(self, factor: float) -> Point {\n        return Point {\n            x: self.x * factor,\n            y: self.y * factor\n        };\n    }\n}\n\nkeep p = Point { x: 1.5, y: 2.0 };\nkeep scaled = p.scale(2.0);\nprintln("Scaled: (3.0, 4.0)");`,
     closures: `keep base = 50;\nkeep offset_func = (x: int) => x + base;\n\nkeep i = 0;\nwhile i < 5 {\n    i = i + 1;\n    if i == 2 { skip; }\n    println("Offset i=" + str(i) + ": " + str(offset_func(i)));\n}`,
   };
@@ -654,10 +654,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handle option selection
     const options = presetOptions.querySelectorAll("li:not(.divider)");
-    options.forEach(option => {
+    options.forEach((option) => {
       option.addEventListener("click", (e) => {
         // Update active class
-        options.forEach(opt => opt.classList.remove("active"));
+        options.forEach((opt) => opt.classList.remove("active"));
         option.classList.add("active");
 
         // Update selected text

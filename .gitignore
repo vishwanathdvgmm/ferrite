@@ -15,3 +15,5 @@ news*.md
 *_ferrite
 *_go
 *_rs
+*.py
+*.snap

@@ -38,12 +38,12 @@ param weights: Tensor<float, (784, 128)> = init();
 
 ## Primitive Types
 
-| Type     | Description              | Example         |
-|:---------|:-------------------------|:----------------|
-| `int`    | 64-bit signed integer    | `42`, `-10`     |
-| `float`  | 64-bit floating point    | `3.14`, `-0.5`  |
-| `bool`   | Boolean                  | `true`, `false`  |
-| `string` | UTF-8 string             | `"Hello"`       |
+| Type     | Description           | Example         |
+| :------- | :-------------------- | :-------------- |
+| `int`    | 64-bit signed integer | `42`, `-10`     |
+| `float`  | 64-bit floating point | `3.14`, `-0.5`  |
+| `bool`   | Boolean               | `true`, `false` |
+| `string` | UTF-8 string          | `"Hello"`       |
 
 ## Tensor Types
 
@@ -59,15 +59,19 @@ Shape dimensions can be constant integers or symbolic identifiers.
 ## Operators
 
 ### Arithmetic
+
 `+`, `-`, `*`, `/`, `%`
 
 ### Comparison
+
 `==`, `!=`, `<`, `>`, `<=`, `>=`
 
 ### Logical
+
 `&&` (AND), `||` (OR), `!` (NOT)
 
 ### Unary
+
 `-` (negation), `!` (logical not), `await` (async)
 
 ## Control Flow
@@ -75,13 +79,13 @@ Shape dimensions can be constant integers or symbolic identifiers.
 ### If / Elif / Else
 
 ```ferrite
-if score > 90 {
-    keep grade: string = "A";
+keep grade: string = if score > 90 {
+    "A"
 } elif score > 80 {
-    keep grade: string = "B";
+    "B"
 } else {
-    keep grade: string = "F";
-}
+    "F"
+};
 ```
 
 ### While Loop
@@ -102,6 +106,7 @@ for x in items {
 ```
 
 ### Loop Control
+
 - `stop;` — exits the loop (equivalent to `break`)
 - `skip;` — skips to next iteration (equivalent to `continue`)
 
@@ -174,17 +179,17 @@ enum Option<T> {
 ## Pattern Matching
 
 ```ferrite
-match value {
+keep description: string = match value {
     case 0 => {
-        return "zero";
+        "zero"
     }
     case 1 => {
-        return "one";
+        "one"
     }
     default => {
-        return "other";
+        "other"
     }
-}
+};
 ```
 
 Patterns support: literals, wildcards (`_`), variable bindings, constructor patterns (`Some(x)`), and struct patterns (`Point { x, y }`).

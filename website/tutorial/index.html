@@ -140,6 +140,9 @@ println(message);</code></pre>
                   <li>
                     <a href="#tut-modules" class="docs-link">Modules & Imports</a>
                   </li>
+                  <li>
+                    <a href="#tut-dsa" class="docs-link">Native Lists (DSA)</a>
+                  </li>
                 </ul>
               </div>
 
@@ -233,18 +236,20 @@ println(<span class="string">"Scaled: "</span> + str(scale(<span class="number">
                 <p>
                   Conditional logic in Ferrite uses standard <code>if</code>,
                   <code>else if</code>, and <code>else</code> blocks. Note that
-                  there are no parentheses around the condition!
+                  there are no parentheses around the condition! Because Ferrite is expression-oriented, you can assign the result of an `if` block directly.
                 </p>
 
                 <pre><code class="language-ferrite">keep score = 85;
 
-if score >= 90 {
-    println("Grade: A");
+keep grade = if score >= 90 {
+    "A"
 } else if score >= 80 {
-    println("Grade: B");
+    "B"
 } else {
-    println("Grade: C");
-}</code></pre>
+    "C"
+};
+
+println("Grade: " + grade);</code></pre>
               </div>
 
               <!-- Loops -->
@@ -275,7 +280,7 @@ while i < 5 {
                 </p>
                 <p>
                   You can also use <code>if</code> clauses inside match arms as
-                  "guards" for extra conditions!
+                  "guards" for extra conditions! Match blocks evaluate to values, so they can be directly assigned.
                 </p>
 
                 <pre><code class="language-ferrite">enum Result&lt;T&gt; {
@@ -285,17 +290,19 @@ while i < 5 {
 
 keep response = Ok(200);
 
-match response {
+keep message = match response {
     case Ok(status) if status == 200 =&gt; {
-        println("Success!");
+        "Success!"
     }
     case Ok(status) =&gt; {
-        println("Other status: " + str(status));
+        "Other status: " + str(status)
     }
     case Err(msg) =&gt; {
-        println("Error: " + msg);
+        "Error: " + msg
     }
-}</code></pre>
+};
+
+println(message);</code></pre>
               </div>
 
               <!-- Groups -->
@@ -357,6 +364,25 @@ println(position.format());</code></pre>
 
 <span class="keyword">keep</span> a = geometry.area(<span class="number">10.0</span>, <span class="number">5.0</span>);
 println(<span class="string">"Area is: "</span> + str(a));</code></pre>
+              </div>
+
+              <!-- Native Lists (DSA) -->
+              <div id="tut-dsa" class="docs-section-content">
+                <h2>Chapter 4.4: Native Lists (DSA)</h2>
+                <p>
+                  Ferrite v3.1.0 introduces native dynamic collections! You can now use <code>List&lt;T&gt;</code> for data structures and algorithms, backed by automatic scope-based memory management (RAII).
+                </p>
+
+                <pre><code class="language-ferrite">
+keep stack: List&lt;int&gt; = List();
+push(stack, 10);
+push(stack, 20);
+
+keep top = pop(stack);
+println("Popped: " + str(top));
+
+// Memory is automatically freed when `stack` goes out of scope!
+</code></pre>
               </div>
 
               <!-- Tensors -->

@@ -1,4 +1,4 @@
-# Ferrite v3.0.0 — Compiler Architecture
+# Ferrite v3.1.0 — Compiler Architecture
 
 This document describes the internal architecture of the Ferrite v3.0.0 AOT compiler and IDE Tooling.
 

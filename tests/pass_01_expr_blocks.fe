@@ -1,0 +1,28 @@
+// Tests standard expression blocks and scopes
+
+test fun main() {
+    // Return value from a block
+    keep x: int = {
+        keep a: int = 10;
+        a + 5
+    };
+    assert(x == 15, "fail");
+
+    // Block with trailing semicolon evaluates to Unit
+    keep y: unit = {
+        keep b: int = 20;
+        b * 2;
+    };
+    
+    // Nested blocks
+    keep z: int = {
+        keep outer: int = 1;
+        {
+            keep inner: int = 2;
+            outer + inner
+        }
+    };
+    assert(z == 3, "fail");
+    
+    print("pass_01_expr_blocks ok");
+}

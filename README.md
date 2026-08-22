@@ -1,9 +1,9 @@
-# 🦀 Ferrite (v3.0.0)
+# 🦀 Ferrite (v3.1.0)
 
 > **The AI-Native, Statically-Typed Systems & ML Programming Language — Built in Rust.**
 
 [![Website](https://img.shields.io/badge/Website-ferrite--lang.org-326efa)](https://www.ferrite-lang.org/)
-[![Documentation](https://img.shields.io/badge/Docs-v3.0.0-28285a)](https://www.ferrite-lang.org/docs/)
+[![Documentation](https://img.shields.io/badge/Docs-v3.1.0-28285a)](https://www.ferrite-lang.org/docs/)
 [![License](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-d9534f)](https://www.ferrite-lang.org/sponsors/)
 
@@ -14,6 +14,7 @@
 Ferrite is an ahead-of-time compiled and interpreted programming language engineered specifically for artificial intelligence, machine learning, and systems programming. Built from the ground up in pure safe Rust, Ferrite provides:
 
 - **Native Multidimensional Tensors**: Compile-time shape verification (`Tensor<float, (100, 784)>`) with matrix multiplication (`@`).
+- **Expression-Oriented Architecture**: `if`, `match`, and blocks `{}` evaluate to values, with the `Never` type ensuring seamless control flow typing (`stop`, `skip`, `return`).
 - **Zero Implicit Coercion**: Strict type safety—no implicit numeric promotion or dynamic truthiness.
 - **Scope-Delimited Execution Contexts**: `train { ... }` (autodiff gradient tracking) vs. `infer { ... }` (zero-overhead forward pass).
 - **Module System**: `import "math"`, destructuring imports (`from "utils" take { helper as my_helper }`), and `pub` visibility.
@@ -22,13 +23,13 @@ Ferrite is an ahead-of-time compiled and interpreted programming language engine
 
 ---
 
-## 🚀 Quick Start (v3.0.0)
+## 🚀 Quick Start (v3.1.0)
 
 ### Installation
 
 ```bash
 # Windows Setup Wizard or Portable Binary
-Download ferrite-v3.0.0-setup.exe from Releases
+Download ferrite-v3.1.0-setup.exe from Releases
 
 # macOS (Homebrew)
 brew tap vishwanathdvgmm/tap

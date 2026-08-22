@@ -4,12 +4,12 @@ Ferrite v2.0 is **statically and strictly typed**. All types are resolved at com
 
 ## Primitive Types
 
-| Type     | Rust Backing | Description              |
-|:---------|:-------------|:-------------------------|
-| `int`    | `i64`        | 64-bit signed integer    |
-| `float`  | `f64`        | 64-bit floating point    |
-| `bool`   | `bool`       | `true` or `false`        |
-| `string` | `String`     | UTF-8 heap-allocated     |
+| Type     | Rust Backing | Description           |
+| :------- | :----------- | :-------------------- |
+| `int`    | `i64`        | 64-bit signed integer |
+| `float`  | `f64`        | 64-bit floating point |
+| `bool`   | `bool`       | `true` or `false`     |
+| `string` | `String`     | UTF-8 heap-allocated  |
 
 ## Tensor Type
 
@@ -36,6 +36,7 @@ error: Tensors can only contain 'int' or 'float', not 'bool'
 ### Shape Matching
 
 Shape matching is **exact and structural**:
+
 - Constant dimensions match by value: `784 == 784`
 - Symbolic dimensions match by name: `B == B`, but `B ≠ N`
 - No implicit broadcasting or reshaping — mismatches are errors
@@ -62,11 +63,11 @@ group Container<T> { value: T; }       // Type: Container
 
 ## Special Types
 
-| Type    | Description                                            |
-|:--------|:-------------------------------------------------------|
-| `Unit`  | Return type of functions with no `-> type` annotation  |
-| `Never` | Type of divergent expressions (`stop`, `skip`)         |
-| `Error` | Internal sentinel for failed type checks; suppresses cascading errors |
+| Type    | Description                                                                    |
+| :------ | :----------------------------------------------------------------------------- |
+| `Unit`  | Type of expression blocks ending in `;`, and functions with no return type.    |
+| `Never` | Type of divergent expressions (`return`, `stop`, `skip`). Coerces to any type. |
+| `Error` | Internal sentinel for failed type checks; suppresses cascading errors          |
 
 ## Type Unification
 
@@ -94,6 +95,7 @@ unify(Tensor<float, (B, 784)>,   Tensor<int,   (B, 784)>)    → ❌ Element mis
 ### Arithmetic (`+`, `-`, `*`, `/`, `%`)
 
 Both operands must be the **same** numeric type:
+
 - `int OP int → int`
 - `float OP float → float`
 - `int OP float → ❌ Error` (no promotion)
@@ -115,12 +117,12 @@ Both operands must be `bool`. Result is `bool`.
 
 The `TypeEnv.resolve_ast_type()` function converts AST type nodes into resolved `Type` values:
 
-| AST Type                          | Resolved Type                    |
-|:----------------------------------|:---------------------------------|
-| `Primitive(Int)`                  | `Type::Int`                      |
-| `Named("Point")`                 | `Type::Named("Point")`          |
+| AST Type                         | Resolved Type                     |
+| :------------------------------- | :-------------------------------- |
+| `Primitive(Int)`                 | `Type::Int`                       |
+| `Named("Point")`                 | `Type::Named("Point")`            |
 | `Tensor { elem, shape }`         | `Type::Tensor(elem, TensorShape)` |
-| `Generic { name: "Option", .. }` | `Type::Named("Option")`         |
+| `Generic { name: "Option", .. }` | `Type::Named("Option")`           |
 
 ## Scope-Based Symbol Table
 

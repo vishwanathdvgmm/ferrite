@@ -353,3 +353,162 @@ impl Lexer {
         Token::new(kind, span)
     }
 }
+
+// ── Unit Tests ──────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    /// Helper: tokenize source and return a Vec of (TokenKind, line, col) for easy snapshot comparison.
+    fn tokenize_to_strings(source: &str) -> (Vec<String>, Vec<String>) {
+        let mut diag = DiagnosticBag::new();
+        let mut lexer = Lexer::new(source, PathBuf::from("<test>"));
+        let tokens = lexer.tokenize(&mut diag);
+
+        let token_strs: Vec<String> = tokens
+            .iter()
+            .map(|t| format!("{:?} @ {}:{}", t.kind, t.span.line, t.span.col))
+            .collect();
+
+        let error_strs: Vec<String> = if diag.has_errors() {
+            // Collect error messages (without ANSI rendering)
+            vec![format!("{} error(s) reported", diag.error_count())]
+        } else {
+            vec![]
+        };
+
+        (token_strs, error_strs)
+    }
+
+    #[test]
+    fn test_empty_input() {
+        let (tokens, errors) = tokenize_to_strings("");
+        insta::assert_debug_snapshot!("empty_input_tokens", tokens);
+        assert!(errors.is_empty(), "Empty input should produce no errors");
+    }
+
+    #[test]
+    fn test_single_char_delimiters() {
+        let (tokens, errors) = tokenize_to_strings("( ) { } [ ] , : ; .");
+        insta::assert_debug_snapshot!("single_char_delimiters", tokens);
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn test_arithmetic_operators() {
+        let (tokens, _) = tokenize_to_strings("+ - * / %");
+        insta::assert_debug_snapshot!("arithmetic_operators", tokens);
+    }
+
+    #[test]
+    fn test_comparison_operators() {
+        let (tokens, _) = tokenize_to_strings("< <= > >= == != = !");
+        insta::assert_debug_snapshot!("comparison_operators", tokens);
+    }
+
+    #[test]
+    fn test_logical_operators() {
+        let (tokens, _) = tokenize_to_strings("&& ||");
+        insta::assert_debug_snapshot!("logical_operators", tokens);
+    }
+
+    #[test]
+    fn test_arrow_operators() {
+        let (tokens, _) = tokenize_to_strings("-> =>");
+        insta::assert_debug_snapshot!("arrow_operators", tokens);
+    }
+
+    #[test]
+    fn test_integer_literals() {
+        let (tokens, _) = tokenize_to_strings("0 42 1024 999999");
+        insta::assert_debug_snapshot!("integer_literals", tokens);
+    }
+
+    #[test]
+    fn test_float_literals() {
+        let (tokens, _) = tokenize_to_strings("3.14 0.5 100.0");
+        insta::assert_debug_snapshot!("float_literals", tokens);
+    }
+
+    #[test]
+    fn test_string_literal_simple() {
+        let (tokens, _) = tokenize_to_strings(r#""hello world""#);
+        insta::assert_debug_snapshot!("string_literal_simple", tokens);
+    }
+
+    #[test]
+    fn test_string_literal_escapes() {
+        let (tokens, _) = tokenize_to_strings(r#""line\nnew\ttab\\slash\"quote""#);
+        insta::assert_debug_snapshot!("string_literal_escapes", tokens);
+    }
+
+    #[test]
+    fn test_string_literal_unterminated() {
+        let (tokens, errors) = tokenize_to_strings(r#""hello"#);
+        insta::assert_debug_snapshot!("string_unterminated_tokens", tokens);
+        assert!(
+            !errors.is_empty(),
+            "Unterminated string should produce an error"
+        );
+    }
+
+    #[test]
+    fn test_keywords() {
+        let source = "fun keep param constant group enum import from take as if elif else while for in return stop skip match case default infer train async await spawn select where self trait impl pub extern unsafe test true false";
+        let (tokens, _) = tokenize_to_strings(source);
+        insta::assert_debug_snapshot!("all_keywords", tokens);
+    }
+
+    #[test]
+    fn test_identifiers() {
+        let (tokens, _) = tokenize_to_strings("foo _bar baz_42 MyType");
+        insta::assert_debug_snapshot!("identifiers", tokens);
+    }
+
+    #[test]
+    fn test_mixed_ferrite_code() {
+        let source = r#"fun main() -> int {
+    keep x: int = 42;
+    return x;
+}"#;
+        let (tokens, _) = tokenize_to_strings(source);
+        insta::assert_debug_snapshot!("mixed_ferrite_code", tokens);
+    }
+
+    #[test]
+    fn test_unknown_character() {
+        let (_, errors) = tokenize_to_strings("@");
+        assert!(
+            !errors.is_empty(),
+            "Unknown character should produce an error"
+        );
+    }
+
+    #[test]
+    fn test_single_ampersand_error() {
+        let (_, errors) = tokenize_to_strings("&");
+        assert!(!errors.is_empty(), "Single '&' should produce an error");
+    }
+
+    #[test]
+    fn test_single_pipe_error() {
+        let (_, errors) = tokenize_to_strings("|");
+        assert!(!errors.is_empty(), "Single '|' should produce an error");
+    }
+
+    #[test]
+    fn test_comments_skipped() {
+        let source = "keep x: int = 5; // this is a comment\nkeep y: int = 10;";
+        let (tokens, _) = tokenize_to_strings(source);
+        insta::assert_debug_snapshot!("comments_skipped", tokens);
+    }
+
+    #[test]
+    fn test_multiline_spans() {
+        let source = "keep\nx\n:\nint\n=\n5\n;";
+        let (tokens, _) = tokenize_to_strings(source);
+        insta::assert_debug_snapshot!("multiline_spans", tokens);
+    }
+}

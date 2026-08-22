@@ -55,6 +55,23 @@
           <div class="centered-feed-layout">
             <!-- Main articles list -->
             <div class="blog-posts-list">
+              <!-- Post: 3.1.0 -->
+              <article class="centered-feed-post">
+                <header class="post-header">
+                  <div class="post-meta">August 22, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v3.1.0: Expression-Oriented Architecture & Native Lists</h3>
+                </header>
+                <p class="post-summary">The massive v3.1.0 update transforms Ferrite into a fully expression-oriented language and introduces native dynamic collections powered by RAII memory management.</p>
+                <div class="post-content-full">
+                  <p>In our biggest syntax overhaul yet, <code>if</code>, <code>match</code>, and blocks now evaluate to values, completely changing how you assign states. We also eliminated the runtime <code>Signal</code> enum in favor of unified execution.</p>
+                  <pre><code class="language-ferrite">
+keep grade = if score >= 90 { "A" } else { "F" };
+                  </code></pre>
+                  <p>Finally, we introduced <code>List&lt;T&gt;</code> natively into the LLVM backend. Memory allocations are now cleaned up automatically using scope-based tracking!</p>
+                </div>
+                <button class="btn btn-secondary btn-read-more">Read More</button>
+              </article>
+
               <!-- Post: 2.4.1 -->
               <article class="centered-feed-post">
                 <header class="post-header">

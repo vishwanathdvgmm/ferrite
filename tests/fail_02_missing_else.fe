@@ -1,0 +1,7 @@
+// Verifies that `if` without an `else` branch requires the `then` branch to return `Unit`
+
+test fun main() {
+    keep x: int = if true {
+        5
+    }; // ERROR: missing else means if evaluates to (), which mismatches int
+}

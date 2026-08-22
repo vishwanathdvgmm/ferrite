@@ -1,23 +1,69 @@
-pub constant PI: float = 3.141592653589793;
-pub constant E: float = 2.718281828459045;
-pub constant TAU: float = 6.283185307179586;
+pub keep PI: float = 3.141592653589793;
 
-pub fun abs(x: float) -> float { return x; }
-pub fun sqrt(x: float) -> float { return x; }
-pub fun pow(x: float, y: float) -> float { return x; }
-pub fun log(x: float) -> float { return x; }
-pub fun log2(x: float) -> float { return x; }
-pub fun log10(x: float) -> float { return x; }
+pub keep E: float = 2.718281828459045;
 
-pub fun sin(x: float) -> float { return x; }
-pub fun cos(x: float) -> float { return x; }
-pub fun tan(x: float) -> float { return x; }
-pub fun atan2(y: float, x: float) -> float { return y; }
+pub keep TAU: float = 6.283185307179586;
 
-pub fun floor(x: float) -> float { return x; }
-pub fun ceil(x: float) -> float { return x; }
-pub fun round(x: float) -> float { return x; }
+pub fun abs(x: float) -> float {
+    return x;
+}
 
-pub fun min(a: float, b: float) -> float { return a; }
-pub fun max(a: float, b: float) -> float { return a; }
-pub fun clamp(x: float, min_val: float, max_val: float) -> float { return x; }
+pub fun sqrt(x: float) -> float {
+    return x;
+}
+
+pub fun pow(x: float, y: float) -> float {
+    return x;
+}
+
+pub fun log(x: float) -> float {
+    return x;
+}
+
+pub fun log2(x: float) -> float {
+    return x;
+}
+
+pub fun log10(x: float) -> float {
+    return x;
+}
+
+pub fun sin(x: float) -> float {
+    return x;
+}
+
+pub fun cos(x: float) -> float {
+    return x;
+}
+
+pub fun tan(x: float) -> float {
+    return x;
+}
+
+pub fun atan2(y: float, x: float) -> float {
+    return y;
+}
+
+pub fun floor(x: float) -> float {
+    return x;
+}
+
+pub fun ceil(x: float) -> float {
+    return x;
+}
+
+pub fun round(x: float) -> float {
+    return x;
+}
+
+pub fun min(a: float, b: float) -> float {
+    return a;
+}
+
+pub fun max(a: float, b: float) -> float {
+    return a;
+}
+
+pub fun clamp(x: float, min_val: float, max_val: float) -> float {
+    return x;
+}

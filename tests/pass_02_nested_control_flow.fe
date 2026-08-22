@@ -1,0 +1,49 @@
+// Tests deeply nested if / else / elif and match expressions
+
+test fun main() {
+    keep flag: bool = true;
+
+    // if evaluating to value
+    keep a: int = if flag {
+        10
+    } else {
+        20
+    };
+    assert(a == 10, "fail");
+
+    // match evaluating to value
+    keep b: int = match a {
+        case 10 => { 100 }
+        case 20 => { 200 }
+        default => { 0 }
+    };
+    assert(b == 100, "fail");
+
+    // deeply nested if inside match
+    keep c: string = match b {
+        case 100 => {
+            if flag {
+                "success"
+            } else {
+                "fail"
+            }
+        }
+        default => { "fail" }
+    };
+    assert(c == "success", "fail");
+    
+    // Nested elif
+    keep d: int = if false {
+        1
+    } elif a == 10 {
+        match c {
+            case "success" => { 42 }
+            default => { 0 }
+        }
+    } else {
+        2
+    };
+    assert(d == 42, "fail");
+
+    print("pass_02_nested_control_flow ok");
+}

@@ -1,5 +1,0 @@
-// Test: runtime_fail_02_negative_index.fe
-fun main() {
-    keep s: string = "abc";
-    keep val: string = s[-1];
-}

@@ -2,6 +2,63 @@
 
 This document covers major changes and migration steps between Ferrite versions.
 
+## Migrating from Ferrite v3.0.0 to v3.1.0
+
+Ferrite v3.1.0 brings a full expression-oriented architecture, native dynamic collections, and scope-based memory management. This release fundamentally shifts how blocks and control flow evaluate.
+
+### 1. Expression-Oriented Syntax & Blocks
+
+All `{ ... }` blocks (including `if` and `match` branches) now evaluate to values rather than being strictly statements.
+
+- If a block does not end in a semicolon, it returns the value of the last expression.
+- If a block ends in a semicolon, it explicitly returns `Unit`.
+
+**Before (v3.0.0):**
+
+```ferrite
+keep x: int = 0;
+if true {
+    x = 10;
+}
+```
+
+**After (v3.1.0):**
+
+```ferrite
+keep x: int = if true {
+    10
+} else {
+    0
+};
+```
+
+### 2. Semicolons for Control Flow Expressions
+
+Because `return`, `stop`, and `skip` are now expressions evaluating to the `Never` type (which coerces to any type), they consume semicolons directly.
+
+**Before (v3.0.0):**
+
+```ferrite
+return 42;
+```
+
+**After (v3.1.0):**
+When used inside an assignment or an expression block where a semicolon terminates the outer statement, you may need a double semicolon (one for the `return` expression, one for the outer statement):
+
+```ferrite
+keep x: int = return 42;;
+```
+
+### 3. RAII Memory Management
+
+Memory management in LLVM compiled binaries is now fully automatic using scope-based RAII (Rust-style). When you allocate a `List()`, its backing buffer will be automatically cleaned up (`free`) when the variable goes out of scope. You no longer need to worry about manual memory management or garbage collection tuning!
+
+### 4. Native Lists
+
+You can now natively use `List<int>()`, `push(l, 10)`, `pop(l)`, and index access `l[0] = 5` inside `ferrite compile`! These intrinsics are built directly into the compiler, running at native C/C++ speed.
+
+---
+
 ## Migrating from Ferrite v2.4.1 to v3.0.0
 
 Ferrite v3.0.0 introduces official IDE tooling (VS Code Extension, Language Server, and Formatter) and enhances the AOT LLVM compiler backend. There are no breaking syntax changes in this release.

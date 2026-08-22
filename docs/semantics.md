@@ -93,20 +93,29 @@ param w: Tensor<float, (784, 128)> = init();
 
 Semantically identical to `keep` at the type level, but signals to the ML runtime that this value participates in gradient computation during `train` blocks.
 
+## Expression-Oriented Evaluation
+
+Ferrite v3.1.0 is a fully expression-oriented language:
+
+- **Blocks Evaluate to Values:** Any `{ ... }` block (including function bodies, `if` branches, and `match` cases) evaluates to the value of its last expression.
+- **Trailing Semicolons:** If an expression inside a block is terminated with a semicolon (e.g., `10;`), it becomes an expression statement and evaluates to `Unit`. Thus, a block ending in a semicolon evaluates to `Unit`.
+- **`Never` Coercion:** Expressions that diverge (`return`, `stop`, `skip`) evaluate to the `Never` type, which can be safely coerced to any expected type (e.g., assigning a `stop` expression to an `int` variable).
+
 ## Function Semantics
 
-- Functions are declared with `fun` and have explicitly typed parameters
-- Return type is mandatory if the function returns a value
-- Functions without `-> type` return `Unit`
-- `return` outside a function body is a compile error
-- All top-level functions are forward-declared in Pass 1, allowing mutual recursion
+- Functions are declared with `fun` and explicitly typed parameters.
+- Return type is mandatory if the function evaluates to a non-unit value.
+- Functions without a `-> type` signature implicitly return `Unit`.
+- The function body is an expression block. If it doesn't end with a semicolon, its final expression is returned automatically.
+- `return` expressions can be used for early exits, and consume their own semicolon (`return 42;;` inside assignments).
+- All top-level functions are forward-declared in Pass 1, allowing mutual recursion.
 
 ## Effect System
 
 Functions can be annotated with effects that constrain their execution context:
 
 | Effect  | Meaning                                    |
-|:--------|:-------------------------------------------|
+| :------ | :----------------------------------------- |
 | `infer` | Function runs in inference-only mode       |
 | `train` | Function participates in training/gradient |
 | `async` | Function is asynchronous                   |

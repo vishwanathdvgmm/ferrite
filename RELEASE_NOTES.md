@@ -1,3 +1,29 @@
+# Ferrite v3.1.0 Release Notes
+
+Welcome to **Ferrite v3.1.0** 🚀 — The **"Expression-Oriented & Native Memory"** update!
+
+This release fundamentally changes how Ferrite code evaluates by introducing a full **Expression-Oriented Architecture** while also bringing **Native Dynamic Collections** with RAII-style memory management.
+
+---
+
+## 🧩 Expression-Oriented Architecture
+
+Ferrite v3.1.0 brings a massive overhaul to the language syntax and evaluation model. Ferrite is now a fully expression-oriented language!
+
+- **Expression Blocks** — `if`, `match`, and blocks `{ ... }` now evaluate to values. The last expression in a block without a semicolon becomes the block's return value. Adding a trailing semicolon forces the block to evaluate to `Unit`.
+- **`Never` Type & Control Flow Expressions** — `return`, `stop`, and `skip` are now expressions that evaluate to the `Never` type (which coerces to any type). They consume semicolons directly (e.g., `return 42;;`).
+- **Unified Execution** — The runtime `Signal` enum has been removed. Execution now uniformly evaluates and yields `Value`s across all nodes.
+- **Exhaustive Testing** — We introduced a robust, exhaustive suite of 6 new expression-oriented tests (`pass_01` to `pass_04` and `fail_01` to `fail_02`) verifying deep scoping, loops, and type mismatch rules.
+
+## 🧱 Native Data Structures & RAII Memory Management
+
+Ferrite v3.1.0 introduces native dynamic collections (`List<T>`) backed by our new RAII-style memory management implementation in the LLVM backend. Heap-allocated variables now automatically drop their buffers when going out of scope.
+
+- **List Intrinsic** — `List()` instantiation, `push()`, `pop()`, and index assignments.
+- **RAII Scopes** — Automatic heap `free()` insertion during LLVM codegen for `List` data buffers upon returning or leaving block scopes.
+
+---
+
 # Ferrite v3.0.0 Release Notes
 
 Welcome to **Ferrite v3.0.0** 🚀 — The **"IDE Tooling & Native Memory"** update!

@@ -302,6 +302,8 @@ pub enum PrimType {
     Float,
     Bool,
     String,
+    Unit,
+    Never,
 }
 
 #[derive(Debug, Clone)]
@@ -315,6 +317,7 @@ pub enum ShapeDim {
 #[derive(Debug, Clone)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
+    pub expr: Option<Box<Expr>>, // Optional trailing expression
     pub span: Span,
 }
 
@@ -335,46 +338,8 @@ pub enum Stmt {
         span: Span,
     },
     /// expression;
-    ExprStmt(Expr),
-    /// return [expr];
-    Return { value: Option<Expr>, span: Span },
-    /// if cond { ... } elif cond { ... } else { ... }
-    If {
-        condition: Expr,
-        then_block: Block,
-        elif_branches: Vec<(Expr, Block)>,
-        else_block: Option<Block>,
-        span: Span,
-    },
-    /// while cond { ... }
-    While {
-        condition: Expr,
-        body: Block,
-        span: Span,
-    },
-    /// for x in expr { ... }
-    For {
-        var: String,
-        iterable: Expr,
-        body: Block,
-        span: Span,
-    },
-    /// match expr { case pat => { ... } default => { ... } }
-    Match {
-        subject: Expr,
-        cases: Vec<MatchCase>,
-        span: Span,
-    },
-    /// infer { ... }
-    InferBlock(Block),
-    /// train { ... }
-    TrainBlock(Block),
-    /// select { case x = expr => { ... } default => { ... } }
-    Select { cases: Vec<SelectCase>, span: Span },
-    /// stop;
-    Stop(Span),
-    /// skip;
-    Skip(Span),
+    /// `has_semi` is true if the statement was explicitly terminated with a semicolon.
+    ExprStmt(Expr, bool),
 }
 
 // ── Match ────────────────────────────────────────────────────────
@@ -510,6 +475,50 @@ pub enum Expr {
     },
     /// Unsafe block: unsafe { ... }
     UnsafeBlock(Block, Span),
+    /// Block expression: { stmt; expr }
+    Block(Block),
+    /// if cond { ... } elif cond { ... } else { ... }
+    If {
+        condition: Box<Expr>,
+        then_block: Block,
+        elif_branches: Vec<(Expr, Block)>,
+        else_block: Option<Block>,
+        span: Span,
+    },
+    /// while cond { ... }
+    While {
+        condition: Box<Expr>,
+        body: Block,
+        span: Span,
+    },
+    /// for x in expr { ... }
+    For {
+        var: String,
+        iterable: Box<Expr>,
+        body: Block,
+        span: Span,
+    },
+    /// match expr { case pat => { ... } default => { ... } }
+    Match {
+        subject: Box<Expr>,
+        cases: Vec<MatchCase>,
+        span: Span,
+    },
+    /// infer { ... }
+    InferBlock(Block),
+    /// train { ... }
+    TrainBlock(Block),
+    /// select { case x = expr => { ... } default => { ... } }
+    Select { cases: Vec<SelectCase>, span: Span },
+    /// return [expr];
+    Return {
+        value: Option<Box<Expr>>,
+        span: Span,
+    },
+    /// stop;
+    Stop(Span),
+    /// skip;
+    Skip(Span),
 }
 
 // ── Literals ─────────────────────────────────────────────────────

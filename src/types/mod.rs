@@ -200,7 +200,7 @@ pub fn operator_trait(op: &BinOp) -> Option<&'static str> {
 
 pub struct TypeEnv<'a> {
     pub diag: &'a mut DiagnosticBag,
-    scopes: Vec<HashMap<String, Type>>,
+    pub scopes: Vec<HashMap<String, Type>>,
     // Global struct/enum declarations for type validation
     pub types: HashMap<String, Type>,
     pub active_generics: Vec<String>,
@@ -246,6 +246,30 @@ impl<'a> TypeEnv<'a> {
         globals.insert(
             "assert".to_string(),
             Type::Func(vec![Type::Bool, Type::String], Box::new(Type::Unit)),
+        );
+        globals.insert(
+            "List".to_string(),
+            Type::Func(
+                vec![],
+                Box::new(Type::GenericInst("List".to_string(), vec![Type::Int])),
+            ),
+        );
+        globals.insert(
+            "push".to_string(),
+            Type::Func(
+                vec![
+                    Type::GenericInst("List".to_string(), vec![Type::Int]),
+                    Type::Int,
+                ],
+                Box::new(Type::Unit),
+            ),
+        );
+        globals.insert(
+            "pop".to_string(),
+            Type::Func(
+                vec![Type::GenericInst("List".to_string(), vec![Type::Int])],
+                Box::new(Type::Int),
+            ),
         );
         globals.insert(
             "exit".to_string(),
@@ -407,6 +431,8 @@ impl<'a> TypeEnv<'a> {
                 PrimType::Float => Type::Float,
                 PrimType::Bool => Type::Bool,
                 PrimType::String => Type::String,
+                PrimType::Unit => Type::Unit,
+                PrimType::Never => Type::Never,
             },
             AstType::Tensor { elem, shape, span } => {
                 let elem_ty = self.resolve_ast_type(elem);
@@ -453,10 +479,14 @@ impl<'a> TypeEnv<'a> {
 
     // ── Unification ──────────────────────────────────────────────
 
+    /// Maximum recursion depth for type unification.
+    /// Prevents stack overflow from circular trait constraints or deeply nested generics.
+    const MAX_UNIFY_DEPTH: usize = 64;
+
     /// Structurally unify two types, emitting a diagnostic if they diverge.
     /// Strict checking: NO implicit coercion, NO implicit broadcasting.
     pub fn unify(&mut self, expected: &Type, actual: &Type, span: &Span) -> bool {
-        self.unify_recursive(expected, actual, span, &mut HashMap::new())
+        self.unify_recursive(expected, actual, span, &mut HashMap::new(), 0)
     }
 
     pub fn unify_recursive(
@@ -465,7 +495,21 @@ impl<'a> TypeEnv<'a> {
         actual: &Type,
         span: &Span,
         subst: &mut HashMap<String, Type>,
+        depth: usize,
     ) -> bool {
+        if depth > Self::MAX_UNIFY_DEPTH {
+            self.diag.error(
+                span.clone(),
+                format!(
+                    "Type unification exceeded maximum recursion depth ({}) — \
+                     possible circular type constraint between '{}' and '{}'",
+                    Self::MAX_UNIFY_DEPTH,
+                    expected,
+                    actual
+                ),
+            );
+            return false;
+        }
         if expected == &Type::Error || actual == &Type::Error {
             return true; // Suppress cascade errors
         }
@@ -479,7 +523,7 @@ impl<'a> TypeEnv<'a> {
 
         match (expected, actual) {
             (Type::Tensor(e_elem, e_shape), Type::Tensor(a_elem, a_shape)) => {
-                if !self.unify_recursive(e_elem, a_elem, span, subst) {
+                if !self.unify_recursive(e_elem, a_elem, span, subst, depth + 1) {
                     return false;
                 }
                 if !e_shape.exact_match(a_shape) {
@@ -504,7 +548,7 @@ impl<'a> TypeEnv<'a> {
                     return false;
                 }
                 for i in 0..a1.len() {
-                    if !self.unify_recursive(&a1[i], &a2[i], span, subst) {
+                    if !self.unify_recursive(&a1[i], &a2[i], span, subst, depth + 1) {
                         return false;
                     }
                 }

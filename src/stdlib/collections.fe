@@ -1,13 +1,38 @@
-pub fun push<T>(l: List<T>, item: T) {}
-pub fun pop<T>(l: List<T>) -> T { return l[0]; }
-pub fun get<T>(l: List<T>, index: int) -> T { return l[0]; }
-pub fun set<T>(l: List<T>, index: int, item: T) {}
-pub fun is_empty<T>(l: List<T>) -> bool { return true; }
+pub fun push<T>(l: List<T>, item: T) {
+}
 
-pub fun reverse<T>(l: List<T>) {}
-pub fun concat<T>(a: List<T>, b: List<T>) -> List<T> { return a; }
+pub fun pop<T>(l: List<T>) -> T {
+    return l[0];
+}
 
-pub fun map_get<K, V>(m: Map<K, V>, key: K) -> V { return m[key]; }
-pub fun map_set<K, V>(m: Map<K, V>, key: K, value: V) {}
-pub fun has_key<K, V>(m: Map<K, V>, key: K) -> bool { return true; }
-pub fun delete_key<K, V>(m: Map<K, V>, key: K) {}
+pub fun get<T>(l: List<T>, index: int) -> T {
+    return l[0];
+}
+
+pub fun set<T>(l: List<T>, index: int, item: T) {
+}
+
+pub fun is_empty<T>(l: List<T>) -> bool {
+    return true;
+}
+
+pub fun reverse<T>(l: List<T>) {
+}
+
+pub fun concat<T>(a: List<T>, b: List<T>) -> List<T> {
+    return a;
+}
+
+pub fun map_get<K, V>(m: Map<K, V>, key: K) -> V {
+    return m[key];
+}
+
+pub fun map_set<K, V>(m: Map<K, V>, key: K, value: V) {
+}
+
+pub fun has_key<K, V>(m: Map<K, V>, key: K) -> bool {
+    return true;
+}
+
+pub fun delete_key<K, V>(m: Map<K, V>, key: K) {
+}
