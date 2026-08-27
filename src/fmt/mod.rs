@@ -576,6 +576,50 @@ impl Formatter {
         }
     }
 
+    fn format_pattern(&mut self, pattern: &Pattern) {
+        match pattern {
+            Pattern::Literal(lit) => match lit {
+                Literal::Int(i) => self.output.push_str(&i.to_string()),
+                Literal::Float(f) => self.output.push_str(&format!("{:?}", f)),
+                Literal::Bool(b) => self.output.push_str(&b.to_string()),
+                Literal::String(s) => self.output.push_str(&format!("\"{}\"", s)),
+            },
+            Pattern::Wildcard(_) => self.output.push_str("_"),
+            Pattern::Binding(name, _) => self.output.push_str(name),
+            Pattern::Constructor { name, fields, .. } => {
+                self.output.push_str(name);
+                if !fields.is_empty() {
+                    self.output.push('(');
+                    for (i, f) in fields.iter().enumerate() {
+                        if i > 0 {
+                            self.output.push_str(", ");
+                        }
+                        self.format_pattern(f);
+                    }
+                    self.output.push(')');
+                }
+            }
+            Pattern::Struct { name, fields, .. } => {
+                self.output.push_str(name);
+                self.output.push_str(" { ");
+                for (i, (fname, fpat)) in fields.iter().enumerate() {
+                    if i > 0 {
+                        self.output.push_str(", ");
+                    }
+                    if let Pattern::Binding(bname, _) = fpat {
+                        if fname == bname {
+                            self.output.push_str(fname);
+                            continue;
+                        }
+                    }
+                    self.output.push_str(&format!("{}: ", fname));
+                    self.format_pattern(fpat);
+                }
+                self.output.push_str(" }");
+            }
+        }
+    }
+
     fn format_expr(&mut self, expr: &Expr) {
         match expr {
             Expr::Lit(lit, _) => match lit {
@@ -679,8 +723,136 @@ impl Formatter {
                 self.indent();
                 self.output.push('}');
             }
-            _ => {
-                self.output.push_str("/* TODO expr fmt */");
+            Expr::Block(b) => {
+                self.output.push_str("{\n");
+                self.indent_level += 1;
+                for stmt in &b.stmts {
+                    self.format_stmt(stmt);
+                }
+                if let Some(e) = &b.expr {
+                    self.flush_comments(e.span().line - 1, false);
+                    self.indent();
+                    self.format_expr(e);
+                    self.output.push('\n');
+                }
+                self.indent_level -= 1;
+                self.indent();
+                self.output.push('}');
+            }
+            Expr::If {
+                condition,
+                then_block,
+                elif_branches,
+                else_block,
+                ..
+            } => {
+                self.output.push_str("if ");
+                self.format_expr(condition);
+                self.output.push_str(" ");
+                self.format_expr(&Expr::Block(then_block.clone()));
+                for (cond, blk) in elif_branches {
+                    self.output.push_str(" else if ");
+                    self.format_expr(cond);
+                    self.output.push_str(" ");
+                    self.format_expr(&Expr::Block(blk.clone()));
+                }
+                if let Some(eb) = else_block {
+                    self.output.push_str(" else ");
+                    self.format_expr(&Expr::Block(eb.clone()));
+                }
+            }
+            Expr::While {
+                condition, body, ..
+            } => {
+                self.output.push_str("while ");
+                self.format_expr(condition);
+                self.output.push_str(" ");
+                self.format_expr(&Expr::Block(body.clone()));
+            }
+            Expr::For {
+                var,
+                iterable,
+                body,
+                ..
+            } => {
+                self.output.push_str(&format!("for {} in ", var));
+                self.format_expr(iterable);
+                self.output.push_str(" ");
+                self.format_expr(&Expr::Block(body.clone()));
+            }
+            Expr::Match { subject, cases, .. } => {
+                self.output.push_str("match ");
+                self.format_expr(subject);
+                self.output.push_str(" {\n");
+                self.indent_level += 1;
+                for case in cases {
+                    self.flush_comments(case.span.line - 1, false);
+                    self.indent();
+                    if let Pattern::Wildcard(_) = case.pattern {
+                        self.output.push_str("default");
+                    } else {
+                        self.output.push_str("case ");
+                        self.format_pattern(&case.pattern);
+                        if let Some(guard) = &case.guard {
+                            self.output.push_str(" if ");
+                            self.format_expr(guard);
+                        }
+                    }
+                    self.output.push_str(" => ");
+                    self.format_expr(&Expr::Block(case.body.clone()));
+                    self.output.push('\n');
+                }
+                self.indent_level -= 1;
+                self.indent();
+                self.output.push('}');
+            }
+            Expr::Select { cases, .. } => {
+                self.output.push_str("select {\n");
+                self.indent_level += 1;
+                for case in cases {
+                    self.flush_comments(case.span.line - 1, false);
+                    self.indent();
+                    if case.is_default {
+                        self.output.push_str("default => ");
+                    } else {
+                        self.output.push_str("case ");
+                        if let Some((name, expr)) = &case.assignment {
+                            if name == "_" {
+                                self.format_expr(expr);
+                            } else {
+                                self.output.push_str(&format!("{} = ", name));
+                                self.format_expr(expr);
+                            }
+                        }
+                        self.output.push_str(" => ");
+                    }
+                    self.format_expr(&Expr::Block(case.body.clone()));
+                    self.output.push('\n');
+                }
+                self.indent_level -= 1;
+                self.indent();
+                self.output.push('}');
+            }
+            Expr::InferBlock(b) => {
+                self.output.push_str("infer ");
+                self.format_expr(&Expr::Block(b.clone()));
+            }
+            Expr::TrainBlock(b) => {
+                self.output.push_str("train ");
+                self.format_expr(&Expr::Block(b.clone()));
+            }
+            Expr::Return { value, .. } => {
+                self.output.push_str("return");
+                if let Some(v) = value {
+                    self.output.push_str(" ");
+                    self.format_expr(v);
+                }
+            }
+            Expr::Stop(_) => {
+                self.output.push_str("stop");
+            }
+            Expr::Skip(_) => {
+                self.output.push_str("skip");
             }
         }
     }
