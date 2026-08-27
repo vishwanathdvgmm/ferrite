@@ -372,56 +372,62 @@ impl Formatter {
                 self.output.push('}');
             }
             TopDecl::Func(f) => {
-                let vis = if f.visibility == Visibility::Public {
-                    "pub "
-                } else {
-                    ""
-                };
-                let effect_params = if f.effect_params.is_empty() {
-                    String::new()
-                } else {
-                    format!("[{}] ", f.effect_params.join(", "))
-                };
-
-                self.output.push_str(&format!(
-                    "{}{}{}fun {}{}(",
-                    vis,
-                    effect_params,
-                    self.format_effects(&f.effects),
-                    f.name,
-                    self.format_generics(&f.generics)
-                ));
-                for (i, param) in f.params.iter().enumerate() {
-                    if i > 0 {
-                        self.output.push_str(", ");
+                if f.name == "__top_level__" {
+                    for stmt in &f.body.stmts {
+                        self.format_stmt(stmt);
                     }
+                } else {
+                    let vis = if f.visibility == Visibility::Public {
+                        "pub "
+                    } else {
+                        ""
+                    };
+                    let effect_params = if f.effect_params.is_empty() {
+                        String::new()
+                    } else {
+                        format!("[{}] ", f.effect_params.join(", "))
+                    };
+
                     self.output.push_str(&format!(
-                        "{}: {}",
-                        param.name,
-                        self.format_type(&param.ty)
+                        "{}{}{}fun {}{}(",
+                        vis,
+                        effect_params,
+                        self.format_effects(&f.effects),
+                        f.name,
+                        self.format_generics(&f.generics)
                     ));
-                }
-                self.output.push_str(")");
-                if !f.return_effects.is_empty() {
-                    self.output.push_str(&format!(
-                        " ! {}",
-                        self.format_effects(&f.return_effects).trim()
-                    ));
-                }
-                if let Some(ret) = &f.return_type {
+                    for (i, param) in f.params.iter().enumerate() {
+                        if i > 0 {
+                            self.output.push_str(", ");
+                        }
+                        self.output.push_str(&format!(
+                            "{}: {}",
+                            param.name,
+                            self.format_type(&param.ty)
+                        ));
+                    }
+                    self.output.push_str(")");
+                    if !f.return_effects.is_empty() {
+                        self.output.push_str(&format!(
+                            " ! {}",
+                            self.format_effects(&f.return_effects).trim()
+                        ));
+                    }
+                    if let Some(ret) = &f.return_type {
+                        self.output
+                            .push_str(&format!(" -> {}", self.format_type(ret)));
+                    }
                     self.output
-                        .push_str(&format!(" -> {}", self.format_type(ret)));
+                        .push_str(&self.format_where_clause(&f.where_clause));
+                    self.output.push_str(" {\n");
+                    self.indent_level += 1;
+                    for stmt in &f.body.stmts {
+                        self.format_stmt(stmt);
+                    }
+                    self.indent_level -= 1;
+                    self.indent();
+                    self.output.push('}');
                 }
-                self.output
-                    .push_str(&self.format_where_clause(&f.where_clause));
-                self.output.push_str(" {\n");
-                self.indent_level += 1;
-                for stmt in &f.body.stmts {
-                    self.format_stmt(stmt);
-                }
-                self.indent_level -= 1;
-                self.indent();
-                self.output.push('}');
             }
             TopDecl::Trait(t) => {
                 let vis = if t.visibility == Visibility::Public {
