@@ -1101,8 +1101,12 @@ impl<'a> Parser<'a> {
         } else {
             None
         };
-        self.consume(TokenKind::Semicolon, "Expected ';' after return.")?;
-        let span = self.merge_span(&start_span, &self.previous().span.clone());
+        // Do NOT consume semicolon here; let the statement parser handle it.
+        let span = if let Some(v) = &value {
+            self.merge_span(&start_span, &v.span().clone())
+        } else {
+            start_span.clone()
+        };
         Some(Expr::Return { value, span })
     }
 
