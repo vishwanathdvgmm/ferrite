@@ -552,9 +552,11 @@ impl Formatter {
                 self.format_expr(value);
                 self.output.push_str(";");
             }
-            Stmt::ExprStmt(expr, _) => {
+            Stmt::ExprStmt(expr, has_semi) => {
                 self.format_expr(expr);
-                self.output.push_str(";");
+                if *has_semi {
+                    self.output.push_str(";");
+                }
             }
 
             Stmt::Param {

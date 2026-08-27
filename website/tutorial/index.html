@@ -143,6 +143,9 @@ println(message);</code></pre>
                   <li>
                     <a href="#tut-dsa" class="docs-link">Native Lists (DSA)</a>
                   </li>
+                  <li>
+                    <a href="#tut-bst" class="docs-link">Binary Search Tree (DSA)</a>
+                  </li>
                 </ul>
               </div>
 
@@ -382,6 +385,40 @@ keep top = pop(stack);
 println("Popped: " + str(top));
 
 // Memory is automatically freed when `stack` goes out of scope!
+</code></pre>
+              </div>
+
+              <!-- Binary Search Tree (DSA) -->
+              <div id="tut-bst" class="docs-section-content">
+                <h2>Chapter 4.5: Binary Search Tree (DSA)</h2>
+                <p>
+                  You can build complex data structures like trees using Ferrite's <code>enum</code> and <code>group</code>. Here is a simple Binary Search Tree implementation demonstrating recursive types and pattern matching.
+                </p>
+
+                <pre><code class="language-ferrite">enum Tree&lt;T&gt; {
+    Empty;
+    Node(T, Box&lt;Tree&lt;T&gt;&gt;, Box&lt;Tree&lt;T&gt;&gt;);
+}
+
+fun insert(tree: Tree&lt;int&gt;, value: int) -&gt; Tree&lt;int&gt; {
+    return match tree {
+        case Empty =&gt; {
+            Node(value, box Empty, box Empty)
+        }
+        case Node(v, left, right) if value &lt; v =&gt; {
+            Node(v, box insert(*left, value), right)
+        }
+        case Node(v, left, right) =&gt; {
+            Node(v, left, box insert(*right, value))
+        }
+    };
+}
+
+keep root = Empty;
+root = insert(root, 10);
+root = insert(root, 5);
+root = insert(root, 15);
+println("Tree built successfully!");
 </code></pre>
               </div>
 

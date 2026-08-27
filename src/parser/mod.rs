@@ -35,7 +35,26 @@ impl<'a> Parser<'a> {
             } else {
                 if let Some(stmt) = self.parse_stmt() {
                     top_stmts.push(stmt);
+                } else if let Some(parsed_expr) = self.parse_expression() {
+                    if self.match_token(&[TokenKind::Semicolon]) {
+                        top_stmts.push(Stmt::ExprStmt(parsed_expr, true));
+                    } else {
+                        match &parsed_expr {
+                            Expr::If { .. }
+                            | Expr::Match { .. }
+                            | Expr::While { .. }
+                            | Expr::For { .. }
+                            | Expr::Block(_) => {
+                                top_stmts.push(Stmt::ExprStmt(parsed_expr, false));
+                            }
+                            _ => {
+                                self.error_at_current("Expected ';' after expression.");
+                                self.synchronize();
+                            }
+                        }
+                    }
                 } else {
+                    self.error_at_current("Expected declaration or statement.");
                     self.synchronize();
                 }
             }
