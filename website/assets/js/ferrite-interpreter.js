@@ -735,19 +735,51 @@ class Parser {
       return { type: "Lit", litType: "bool", value: false };
     }
 
-    // Grouped expression
+    // Grouped expression or Lambda
     if (t.kind === TK.LParen) {
       this.advance();
-      // Could be a lambda: (params) => expr
-      // Peek ahead to see if this looks like a lambda
+      
+      const savedPos = this.pos;
+      try {
+        const params = [];
+        while (this.peekKind() !== TK.RParen && this.peekKind() !== TK.EOF) {
+          if (this.peekKind() === TK.Ident) {
+            const name = this.advance().value;
+            let typeStr = "infer";
+            if (this.match(TK.Colon)) {
+              typeStr = this.parseTypeExpr();
+            }
+            params.push({ name, type: typeStr });
+          } else {
+            throw new Error("Not a param");
+          }
+          if (!this.match(TK.Comma)) break;
+        }
+        this.expect(TK.RParen);
+        if (this.peekKind() === TK.FatArrow) {
+          this.advance();
+          const body = this.parseExpr();
+          return { type: "Lambda", params, body };
+        }
+      } catch (e) {
+        // Fall back to grouped expression
+      }
+      
+      this.pos = savedPos;
+      
+      // Could be a lambda: (params) => expr (without parens parsed nicely)
       const expr = this.parseExpr();
       this.expect(TK.RParen);
       // Check for fat arrow (lambda)
       if (this.peekKind() === TK.FatArrow) {
         this.advance();
         const body = this.parseExpr();
-        // expr should be param-like, but for simplicity we just return it
-        return { type: "Lambda", params: [], body };
+        
+        let params = [];
+        if (expr.type === "Ident") {
+          params.push({ name: expr.name, type: "infer" });
+        }
+        return { type: "Lambda", params, body };
       }
       return expr;
     }

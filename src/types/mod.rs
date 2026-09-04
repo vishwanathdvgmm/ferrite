@@ -324,13 +324,16 @@ impl<'a> TypeEnv<'a> {
 
     pub fn declare_var(&mut self, name: String, ty: Type, span: &Span) {
         if let Some(scope) = self.scopes.last_mut() {
-            if scope.contains_key(&name) {
-                self.diag.error(
-                    span.clone(),
-                    format!("Variable '{}' is already defined in this scope.", name),
-                );
-            } else {
-                scope.insert(name, ty);
+            match scope.entry(name.clone()) {
+                std::collections::hash_map::Entry::Occupied(_) => {
+                    self.diag.error(
+                        span.clone(),
+                        format!("Variable '{}' is already defined in this scope.", name),
+                    );
+                }
+                std::collections::hash_map::Entry::Vacant(vacant) => {
+                    vacant.insert(ty);
+                }
             }
         }
     }
@@ -347,24 +350,30 @@ impl<'a> TypeEnv<'a> {
     }
 
     pub fn declare_type(&mut self, name: String, ty: Type, span: &Span) {
-        if self.types.contains_key(&name) {
-            self.diag
-                .error(span.clone(), format!("Type '{}' is already defined.", name));
-        } else {
-            self.types.insert(name, ty);
+        match self.types.entry(name.clone()) {
+            std::collections::hash_map::Entry::Occupied(_) => {
+                self.diag
+                    .error(span.clone(), format!("Type '{}' is already defined.", name));
+            }
+            std::collections::hash_map::Entry::Vacant(vacant) => {
+                vacant.insert(ty);
+            }
         }
     }
 
     // ── Trait Registry ──────────────────────────────────────────
 
     pub fn register_trait(&mut self, name: String, def: TraitDef, span: &Span) {
-        if self.traits.contains_key(&name) {
-            self.diag.error(
-                span.clone(),
-                format!("Trait '{}' is already defined.", name),
-            );
-        } else {
-            self.traits.insert(name, def);
+        match self.traits.entry(name.clone()) {
+            std::collections::hash_map::Entry::Occupied(_) => {
+                self.diag.error(
+                    span.clone(),
+                    format!("Trait '{}' is already defined.", name),
+                );
+            }
+            std::collections::hash_map::Entry::Vacant(vacant) => {
+                vacant.insert(def);
+            }
         }
     }
 
