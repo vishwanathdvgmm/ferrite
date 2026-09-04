@@ -87,7 +87,7 @@ impl<'a> Parser<'a> {
         if self
             .tokens
             .get(pos)
-            .map_or(false, |t| t.kind == TokenKind::Pub)
+            .is_some_and(|t| t.kind == TokenKind::Pub)
         {
             pos += 1;
         }
@@ -869,17 +869,13 @@ impl<'a> Parser<'a> {
                                 });
                             } else {
                                 let mut bounds = Vec::new();
-                                loop {
-                                    if let Some((bound_name, bspan)) =
-                                        self.consume_ident("Expected trait bound.")
-                                    {
-                                        bounds.push(TraitRef {
-                                            name: bound_name,
-                                            span: bspan,
-                                        });
-                                    } else {
-                                        break;
-                                    }
+                                while let Some((bound_name, bspan)) =
+                                    self.consume_ident("Expected trait bound.")
+                                {
+                                    bounds.push(TraitRef {
+                                        name: bound_name,
+                                        span: bspan,
+                                    });
                                     if !self.match_token(&[TokenKind::Plus]) {
                                         break;
                                     }
@@ -935,15 +931,11 @@ impl<'a> Parser<'a> {
                 } else if self.match_token(&[TokenKind::Colon]) {
                     // Trait bound
                     let mut bounds = Vec::new();
-                    loop {
-                        if let Some((bname, bspan)) = self.consume_ident("Expected trait name.") {
-                            bounds.push(TraitRef {
-                                name: bname,
-                                span: bspan,
-                            });
-                        } else {
-                            break;
-                        }
+                    while let Some((bname, bspan)) = self.consume_ident("Expected trait name.") {
+                        bounds.push(TraitRef {
+                            name: bname,
+                            span: bspan,
+                        });
                         if !self.match_token(&[TokenKind::Plus]) {
                             break;
                         }

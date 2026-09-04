@@ -155,6 +155,12 @@ pub struct DiagnosticBag {
     source_cache: std::collections::HashMap<PathBuf, String>,
 }
 
+impl Default for DiagnosticBag {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DiagnosticBag {
     pub fn new() -> Self {
         Self {

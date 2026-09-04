@@ -196,11 +196,11 @@ fn parse_value(s: &str, line_num: usize) -> Result<TomlValue, ManifestError> {
     let s = effective.as_str();
 
     // String: "..."
-    if s.starts_with('"') {
-        let end = s[1..].find('"').ok_or_else(|| {
+    if let Some(stripped) = s.strip_prefix('"') {
+        let end = stripped.find('"').ok_or_else(|| {
             ManifestError::ParseError(format!("Unterminated string on line {}", line_num + 1))
         })?;
-        return Ok(TomlValue::String(s[1..1 + end].to_string()));
+        return Ok(TomlValue::String(stripped[..end].to_string()));
     }
 
     // Boolean
@@ -270,11 +270,11 @@ impl Manifest {
     pub fn load(dir: &Path) -> Result<Manifest, ManifestError> {
         let manifest_path = dir.join("ferrite.toml");
         let content = fs::read_to_string(&manifest_path)?;
-        Self::from_str(&content)
+        Self::parse(&content)
     }
 
     /// Parse a manifest from a raw TOML string.
-    pub fn from_str(content: &str) -> Result<Manifest, ManifestError> {
+    pub fn parse(content: &str) -> Result<Manifest, ManifestError> {
         let root = parse_toml(content)?;
 
         // ── [package] ───────────────────────────────────────────

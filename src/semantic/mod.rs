@@ -569,7 +569,7 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                     overall_ty = else_ty;
                 } else {
                     // If there is no else, the overall type MUST be Unit (or Never).
-                    self.env.unify(&Type::Unit, &overall_ty, &span);
+                    self.env.unify(&Type::Unit, &overall_ty, span);
                     overall_ty = Type::Unit;
                 }
                 overall_ty
@@ -643,7 +643,7 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                         .map(|e| self.analyze_expr(e))
                         .unwrap_or(Type::Unit);
                     if let Some(expected) = &self.current_return_type {
-                        self.env.unify(expected, &ret_ty, &span);
+                        self.env.unify(expected, &ret_ty, span);
                     }
                 }
                 Type::Never

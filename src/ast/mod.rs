@@ -15,16 +15,13 @@ pub struct Program {
 // ── Visibility ───────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq)]
+#[derive(Default)]
 pub enum Visibility {
     Public,
+    #[default]
     Private,
 }
 
-impl Default for Visibility {
-    fn default() -> Self {
-        Visibility::Private
-    }
-}
 
 // ── Top-Level Declarations ───────────────────────────────────────
 

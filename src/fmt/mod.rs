@@ -49,7 +49,7 @@ impl Formatter {
                 let text = self.comments[i].1.clone();
                 if is_trailing && line == up_to_line {
                     // Prepend space for trailing comment
-                    self.output.push_str(" ");
+                    self.output.push(' ');
                     self.output.push_str(&text);
                     self.output.push('\n');
                 } else if !is_trailing && line < up_to_line {
@@ -202,7 +202,7 @@ impl Formatter {
             self.output
                 .push_str(&format!("{}: {}", param.name, self.format_type(&param.ty)));
         }
-        self.output.push_str(")");
+        self.output.push(')');
 
         if !method.return_effects.is_empty() {
             self.output.push_str(&format!(
@@ -248,7 +248,7 @@ impl Formatter {
             self.output
                 .push_str(&format!("{}: {}", param.name, self.format_type(&param.ty)));
         }
-        self.output.push_str(")");
+        self.output.push(')');
 
         if let Some(ret) = &method.return_type {
             self.output
@@ -361,7 +361,7 @@ impl Formatter {
                             variant.fields.iter().map(|t| self.format_type(t)).collect();
                         self.output.push_str(&format!("({})", types.join(", ")));
                     }
-                    self.output.push_str(";");
+                    self.output.push(';');
                     self.flush_comments(variant.span.line, true);
                     if !self.output.ends_with('\n') {
                         self.output.push('\n');
@@ -406,7 +406,7 @@ impl Formatter {
                             self.format_type(&param.ty)
                         ));
                     }
-                    self.output.push_str(")");
+                    self.output.push(')');
                     if !f.return_effects.is_empty() {
                         self.output.push_str(&format!(
                             " ! {}",
@@ -496,7 +496,7 @@ impl Formatter {
                             self.format_type(&param.ty)
                         ));
                     }
-                    self.output.push_str(")");
+                    self.output.push(')');
                     if let Some(ret) = &f.return_type {
                         self.output
                             .push_str(&format!(" -> {}", self.format_type(ret)));
@@ -556,12 +556,12 @@ impl Formatter {
                 self.output
                     .push_str(&format!("keep {}: {} = ", name, self.format_type(ty)));
                 self.format_expr(value);
-                self.output.push_str(";");
+                self.output.push(';');
             }
             Stmt::ExprStmt(expr, has_semi) => {
                 self.format_expr(expr);
                 if *has_semi {
-                    self.output.push_str(";");
+                    self.output.push(';');
                 }
             }
 
@@ -571,7 +571,7 @@ impl Formatter {
                 self.output
                     .push_str(&format!("param {}: {} = ", name, self.format_type(ty)));
                 self.format_expr(value);
-                self.output.push_str(";");
+                self.output.push(';');
             }
         }
         if span.line > 0 {
@@ -590,7 +590,7 @@ impl Formatter {
                 Literal::Bool(b) => self.output.push_str(&b.to_string()),
                 Literal::String(s) => self.output.push_str(&format!("\"{}\"", s)),
             },
-            Pattern::Wildcard(_) => self.output.push_str("_"),
+            Pattern::Wildcard(_) => self.output.push('_'),
             Pattern::Binding(name, _) => self.output.push_str(name),
             Pattern::Constructor { name, fields, .. } => {
                 self.output.push_str(name);
@@ -694,7 +694,7 @@ impl Formatter {
                 self.format_expr(value);
             }
             Expr::Lambda { params, body, .. } => {
-                self.output.push_str("(");
+                self.output.push('(');
                 for (i, param) in params.iter().enumerate() {
                     if i > 0 {
                         self.output.push_str(", ");
@@ -755,12 +755,12 @@ impl Formatter {
             } => {
                 self.output.push_str("if ");
                 self.format_expr(condition);
-                self.output.push_str(" ");
+                self.output.push(' ');
                 self.format_expr(&Expr::Block(then_block.clone()));
                 for (cond, blk) in elif_branches {
                     self.output.push_str(" else if ");
                     self.format_expr(cond);
-                    self.output.push_str(" ");
+                    self.output.push(' ');
                     self.format_expr(&Expr::Block(blk.clone()));
                 }
                 if let Some(eb) = else_block {
@@ -773,7 +773,7 @@ impl Formatter {
             } => {
                 self.output.push_str("while ");
                 self.format_expr(condition);
-                self.output.push_str(" ");
+                self.output.push(' ');
                 self.format_expr(&Expr::Block(body.clone()));
             }
             Expr::For {
@@ -784,7 +784,7 @@ impl Formatter {
             } => {
                 self.output.push_str(&format!("for {} in ", var));
                 self.format_expr(iterable);
-                self.output.push_str(" ");
+                self.output.push(' ');
                 self.format_expr(&Expr::Block(body.clone()));
             }
             Expr::Match { subject, cases, .. } => {
@@ -851,7 +851,7 @@ impl Formatter {
             Expr::Return { value, .. } => {
                 self.output.push_str("return");
                 if let Some(v) = value {
-                    self.output.push_str(" ");
+                    self.output.push(' ');
                     self.format_expr(v);
                 }
             }

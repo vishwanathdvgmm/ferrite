@@ -27,14 +27,15 @@ pub fn start_repl() {
     // We also need to maintain the type environment for the semantic analyzer across lines
     // For a simple REPL, we'll just instantiate a new one each time for now, but
     // ideally it should be persistent if we want full type tracking across inputs.
-    let mut saved_type_env_state: Option<(
+    type TypeEnvState = (
         Vec<HashMap<String, crate::types::Type>>,
         HashMap<String, crate::types::Type>,
         HashMap<String, crate::types::TraitDef>,
         Vec<crate::types::ImplDef>,
         HashMap<String, Vec<(String, crate::types::Type)>>,
         HashMap<String, Vec<(String, Vec<crate::types::Type>)>>,
-    )> = None;
+    );
+    let mut saved_type_env_state: Option<TypeEnvState> = None;
 
     let mut input = String::new();
     let mut prompt = "ferrite> ";

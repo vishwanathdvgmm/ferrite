@@ -160,7 +160,7 @@ impl<'a> ImportResolver<'a> {
         Some(())
     }
 
-    fn resolve_dependencies(&mut self, current_file: &PathBuf, ast: &Program) -> Option<()> {
+    fn resolve_dependencies(&mut self, current_file: &Path, ast: &Program) -> Option<()> {
         let parent_dir = current_file.parent().unwrap_or(Path::new(""));
 
         for decl in &ast.decls {

@@ -37,6 +37,12 @@ impl From<std::io::Error> for DepsError {
     }
 }
 
+impl Default for Lockfile {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Lockfile {
     pub fn new() -> Self {
         Self {

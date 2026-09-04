@@ -863,7 +863,7 @@ impl Interpreter {
     fn execute_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
         match name {
             "print" | "println" => {
-                if let Some(val) = args.get(0) {
+                if let Some(val) = args.first() {
                     if name == "println" {
                         println!("{}", val);
                     } else {
@@ -873,7 +873,7 @@ impl Interpreter {
                 Ok(Value::Unit)
             }
             "input" => {
-                if let Some(Value::String(prompt)) = args.get(0) {
+                if let Some(Value::String(prompt)) = args.first() {
                     use std::io::{self, Write};
                     print!("{}", prompt);
                     io::stdout().flush().unwrap();
@@ -885,7 +885,7 @@ impl Interpreter {
                 }
             }
             "len" => {
-                if let Some(val) = args.get(0) {
+                if let Some(val) = args.first() {
                     match val {
                         Value::String(s) => Ok(Value::Int(s.len() as i64)),
                         Value::List(items) => Ok(Value::Int(items.borrow().len() as i64)),
@@ -897,14 +897,14 @@ impl Interpreter {
                 }
             }
             "str" => {
-                if let Some(val) = args.get(0) {
+                if let Some(val) = args.first() {
                     Ok(Value::String(val.to_string()))
                 } else {
                     Err("str() expects an argument".to_string())
                 }
             }
             "int" => {
-                if let Some(val) = args.get(0) {
+                if let Some(val) = args.first() {
                     match val {
                         Value::String(s) => s
                             .parse::<i64>()
@@ -919,7 +919,7 @@ impl Interpreter {
                 }
             }
             "float" => {
-                if let Some(val) = args.get(0) {
+                if let Some(val) = args.first() {
                     match val {
                         Value::String(s) => s
                             .parse::<f64>()
@@ -934,7 +934,7 @@ impl Interpreter {
                 }
             }
             "assert" => {
-                if let Some(Value::Bool(cond)) = args.get(0) {
+                if let Some(Value::Bool(cond)) = args.first() {
                     if !cond {
                         let msg = args
                             .get(1)
@@ -949,7 +949,7 @@ impl Interpreter {
                 }
             }
             "exit" => {
-                let code = if let Some(Value::Int(c)) = args.get(0) {
+                let code = if let Some(Value::Int(c)) = args.first() {
                     *c as i32
                 } else {
                     0
@@ -1043,16 +1043,16 @@ impl Interpreter {
                     } else if name == "rand" {
                         // VERY simple PRNG for demonstration
                         let mut seed: u64 = 12345;
-                        for i in 0..total_size {
+                        for item in data.iter_mut().take(total_size) {
                             seed = seed.wrapping_mul(1103515245).wrapping_add(12345) & 0x7fffffff;
-                            data[i] = (seed as f64) / (0x7fffffff as f64);
+                            *item = (seed as f64) / (0x7fffffff as f64);
                         }
                     }
                     return Ok(Value::Tensor(data, dims));
                 }
                 if name.starts_with("__builtin_math_") {
                     let func = name.strip_prefix("__builtin_math_").unwrap();
-                    if let Some(Value::Float(x)) = args.get(0) {
+                    if let Some(Value::Float(x)) = args.first() {
                         match func {
                             "sin" => return Ok(Value::Float(x.sin())),
                             "cos" => return Ok(Value::Float(x.cos())),
@@ -1084,7 +1084,7 @@ impl Interpreter {
                     let func = name.strip_prefix("__builtin_io_").unwrap();
                     match func {
                         "read_file" => {
-                            if let Some(Value::String(path)) = args.get(0) {
+                            if let Some(Value::String(path)) = args.first() {
                                 return match std::fs::read_to_string(path) {
                                     Ok(content) => Ok(Value::String(content)),
                                     Err(e) => Err(format!("Failed to read file '{}': {}", path, e)),
@@ -1093,7 +1093,7 @@ impl Interpreter {
                         }
                         "write_file" => {
                             if let (Some(Value::String(path)), Some(Value::String(content))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 return match std::fs::write(path, content) {
                                     Ok(_) => Ok(Value::Unit),
@@ -1105,7 +1105,7 @@ impl Interpreter {
                         }
                         "append_file" => {
                             if let (Some(Value::String(path)), Some(Value::String(content))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 use std::fs::OpenOptions;
                                 use std::io::Write;
@@ -1123,7 +1123,7 @@ impl Interpreter {
                             }
                         }
                         "file_exists" => {
-                            if let Some(Value::String(path)) = args.get(0) {
+                            if let Some(Value::String(path)) = args.first() {
                                 return Ok(Value::Bool(std::path::Path::new(path).exists()));
                             }
                         }
@@ -1137,7 +1137,7 @@ impl Interpreter {
                     match func {
                         "split" => {
                             if let (Some(Value::String(s)), Some(Value::String(delim))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 let parts: Vec<Value> = s
                                     .split(delim)
@@ -1150,7 +1150,7 @@ impl Interpreter {
                         }
                         "join" => {
                             if let (Some(Value::List(l)), Some(Value::String(delim))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 let parts: Vec<String> =
                                     l.borrow().iter().map(|v| v.to_string()).collect();
@@ -1158,17 +1158,17 @@ impl Interpreter {
                             }
                         }
                         "upper" => {
-                            if let Some(Value::String(s)) = args.get(0) {
+                            if let Some(Value::String(s)) = args.first() {
                                 return Ok(Value::String(s.to_uppercase()));
                             }
                         }
                         "lower" => {
-                            if let Some(Value::String(s)) = args.get(0) {
+                            if let Some(Value::String(s)) = args.first() {
                                 return Ok(Value::String(s.to_lowercase()));
                             }
                         }
                         "trim" => {
-                            if let Some(Value::String(s)) = args.get(0) {
+                            if let Some(Value::String(s)) = args.first() {
                                 return Ok(Value::String(s.trim().to_string()));
                             }
                         }
@@ -1177,35 +1177,35 @@ impl Interpreter {
                                 Some(Value::String(s)),
                                 Some(Value::String(old)),
                                 Some(Value::String(new)),
-                            ) = (args.get(0), args.get(1), args.get(2))
+                            ) = (args.first(), args.get(1), args.get(2))
                             {
                                 return Ok(Value::String(s.replace(old, new)));
                             }
                         }
                         "starts_with" => {
                             if let (Some(Value::String(s)), Some(Value::String(prefix))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 return Ok(Value::Bool(s.starts_with(prefix)));
                             }
                         }
                         "ends_with" => {
                             if let (Some(Value::String(s)), Some(Value::String(suffix))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 return Ok(Value::Bool(s.ends_with(suffix)));
                             }
                         }
                         "contains" => {
                             if let (Some(Value::String(s)), Some(Value::String(sub))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 return Ok(Value::Bool(s.contains(sub)));
                             }
                         }
                         "repeat" => {
                             if let (Some(Value::String(s)), Some(Value::Int(n))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 return Ok(Value::String(s.repeat(std::cmp::max(0, *n) as usize)));
                             }
@@ -1215,7 +1215,7 @@ impl Interpreter {
                                 Some(Value::String(s)),
                                 Some(Value::Int(start)),
                                 Some(Value::Int(length)),
-                            ) = (args.get(0), args.get(1), args.get(2))
+                            ) = (args.first(), args.get(1), args.get(2))
                             {
                                 let start = std::cmp::max(0, *start) as usize;
                                 let length = std::cmp::max(0, *length) as usize;
@@ -1228,7 +1228,7 @@ impl Interpreter {
                         }
                         "char_at" => {
                             if let (Some(Value::String(s)), Some(Value::Int(idx))) =
-                                (args.get(0), args.get(1))
+                                (args.first(), args.get(1))
                             {
                                 let idx = *idx as usize;
                                 if let Some(c) = s.chars().nth(idx) {
@@ -1255,7 +1255,7 @@ impl Interpreter {
     }
 
     fn execute_list_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
-        let list_val = args.get(0).ok_or("List method requires self")?;
+        let list_val = args.first().ok_or("List method requires self")?;
         let items_rc = match list_val {
             Value::List(rc) => rc,
             _ => return Err("Expected List".to_string()),
@@ -1335,7 +1335,7 @@ impl Interpreter {
     }
 
     fn execute_map_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
-        let map_val = args.get(0).ok_or("Map method requires self")?;
+        let map_val = args.first().ok_or("Map method requires self")?;
         let pairs_rc = match map_val {
             Value::Map(rc) => rc,
             _ => return Err("Expected Map".to_string()),
@@ -1391,7 +1391,7 @@ impl Interpreter {
     }
 
     fn execute_str_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
-        let str_val = args.get(0).ok_or("String method requires self")?;
+        let str_val = args.first().ok_or("String method requires self")?;
         let s = match str_val {
             Value::String(s) => s,
             _ => return Err("Expected String".to_string()),

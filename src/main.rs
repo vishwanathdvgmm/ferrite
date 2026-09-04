@@ -219,7 +219,7 @@ fn main() {
 
         // Step 1: Build an export map for each module (module_name -> pub decls)
         let mut module_exports: HashMap<String, Vec<TopDecl>> = HashMap::new();
-        for (_mod_path, module) in &modules {
+        for module in modules.values() {
             let pub_decls: Vec<TopDecl> = module
                 .ast
                 .decls
@@ -327,7 +327,6 @@ fn main() {
 
         if cmd == "check" {
             println!("✅ Type-checking successful.");
-            return;
         } else if cmd == "run" {
             let mut interpreter = runtime::interpreter::Interpreter::new(module_exports);
             match interpreter.run_program(&merged_ast) {
