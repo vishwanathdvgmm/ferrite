@@ -14,14 +14,12 @@ pub struct Program {
 
 // ── Visibility ───────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq)]
-#[derive(Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub enum Visibility {
     Public,
     #[default]
     Private,
 }
-
 
 // ── Top-Level Declarations ───────────────────────────────────────
 
