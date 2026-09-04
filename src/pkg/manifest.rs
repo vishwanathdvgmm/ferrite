@@ -418,7 +418,7 @@ debug = true
 opt-level = 3
 debug = false
 "#;
-        let manifest = Manifest::from_str(toml).expect("Should parse valid manifest");
+        let manifest = Manifest::parse(toml).expect("Should parse valid manifest");
         assert_eq!(manifest.package.name, "my-project");
         assert_eq!(manifest.package.version, "1.0.0");
         assert_eq!(manifest.package.authors, vec!["Alice", "Bob"]);
@@ -443,7 +443,7 @@ debug = false
 [package]
 version = "1.0.0"
 "#;
-        let result = Manifest::from_str(toml);
+        let result = Manifest::parse(toml);
         assert!(result.is_err());
         let err = result.unwrap_err();
         assert!(
@@ -458,7 +458,7 @@ version = "1.0.0"
 [package]
 name = "test"
 "#;
-        let result = Manifest::from_str(toml);
+        let result = Manifest::parse(toml);
         assert!(result.is_err());
         let err = result.unwrap_err();
         assert!(
@@ -473,7 +473,7 @@ name = "test"
 [dependencies]
 some-lib = "1.0.0"
 "#;
-        let result = Manifest::from_str(toml);
+        let result = Manifest::parse(toml);
         assert!(result.is_err());
         let err = result.unwrap_err();
         assert!(
@@ -491,14 +491,14 @@ version = "0.1.0"
 
 [dependencies]
 "#;
-        let manifest = Manifest::from_str(toml).expect("Should parse with empty deps");
+        let manifest = Manifest::parse(toml).expect("Should parse with empty deps");
         assert!(manifest.dependencies.is_empty());
     }
 
     #[test]
     fn test_default_toml_generation() {
         let toml_str = Manifest::default_toml("hello-world");
-        let manifest = Manifest::from_str(&toml_str).expect("Default TOML should be parseable");
+        let manifest = Manifest::parse(&toml_str).expect("Default TOML should be parseable");
         assert_eq!(manifest.package.name, "hello-world");
         assert_eq!(manifest.package.version, "0.1.0");
     }
@@ -511,7 +511,7 @@ version = "0.1.0"
 name = "test" # inline comment
 version = "0.1.0"
 "#;
-        let manifest = Manifest::from_str(toml).expect("Should ignore comments");
+        let manifest = Manifest::parse(toml).expect("Should ignore comments");
         assert_eq!(manifest.package.name, "test");
     }
 
@@ -523,7 +523,7 @@ name = "test"
 version = "0.1.0"
 authors = []
 "#;
-        let manifest = Manifest::from_str(toml).expect("Should parse empty array");
+        let manifest = Manifest::parse(toml).expect("Should parse empty array");
         assert!(manifest.package.authors.is_empty());
     }
 
@@ -534,7 +534,7 @@ authors = []
 name = "unterminated
 version = "0.1.0"
 "#;
-        let result = Manifest::from_str(toml);
+        let result = Manifest::parse(toml);
         assert!(result.is_err());
     }
 
@@ -545,7 +545,7 @@ version = "0.1.0"
 name = "test"
 version = "0.1.0"
 "#;
-        let manifest = Manifest::from_str(toml).expect("Should parse without profiles");
+        let manifest = Manifest::parse(toml).expect("Should parse without profiles");
         assert!(manifest.profiles.is_empty());
     }
 }

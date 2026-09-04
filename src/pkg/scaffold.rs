@@ -157,7 +157,7 @@ mod tests {
 
         // Verify manifest is parseable
         let content = fs::read_to_string(dir.join("ferrite.toml")).unwrap();
-        let manifest = super::super::manifest::Manifest::from_str(&content);
+        let manifest = super::super::manifest::Manifest::parse(&content);
         assert!(manifest.is_ok());
 
         // Cleanup
