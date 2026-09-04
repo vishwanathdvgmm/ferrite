@@ -2,9 +2,33 @@
 
 All notable changes to Ferrite are documented here.
 
-## [3.1.0]
+## [3.2.0]
 
-### 🧩 Expression-Oriented Architecture
+### 🧱 Native Data Structures (Lists & Maps) & DSA Foundation
+
+Ferrite v3.2.0 introduces native collections to the compiler, bringing full support for `List<T>`, `Map<K, V>`, and comprehensive string methods!
+
+### Added
+
+- **Map Collection** — Introduced the `Map<K, V>` collection for key-value storage. Supports `m.set()`, `m.get()`, `m.contains()`, `m.remove()`, `m.keys()`, `m.values()`, `m.len()`, and bracket syntax `m["key"]`.
+- **List Expansion** — Added full List method support: `push`, `pop`, `len`, `contains`, `remove`, `reverse`, `clear`, `insert`, and `slice`.
+- **String Methods** — Added rich string manipulation: `len`, `charAt`, `substring`, `split`, `contains`, `replace`, `trim`, `upper`, `lower`, `startsWith`, and `endsWith`. Strings remain immutable.
+- **`for-in` Upgrades** — The `for-in` loop now supports iterating over Maps (yields keys), Strings (yields chars), and the new `range()` builtin.
+- **`range()` Builtin** — Generate iterable lists of integers via `range(end)`, `range(start, end)`, or `range(start, end, step)`.
+
+### VS Code Extension (v1.3.1)
+
+- **Formatter Fixes**: Fixed auto-formatting issues for `infer`, `train`, `match`, and lambda expressions.
+- **Parser Fixes**: Fixed parsing of `stop` and `skip` to properly handle semicolons.
+
+### Internal
+
+- **Expanded Test Suite** — Added exhaustive unit tests for lexer, parser, and semantic analyzer, plus parser stress tests ensuring the compiler never panics on malformed code.
+- **CI/CD Pipeline** — Added GitHub Actions workflow to run the full test suite automatically across multiple OS platforms on every push and PR.
+
+---
+
+## [3.1.0] — 2026-08-16
 
 Ferrite v3.1.0 brings a massive overhaul to the language syntax and evaluation model. Ferrite is now a fully expression-oriented language!
 
@@ -24,7 +48,7 @@ Ferrite v3.1.0 introduces native dynamic collections (`List<T>`) backed by our n
 
 ---
 
-## [3.0.0]
+## [3.0.0] — 2026-08-01
 
 ### 🚀 VS Code Extension & IDE Tooling
 

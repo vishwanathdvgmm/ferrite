@@ -1,8 +1,32 @@
+# Ferrite v3.2.0 Release Notes
+
+Welcome to **Ferrite v3.2.0** 🚀 — The **"Native Memory & DSA Foundation"** update!
+
+This release fundamentally changes what you can build with Ferrite by introducing native collections (`List` and `Map`) along with comprehensive string manipulation methods, making it perfectly suited for Leetcode-style problems and data structures/algorithms (DSA).
+
+---
+
+## 🧱 Native Data Structures
+
+Ferrite v3.2.0 introduces native dynamic collections with rich APIs.
+
+- **Map Collection** — Introduced the `Map<K, V>` collection for key-value storage. Supports `m.set()`, `m.get()`, `m.contains()`, `m.remove()`, `m.keys()`, `m.values()`, `m.len()`, and bracket syntax `m["key"] = val`.
+- **List Expansion** — Added full List method support: `push`, `pop`, `len`, `contains`, `remove`, `reverse`, `clear`, `insert`, and `slice`.
+- **String Methods** — Added rich string manipulation: `len`, `charAt`, `substring`, `split`, `contains`, `replace`, `trim`, `upper`, `lower`, `startsWith`, and `endsWith`. Strings remain immutable.
+
+## 🔄 Iteration & Builtins
+
+- **`for-in` Upgrades** — The `for-in` loop now supports iterating over Maps (yields keys) and Strings (yields characters).
+- **`range()` Builtin** — Generate iterable lists of integers via `range(end)`, `range(start, end)`, or `range(start, end, step)`.
+
+## 🛠️ Testing Infrastructure
+
+- **Expanded Test Suite** — Added exhaustive unit tests for lexer, parser, and semantic analyzer, plus parser stress tests ensuring the compiler never panics on malformed code.
+- **CI/CD Pipeline** — Added GitHub Actions workflow to run the full test suite automatically across multiple OS platforms on every push and PR.
+
+---
+
 # Ferrite v3.1.0 Release Notes
-
-Welcome to **Ferrite v3.1.0** 🚀 — The **"Expression-Oriented & Native Memory"** update!
-
-This release fundamentally changes how Ferrite code evaluates by introducing a full **Expression-Oriented Architecture** while also bringing **Native Dynamic Collections** with RAII-style memory management.
 
 ---
 
@@ -36,7 +60,7 @@ This major release marks Ferrite's transition from an experimental language into
 
 Ferrite v3.0.0 brings the language directly into your editor with full semantic support and smart automation.
 
-- **VS Code Extension (v1.1.0)** — Published officially to the VS Code Marketplace and Open VSX Registry.
+- **VS Code Extension (v1.3.1)** — Published officially to the VS Code Marketplace and Open VSX Registry.
 - **Language Server Protocol (LSP)** — Get real-time diagnostics, intelligent syntax highlighting, go-to-definition, type-on-hover, and auto-formatting directly in your IDE.
 - **Smart Compiler Discovery** — The extension automatically detects `ferrite.exe` in your system `PATH` or local workspace (`target/release/`, `target/debug/`). If it can't find it, a helpful UI prompt will guide you to configure the path.
 - **Formatter (`ferrite fmt`)** — Canonical code formatting is now fully integrated into the compiler and VS Code extension to enforce clean, readable `.fe` scripts.

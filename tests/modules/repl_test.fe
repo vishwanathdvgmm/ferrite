@@ -1,0 +1,12 @@
+import "math_utils";
+
+keep x: int = 100;
+
+fun say_hello(name: str) {
+    println(name);
+}
+
+println(math_utils.add(10, 20));
+println(x);
+say_hello("Ferrite!");
+

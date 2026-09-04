@@ -65,7 +65,7 @@
                 <div class="post-content-full">
                   <p>In our biggest syntax overhaul yet, <code>if</code>, <code>match</code>, and blocks now evaluate to values, completely changing how you assign states. We also eliminated the runtime <code>Signal</code> enum in favor of unified execution.</p>
                   <pre><code class="language-ferrite">
-keep grade = if score >= 90 { "A" } else { "F" };
+keep grade: string = if score >= 90 { "A" } else { "F" };
                   </code></pre>
                   <p>Finally, we introduced <code>List&lt;T&gt;</code> natively into the LLVM backend. Memory allocations are now cleaned up automatically using scope-based tracking!</p>
                 </div>

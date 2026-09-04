@@ -226,8 +226,10 @@ count = count + 1; // Allowed
 }
 
 <span class="comment">// Closures use the arrow syntax and can capture variables</span>
-<span class="keyword">keep</span> multiplier = <span class="number">2.0</span>;
-<span class="keyword">keep</span> scale = (x: <span class="type">float</span>) =&gt; x * multiplier;
+<span class="keyword">keep</span> multiplier: <span class="type">float</span> = <span class="number">2.0</span>;
+<span class="keyword">fun</span> scale(x: <span class="type">float</span>) -&gt; <span class="type">float</span> {
+    <span class="keyword">return</span> x * multiplier;
+}
 
 println(<span class="string">"Area: "</span> + str(calculate_area(<span class="number">10.0</span>, <span class="number">5.0</span>)));
 println(<span class="string">"Scaled: "</span> + str(scale(<span class="number">10.0</span>)));</code></pre>
@@ -242,9 +244,9 @@ println(<span class="string">"Scaled: "</span> + str(scale(<span class="number">
                   there are no parentheses around the condition! Because Ferrite is expression-oriented, you can assign the result of an `if` block directly.
                 </p>
 
-                <pre><code class="language-ferrite">keep score = 85;
+                <pre><code class="language-ferrite">keep score: int = 85;
 
-keep grade = if score >= 90 {
+keep grade: string = if score >= 90 {
     "A"
 } else if score >= 80 {
     "B"
@@ -264,7 +266,7 @@ println("Grade: " + grade);</code></pre>
                   iteration, and <code>stop</code> to break out of the loop.
                 </p>
 
-                <pre><code class="language-ferrite">keep i = 0;
+                <pre><code class="language-ferrite">keep i: int = 0;
 while i < 5 {
     i = i + 1;
     if i == 3 {
@@ -286,16 +288,16 @@ while i < 5 {
                   "guards" for extra conditions! Match blocks evaluate to values, so they can be directly assigned.
                 </p>
 
-                <pre><code class="language-ferrite">enum Result&lt;T&gt; {
+                <pre><code class="language-ferrite">enum Result&lt;T, E&gt; {
     Ok(T);
-    Err(string);
+    Err(E);
 }
 
-keep response = Ok(200);
+keep response: Result&lt;int, string&gt; = Ok(200);
 
-keep message = match response {
-    case Ok(status) if status == 200 =&gt; {
-        "Success!"
+keep message: string = match response {
+    case Ok(val) =&gt; {
+        "Success: " + str(val)
     }
     case Ok(status) =&gt; {
         "Other status: " + str(status)
@@ -321,8 +323,8 @@ println(message);</code></pre>
     y: float;
 }
 
-keep position = Vector2 { x: 10.5, y: 20.0 };
-println("X Coordinate: " + str(position.x));</code></pre>
+keep position: Vector2 = Vector2 { x: 10.5, y: 20.0 };
+println("Position X: " + str(position.x));</code></pre>
               </div>
 
               <!-- Traits -->
@@ -381,7 +383,7 @@ keep stack: List&lt;int&gt; = List();
 push(stack, 10);
 push(stack, 20);
 
-keep top = pop(stack);
+keep top: Option&lt;int&gt; = pop(stack);
 println("Popped: " + str(top));
 
 // Memory is automatically freed when `stack` goes out of scope!
@@ -433,13 +435,12 @@ println("Tree built successfully!");
 
                 <pre><code class="language-ferrite">import "math";
 
-// Define a 1x4 input tensor and a 4x2 weights tensor
 param inputs: Tensor&lt;float, (1, 4)&gt; = rand(1, 4);
 param weights: Tensor&lt;float, (4, 2)&gt; = ones(4, 2);
 
 // Matrix multiplication using the @ operator
 // Resulting shape will automatically be (1, 2)
-keep outputs = inputs @ weights;</code></pre>
+keep outputs: Tensor&lt;float, (1, 2)&gt; = inputs @ weights;</code></pre>
               </div>
 
               <!-- Execution Blocks -->
@@ -453,13 +454,15 @@ keep outputs = inputs @ weights;</code></pre>
                 </p>
 
                 <pre><code class="language-ferrite">infer {
-    keep outputs = inputs @ weights;
+    keep outputs: Tensor&lt;float, (1, 2)&gt; = inputs @ weights;
     println("Outputs: " + str(outputs));
 }
 
 train {
-    // Operations here will track gradients
-    keep loss = compute_gradients(inputs);
+    // Both loss calculation and parameter updates
+    // are automatically handled via reverse-mode AD
+    keep loss: float = compute_gradients(inputs);
+    update_weights();
 }</code></pre>
               </div>
               <!-- AI Examples: Neural Net -->
@@ -494,22 +497,21 @@ impl MLP {
                 </p>
 
                 <pre><code class="language-ferrite">impl MLP {
-    fun forward(self, x: Tensor<float, (32, 784)>) -> Tensor<float, (32, 10)> {
-        // x @ w1 computes the matrix multiplication
-        // + b1 broadcasts the bias to the batch size automatically
-        keep hidden = (x @ self.w1 + self.b1).relu();
-        
-        keep output = (hidden @ self.w2 + self.b2).sigmoid();
-        
+    fun forward(self, x: Tensor&lt;float, (32, 784)&gt;) -&gt; Tensor&lt;float, (32, 10)&gt; {
+        // @ operator performs matrix multiplication
+        keep hidden: Tensor&lt;float, (32, 128)&gt; = (x @ self.w1 + self.b1).relu();
+        // .sigmoid() is a built-in method for tensors
+        keep output: Tensor&lt;float, (32, 10)&gt; = (hidden @ self.w2 + self.b2).sigmoid();
         return output;
     }
 }
 
-keep model = MLP::new();
-keep dummy_input = randn(32, 784); // Batch of 32 images
+// In the top-level scope or a main function
+keep model: MLP = MLP::new();
+keep dummy_input: Tensor&lt;float, (32, 784)&gt; = randn(32, 784); // Batch of 32 images
 
-keep predictions = model.forward(dummy_input);
-println("Predictions shape: " + str(predictions.shape()));</code></pre>
+keep predictions: Tensor&lt;float, (32, 10)&gt; = model.forward(dummy_input);
+println("Predictions Shape: " + shape(predictions));</code></pre>
                 
                 <div style="background: rgba(50, 110, 250, 0.05); padding: 1.5rem; border-left: 4px solid var(--primary-color); border-radius: 0 8px 8px 0; margin-top: 2rem;">
                   <h4 style="margin-top: 0; margin-bottom: 0.5rem; font-weight: 600;">🧠 AI-Native Advantage</h4>

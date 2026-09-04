@@ -1,9 +1,9 @@
-# 🦀 Ferrite (v3.1.0)
+# 🦀 Ferrite (v3.2.0)
 
 > **The AI-Native, Statically-Typed Systems & ML Programming Language — Built in Rust.**
 
 [![Website](https://img.shields.io/badge/Website-ferrite--lang.org-326efa)](https://www.ferrite-lang.org/)
-[![Documentation](https://img.shields.io/badge/Docs-v3.1.0-28285a)](https://www.ferrite-lang.org/docs/)
+[![Documentation](https://img.shields.io/badge/Docs-v3.2.0-28285a)](https://www.ferrite-lang.org/docs/)
 [![License](https://img.shields.io/badge/License-MIT%2FApache--2.0-blue.svg)](LICENSE)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-d9534f)](https://www.ferrite-lang.org/sponsors/)
 
@@ -13,7 +13,8 @@
 
 Ferrite is an ahead-of-time compiled and interpreted programming language engineered specifically for artificial intelligence, machine learning, and systems programming. Built from the ground up in pure safe Rust, Ferrite provides:
 
-- **Native Multidimensional Tensors**: Compile-time shape verification (`Tensor<float, (100, 784)>`) with matrix multiplication (`@`).
+- **Native Multidimensional Tensors**: Compile-time shape verification (`Tensor<float, (1, 4)>`) with native matrix multiplication (`@`), and comprehensive builtins (`rand`, `ones`, `zeros`).
+- **Native Collections (DSA)**: Rich, dynamic data structures including `List<T>` and `Map<K, V>` with robust string manipulation.
 - **Expression-Oriented Architecture**: `if`, `match`, and blocks `{}` evaluate to values, with the `Never` type ensuring seamless control flow typing (`stop`, `skip`, `return`).
 - **Zero Implicit Coercion**: Strict type safety—no implicit numeric promotion or dynamic truthiness.
 - **Scope-Delimited Execution Contexts**: `train { ... }` (autodiff gradient tracking) vs. `infer { ... }` (zero-overhead forward pass).
@@ -23,13 +24,13 @@ Ferrite is an ahead-of-time compiled and interpreted programming language engine
 
 ---
 
-## 🚀 Quick Start (v3.1.0)
+## 🚀 Quick Start (v3.2.0)
 
 ### Installation
 
 ```bash
 # Windows Setup Wizard or Portable Binary
-Download ferrite-v3.1.0-setup.exe from Releases
+Download ferrite-v3.2.0-setup.exe from Releases
 
 # macOS (Homebrew)
 brew tap vishwanathdvgmm/tap
@@ -39,7 +40,7 @@ brew install ferrite
 curl -fsSL https://ferrite-lang.org/install.sh | sh
 
 # VS Code Extension
-Search for "Ferrite Programming Language" in the VS Code Marketplace or Open VSX Registry and install the official extension (v1.1.0+) for full IDE support with smart compiler discovery!
+Search for "Ferrite Programming Language" in the VS Code Marketplace or Open VSX Registry and install the official extension (v1.3.1+) for full IDE support with smart compiler discovery!
 ```
 
 ### Usage

@@ -61,6 +61,7 @@ pub enum TokenKind {
     Eq,       // =
     EqEq,     // ==
     BangEq,   // !=
+    At,       // @
     Lt,       // <
     Gt,       // >
     LtEq,     // <=
@@ -141,6 +142,7 @@ impl fmt::Display for TokenKind {
             TokenKind::Eq => write!(f, "="),
             TokenKind::EqEq => write!(f, "=="),
             TokenKind::BangEq => write!(f, "!="),
+            TokenKind::At => write!(f, "@"),
             TokenKind::Lt => write!(f, "<"),
             TokenKind::Gt => write!(f, ">"),
             TokenKind::LtEq => write!(f, "<="),

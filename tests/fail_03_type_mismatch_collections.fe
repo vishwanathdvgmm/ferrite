@@ -1,0 +1,20 @@
+// Tests type mismatch for collection methods and indexing
+fun main() {
+    keep nums: List<int> = List();
+    
+    // Type mismatch on push
+    nums.push("hello"); // Expected int, found string
+
+    keep m: Map<string, int> = Map();
+    // Type mismatch on set key
+    m.set(123, 10); // Expected string, found int
+
+    // Type mismatch on set value
+    m.set("score", "A"); // Expected int, found string
+
+    // Type mismatch on List indexing
+    keep x: int = nums["key"]; // Index must be int
+
+    // Type mismatch on Map indexing
+    keep y: int = m[456]; // Index must be string
+}

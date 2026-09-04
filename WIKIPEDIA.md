@@ -5,8 +5,8 @@
 | designed_by            = Vishwanath M M
 | developer              = Vishwanath M M and Ferrite Contributors
 | released               = {{Start date and age|2026|01|15}}
-| latest_release_version = 2.4.1
-| latest_release_date = {{Start date and age|2026|07|20}}
+| latest_release_version = 3.2.1
+| latest_release_date = {{Start date and age|2026|09|02}}
 | typing = [[Static typing|Static]], [[Strong and weak typing|strong]], [[Nominal type system|nominal]], [[Type inference|inferred]]
 | scope = [[Lexical scope|Lexical]]
 | programming_language = [[Rust (programming language)|Rust]]
@@ -19,7 +19,7 @@
 
 '''Ferrite''' is a [[Statically typed programming language|statically-typed]], [[Ahead-of-time compilation|ahead-of-time compiled]], and [[tree-walk interpreter|interpreted]] [[programming language]] developed specifically for [[artificial intelligence]], [[machine learning]], and [[systems programming]]. Designed and created by Vishwanath M M in 2026, the language implementation is written in [[Rust (programming language)|Rust]].
 
-Ferrite features native multi-dimensional [[tensor]] primitives with compile-time shape verification, zero implicit type coercion, compiler-generated [[automatic differentiation]], and scope-delimited execution contexts (such as <code>train</code> and <code>infer</code> blocks).
+Ferrite features native multi-dimensional [[tensor]] primitives with compile-time shape verification, zero implicit type coercion, compiler-generated [[automatic differentiation]], native dynamic data structures, and scope-delimited execution contexts (such as <code>train</code> and <code>infer</code> blocks). The language natively supports the matrix multiplication operator <code>@</code> and tensor initializers like <code>rand</code>, <code>ones</code>, and <code>zeros</code>.
 
 == History ==
 Development of Ferrite began in early 2026 to address productivity and runtime safety challenges in machine learning software development. While languages such as [[Python (programming language)|Python]] dominate machine learning research due to dynamic flexibility, they frequently suffer from runtime shape mismatch errors, heavy interpreter overhead, and dynamic typing bugs. Conversely, native systems languages such as [[C++]] or [[Rust (programming language)|Rust]] require complex foreign function interface (FFI) bindings to interface with high-level tensor computing libraries.
@@ -31,6 +31,12 @@ Ferrite was designed as an "AI-Native" compiled language that integrates tensor 
 - '''v2.0.0''' (May 2026): Integrated compile-time shaped tensor generics (<code>Tensor<T, Shape></code>) and matrix multiplication operators.
 - '''v2.4.0''' (July 2026): Added a full module import/export system with symbol visibility controls (<code>pub</code>) and explicit symbol aliasing.
 - '''v2.4.1''' (July 2026): Added first-class function closures and published the 21-chapter Engineering Knowledge Base (EKB) compiler specification.
+- '''v2.0.0''' (May 2026): Integrated compile-time shaped tensor generics (<code>Tensor<T, Shape></code>) and matrix multiplication operators.
+- '''v2.4.0''' (July 2026): Added a full module import/export system with symbol visibility controls (<code>pub</code>) and explicit symbol aliasing.
+- '''v2.4.1''' (July 2026): Added first-class function closures and published the 21-chapter Engineering Knowledge Base (EKB) compiler specification.
+- '''v3.0.0''' (August 2026): Released official VS Code extension and native LLVM operator generation.
+- '''v3.1.0''' (August 2026): Shifted to an expression-oriented architecture and scope-based memory management.
+- '''v3.2.0''' (September 2026): Introduced native dynamic collections (Lists, Maps), string methods, advanced iteration semantics, and comprehensive Machine Learning primitives including native multidimensional Tensors, the <code>@</code> operator, execution blocks, and tensor built-ins.
 
 == Design and philosophy ==
 
@@ -72,20 +78,22 @@ fun add(a: int, b: int) -> int {
 }
 
 // Anonymous closure capturing outer variable
-keep factor = 2;
-keep double = (x: int) => x \* factor;
+keep factor: int = 2;
+fun double(x: int) -> int {
+return x \* factor;
+}
 </syntaxhighlight>
 
 === Pattern matching ===
 Ferrite features algebraic pattern matching on enums with support for conditional guard clauses.
 
 <syntaxhighlight lang="rust">
-enum Result<T> {
+enum Result<T, E> {
     Ok(T);
-    Err(string);
+    Err(E);
 }
 
-keep status = Ok(200);
+keep status: Result<int, string> = Ok(200);
 
 match status {
 case Ok(code) if code == 200 => {
@@ -131,7 +139,7 @@ param inputs: Tensor<float, (100, 784)> = ones();
 param weights: Tensor<float, (784, 10)> = rand();
 
 infer {
-keep logits = inputs @ weights;
+keep logits: Tensor<float, (100, 10)> = inputs @ weights;
 println("Output tensor computed successfully.");
 }
 </syntaxhighlight>

@@ -5,7 +5,7 @@ set -e
 # Detects OS/Arch and downloads precompiled release binaries.
 
 echo "========================================="
-echo " Installing Ferrite Compiler v3.1.0..."
+echo " Installing Ferrite Compiler v3.2.0..."
 echo "========================================="
 
 # Detect OS
@@ -25,9 +25,9 @@ case "${ARCH}" in
 esac
 
 # Formulate download URL based on GitHub Releases
-# Using v3.1.0 release assets
+# Using v3.2.0 release assets
 REPO="vishwanathdvgmm/ferrite"
-VERSION="v3.1.0"
+VERSION="v3.2.0"
 
 if [ "${PLATFORM}" = "linux" ]; then
     BINARY_NAME="ferrite-${VERSION}-linux-x86_64.tar.gz"

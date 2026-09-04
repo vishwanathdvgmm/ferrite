@@ -43,4 +43,10 @@ impl Environment {
         }
         Err(format!("Undefined variable '{}'", name))
     }
+
+    pub fn remove(&mut self, name: &str) {
+        if let Some(scope) = self.scopes.last_mut() {
+            scope.remove(name);
+        }
+    }
 }

@@ -1,26 +1,36 @@
 pub fun push<T>(l: List<T>, item: T) {
+    l.push(item);
 }
 
 pub fun pop<T>(l: List<T>) -> T {
-    return l[0];
+    return l.pop();
 }
 
 pub fun get<T>(l: List<T>, index: int) -> T {
-    return l[0];
+    return l[index];
 }
 
 pub fun set<T>(l: List<T>, index: int, item: T) {
+    l[index] = item;
 }
 
 pub fun is_empty<T>(l: List<T>) -> bool {
-    return true;
+    return len(l) == 0;
 }
 
 pub fun reverse<T>(l: List<T>) {
+    l.reverse();
 }
 
 pub fun concat<T>(a: List<T>, b: List<T>) -> List<T> {
-    return a;
+    let result = List { ignore: 0 };
+    for let i = 0; i < len(a); i = i + 1 {
+        result.push(a[i]);
+    }
+    for let i = 0; i < len(b); i = i + 1 {
+        result.push(b[i]);
+    }
+    return result;
 }
 
 pub fun map_get<K, V>(m: Map<K, V>, key: K) -> V {
@@ -28,11 +38,13 @@ pub fun map_get<K, V>(m: Map<K, V>, key: K) -> V {
 }
 
 pub fun map_set<K, V>(m: Map<K, V>, key: K, value: V) {
+    m[key] = value;
 }
 
 pub fun has_key<K, V>(m: Map<K, V>, key: K) -> bool {
-    return true;
+    return m.contains(key);
 }
 
 pub fun delete_key<K, V>(m: Map<K, V>, key: K) {
+    m.remove(key);
 }

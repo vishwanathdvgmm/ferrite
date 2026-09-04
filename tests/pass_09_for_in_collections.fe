@@ -1,0 +1,55 @@
+// Tests for-in loops: iterating over List, Map keys, String chars, and range()
+fun main() {
+    // for-in over List
+    keep nums: List<int> = List();
+    nums.push(10);
+    nums.push(20);
+    nums.push(30);
+    keep sum: int = 0;
+    for n in nums {
+        sum = sum + n;
+    };
+    assert(sum == 60, "for-in list sum");
+    // for-in over range(end)
+    keep total: int = 0;
+    for i in range(5) {
+        total = total + i;
+    };
+    assert(total == 10, "range(5) sum = 0+1+2+3+4");
+    // for-in over range(start, end)
+    keep total2: int = 0;
+    for i in range(2, 6) {
+        total2 = total2 + i;
+    };
+    assert(total2 == 14, "range(2,6) sum = 2+3+4+5");
+    // for-in over String characters
+    keep greeting: string = "hi";
+    keep chars: List<string> = List();
+    for c in greeting {
+        chars.push(c);
+    };
+    assert(chars.len() == 2, "string iter len");
+    assert(chars[0] == "h", "string iter[0]");
+    assert(chars[1] == "i", "string iter[1]");
+    // for-in over Map keys
+    keep scores: Map<string, int> = Map();
+    scores.set("a", 1);
+    scores.set("b", 2);
+    keep key_count: int = 0;
+    for k in scores {
+        key_count = key_count + 1;
+    };
+    assert(key_count == 2, "map iter key count");
+    // Nested for-in
+    keep matrix: List<int> = List();
+    for i in range(3) {
+        for j in range(3) {
+            matrix.push(i * 3 + j);
+        };
+    };
+    assert(matrix.len() == 9, "nested for len");
+    assert(matrix[0] == 0, "matrix[0]");
+    assert(matrix[4] == 4, "matrix[4]");
+    assert(matrix[8] == 8, "matrix[8]");
+    print("pass_09_for_in_collections ok");
+}

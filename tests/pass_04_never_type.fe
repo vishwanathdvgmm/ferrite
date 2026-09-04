@@ -1,23 +1,18 @@
 // Tests return, stop, and skip correctly evaluate to Never and can be used as values
-
 fun early_return() -> int {
-    keep x: int = return 42;;
-    // this shouldn't execute
-    0
+    keep x: int = return 42;
 }
 
+// this shouldn't execute
 test fun main() {
     assert(early_return() == 42, "fail");
-    
     keep x: int = 0;
     while x < 10 {
         x = x + 1;
         if x > 5 {
-            // assigning stop to a string, shouldn't cause a type error since Never coerces
             keep s: string = stop;;
         }
     };
     assert(x == 6, "fail");
-    
     print("pass_04_never_type ok");
 }

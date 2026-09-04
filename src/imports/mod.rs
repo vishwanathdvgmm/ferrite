@@ -62,6 +62,12 @@ impl<'a> ImportResolver<'a> {
         self.loaded_modules
     }
 
+    /// Resolves dependencies from a parsed AST (useful for the REPL)
+    pub fn resolve_imports_from_ast(&mut self, current_dir: &Path, ast: &Program) -> bool {
+        let dummy_path = current_dir.join("<repl>");
+        self.resolve_dependencies(&dummy_path, ast).is_some()
+    }
+
     // ── Internal Loading Logic ────────────────────────────────────
 
     fn load_module(&mut self, canonical_path: &PathBuf) -> Option<()> {

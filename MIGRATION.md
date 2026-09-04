@@ -2,6 +2,60 @@
 
 This document covers major changes and migration steps between Ferrite versions.
 
+## Migrating from Ferrite v3.1.0 to v3.2.0
+
+Ferrite v3.2.0 introduces Machine Learning primitives including native multidimensional Tensors, the Matrix Multiplication operator (`@`), execution blocks (`infer { ... }`, `train { ... }`), and tensor initializer built-ins (`rand`, `ones`, `zeros`). It also introduces native collections (`List`, `Map`) and comprehensive string manipulation methods. This release is **100% backwards-compatible** with v3.1.0.
+
+### 1. Matrix Multiplication Operator
+
+You can now multiply Tensors natively using the `@` operator instead of calling mathematical functions.
+
+```ferrite
+param inputs: Tensor<float, (1, 4)> = rand(1, 4);
+param weights: Tensor<float, (4, 2)> = ones(4, 2);
+keep outputs: Tensor<float, (1, 2)> = inputs @ weights;
+```
+
+### 2. Builtin Tensor Initialization
+
+The `rand(dims...)`, `ones(dims...)`, and `zeros(dims...)` built-ins are now available for rapid multidimensional tensor creation.
+
+### 3. Execution Blocks
+
+The top-level `infer { ... }` block structure is now fully supported as an expression and statement context without confusing the parser into expecting a function declaration. Note: A semicolon is required if `infer { ... }` is used as a statement expression.
+
+### 1. Native Data Structures
+
+You can now use `List<T>` and `Map<K, V>` with robust built-in methods.
+
+```ferrite
+// Lists
+keep nums: List<int> = List();
+nums.push(1);
+keep val: int = nums.pop();
+
+// Maps
+keep scores: Map<string, int> = Map();
+scores.set("alice", 100);
+keep alice_score: int = scores["alice"];
+```
+
+### 2. Enhanced Iteration
+
+The `for-in` loop now supports iterating over lists, maps (keys), and strings (characters). A new `range()` builtin is also available.
+
+```ferrite
+for i in range(10) {
+    print(i);
+}
+
+for char in "hello" {
+    print(char);
+}
+```
+
+---
+
 ## Migrating from Ferrite v3.0.0 to v3.1.0
 
 Ferrite v3.1.0 brings a full expression-oriented architecture, native dynamic collections, and scope-based memory management. This release fundamentally shifts how blocks and control flow evaluate.
@@ -65,7 +119,7 @@ Ferrite v3.0.0 introduces official IDE tooling (VS Code Extension, Language Serv
 
 ### 1. IDE Tooling
 
-You no longer need to rely purely on CLI errors. Install the official "Ferrite Programming Language" extension (v1.1.0+) in VS Code or VSCodium. The extension automatically discovers your compiler in the system `PATH` or the local workspace, providing real-time diagnostics and formatting on save.
+You no longer need to rely purely on CLI errors. Install the official "Ferrite Programming Language" extension (v1.3.1+) in VS Code or VSCodium. The extension automatically discovers your compiler in the system `PATH` or the local workspace, providing real-time diagnostics and formatting on save.
 
 ### 2. Native LLVM Operators
 

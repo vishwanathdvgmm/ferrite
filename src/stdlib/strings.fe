@@ -1,47 +1,62 @@
+extern "builtin" {
+    fun __builtin_string_split(s: string, delim: string) -> List<string>;
+    fun __builtin_string_join(parts: List<string>, delim: string) -> string;
+    fun __builtin_string_upper(s: string) -> string;
+    fun __builtin_string_lower(s: string) -> string;
+    fun __builtin_string_trim(s: string) -> string;
+    fun __builtin_string_replace(s: string, old: string, new_str: string) -> string;
+    fun __builtin_string_starts_with(s: string, prefix: string) -> bool;
+    fun __builtin_string_ends_with(s: string, suffix: string) -> bool;
+    fun __builtin_string_contains(s: string, sub: string) -> bool;
+    fun __builtin_string_substr(s: string, start: int, length: int) -> string;
+    fun __builtin_string_char_at(s: string, index: int) -> string;
+    fun __builtin_string_repeat(s: string, n: int) -> string;
+}
+
 pub fun split(s: string, delim: string) -> List<string> {
-    return List { ignore: 0 };
+    unsafe { return __builtin_string_split(s, delim); }
 }
 
 pub fun join(parts: List<string>, delim: string) -> string {
-    return "";
+    unsafe { return __builtin_string_join(parts, delim); }
 }
 
 pub fun trim(s: string) -> string {
-    return s;
+    unsafe { return __builtin_string_trim(s); }
 }
 
 pub fun upper(s: string) -> string {
-    return s;
+    unsafe { return __builtin_string_upper(s); }
 }
 
 pub fun lower(s: string) -> string {
-    return s;
+    unsafe { return __builtin_string_lower(s); }
 }
 
 pub fun starts_with(s: string, prefix: string) -> bool {
-    return true;
+    unsafe { return __builtin_string_starts_with(s, prefix); }
 }
 
 pub fun ends_with(s: string, suffix: string) -> bool {
-    return true;
+    unsafe { return __builtin_string_ends_with(s, suffix); }
 }
 
 pub fun contains(s: string, sub: string) -> bool {
-    return true;
+    unsafe { return __builtin_string_contains(s, sub); }
 }
 
 pub fun replace(s: string, old: string, new_str: string) -> string {
-    return s;
+    unsafe { return __builtin_string_replace(s, old, new_str); }
 }
 
 pub fun substr(s: string, start: int, length: int) -> string {
-    return s;
+    unsafe { return __builtin_string_substr(s, start, length); }
 }
 
 pub fun char_at(s: string, index: int) -> string {
-    return "";
+    unsafe { return __builtin_string_char_at(s, index); }
 }
 
 pub fun repeat(s: string, n: int) -> string {
-    return s;
+    unsafe { return __builtin_string_repeat(s, n); }
 }

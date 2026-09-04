@@ -20,7 +20,9 @@ pub fn start_repl() {
         }
     };
 
-    let module_exports: HashMap<String, Vec<TopDecl>> = HashMap::new();
+    let mut module_exports: HashMap<String, Vec<TopDecl>> = HashMap::new();
+    let mut loaded_modules: std::collections::HashSet<std::path::PathBuf> =
+        std::collections::HashSet::new();
     let mut interpreter = Interpreter::new(module_exports.clone());
     // We also need to maintain the type environment for the semantic analyzer across lines
     // For a simple REPL, we'll just instantiate a new one each time for now, but
@@ -81,6 +83,48 @@ pub fn start_repl() {
 
                 let _ = rl.add_history_entry(input.trim());
 
+                let mut merged_program = crate::ast::Program { decls: vec![] };
+
+                let cwd = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
+                let mut resolver = crate::imports::ImportResolver::new(&mut diag);
+                resolver.resolve_imports_from_ast(&cwd, &program);
+                let modules = resolver.into_modules();
+                if diag.has_errors() {
+                    diag.emit_all();
+                    input.clear();
+                    prompt = "ferrite> ";
+                    continue;
+                }
+                for (mod_path, module) in modules {
+                    let pub_decls: Vec<TopDecl> = module
+                        .ast
+                        .decls
+                        .into_iter()
+                        .filter(|d| match d {
+                            TopDecl::Func(f) => f.visibility == crate::ast::Visibility::Public,
+                            TopDecl::Constant(c) => c.visibility == crate::ast::Visibility::Public,
+                            TopDecl::Group(g) => g.visibility == crate::ast::Visibility::Public,
+                            TopDecl::Enum(e) => e.visibility == crate::ast::Visibility::Public,
+                            TopDecl::Trait(t) => t.visibility == crate::ast::Visibility::Public,
+                            TopDecl::TestFunc(_) => false,
+                            TopDecl::ExternBlock(_) => true,
+                            TopDecl::Impl(_) => true,
+                            TopDecl::Import(_) => false,
+                        })
+                        .collect();
+
+                    if !loaded_modules.contains(&mod_path) {
+                        loaded_modules.insert(mod_path.clone());
+                        merged_program.decls.extend(pub_decls.clone());
+                    }
+
+                    module_exports.insert(module.name, pub_decls);
+                }
+                interpreter.module_exports = module_exports.clone();
+
+                // Append the current REPL line AFTER the module declarations
+                merged_program.decls.extend(program.decls);
+
                 let mut type_env = TypeEnv::new(&mut diag);
                 if let Some(state) = &saved_type_env_state {
                     type_env.scopes = state.0.clone();
@@ -92,7 +136,7 @@ pub fn start_repl() {
                 }
 
                 let mut semantic = SemanticAnalyzer::new(&mut type_env, module_exports.clone());
-                semantic.analyze_program(&program);
+                semantic.analyze_program(&merged_program);
 
                 if type_env.diag.has_errors() {
                     type_env.diag.emit_all();
@@ -100,6 +144,10 @@ pub fn start_repl() {
                     prompt = "ferrite> ";
                     continue;
                 }
+
+                // Prevent __top_level__ from persisting in the REPL session
+                type_env.scopes[0].remove("__top_level__");
+                interpreter.env.remove("__top_level__");
 
                 saved_type_env_state = Some((
                     type_env.scopes.clone(),
@@ -110,7 +158,7 @@ pub fn start_repl() {
                     type_env.enum_variants.clone(),
                 ));
 
-                match interpreter.run_program(&program) {
+                match interpreter.run_program(&merged_program) {
                     Ok(val) => {
                         if val != crate::runtime::value::Value::Unit {
                             println!("{}", val);

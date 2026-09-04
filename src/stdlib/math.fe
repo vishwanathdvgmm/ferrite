@@ -1,3 +1,18 @@
+extern "builtin" {
+    fun __builtin_math_sin(x: float) -> float;
+    fun __builtin_math_cos(x: float) -> float;
+    fun __builtin_math_tan(x: float) -> float;
+    fun __builtin_math_sqrt(x: float) -> float;
+    fun __builtin_math_log(x: float) -> float;
+    fun __builtin_math_log2(x: float) -> float;
+    fun __builtin_math_log10(x: float) -> float;
+    fun __builtin_math_pow(x: float, y: float) -> float;
+    fun __builtin_math_atan2(y: float, x: float) -> float;
+    fun __builtin_math_floor(x: float) -> float;
+    fun __builtin_math_ceil(x: float) -> float;
+    fun __builtin_math_round(x: float) -> float;
+}
+
 pub keep PI: float = 3.141592653589793;
 
 pub keep E: float = 2.718281828459045;
@@ -5,65 +20,80 @@ pub keep E: float = 2.718281828459045;
 pub keep TAU: float = 6.283185307179586;
 
 pub fun abs(x: float) -> float {
-    return x;
-}
-
-pub fun sqrt(x: float) -> float {
-    return x;
-}
-
-pub fun pow(x: float, y: float) -> float {
-    return x;
-}
-
-pub fun log(x: float) -> float {
-    return x;
-}
-
-pub fun log2(x: float) -> float {
-    return x;
-}
-
-pub fun log10(x: float) -> float {
-    return x;
-}
-
-pub fun sin(x: float) -> float {
-    return x;
-}
-
-pub fun cos(x: float) -> float {
-    return x;
-}
-
-pub fun tan(x: float) -> float {
-    return x;
-}
-
-pub fun atan2(y: float, x: float) -> float {
-    return y;
-}
-
-pub fun floor(x: float) -> float {
-    return x;
-}
-
-pub fun ceil(x: float) -> float {
-    return x;
-}
-
-pub fun round(x: float) -> float {
+    if x < 0.0 {
+        return 0.0 - x;
+    }
     return x;
 }
 
 pub fun min(a: float, b: float) -> float {
-    return a;
+    if a < b {
+        return a;
+    }
+    return b;
 }
 
 pub fun max(a: float, b: float) -> float {
-    return a;
+    if a > b {
+        return a;
+    }
+    return b;
 }
 
-pub fun clamp(x: float, min_val: float, max_val: float) -> float {
-    return x;
+pub fun clamp(val: float, low: float, high: float) -> float {
+    if val < low {
+        return low;
+    }
+    if val > high {
+        return high;
+    }
+    return val;
+}
+
+pub fun sqrt(x: float) -> float {
+    unsafe { return __builtin_math_sqrt(x); }
+}
+
+pub fun pow(x: float, y: float) -> float {
+    unsafe { return __builtin_math_pow(x, y); }
+}
+
+pub fun log(x: float) -> float {
+    unsafe { return __builtin_math_log(x); }
+}
+
+pub fun log2(x: float) -> float {
+    unsafe { return __builtin_math_log2(x); }
+}
+
+pub fun log10(x: float) -> float {
+    unsafe { return __builtin_math_log10(x); }
+}
+
+pub fun sin(x: float) -> float {
+    unsafe { return __builtin_math_sin(x); }
+}
+
+pub fun cos(x: float) -> float {
+    unsafe { return __builtin_math_cos(x); }
+}
+
+pub fun tan(x: float) -> float {
+    unsafe { return __builtin_math_tan(x); }
+}
+
+pub fun floor(x: float) -> float {
+    unsafe { return __builtin_math_floor(x); }
+}
+
+pub fun ceil(x: float) -> float {
+    unsafe { return __builtin_math_ceil(x); }
+}
+
+pub fun round(x: float) -> float {
+    unsafe { return __builtin_math_round(x); }
+}
+
+pub fun atan2(y: float, x: float) -> float {
+    unsafe { return __builtin_math_atan2(y, x); }
 }

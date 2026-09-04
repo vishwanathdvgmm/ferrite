@@ -124,3 +124,53 @@ fn run_fail_tests() {
         });
     }
 }
+
+#[test]
+fn run_rt_fail_tests() {
+    let tests_dir = Path::new("tests");
+    let mut entries: Vec<_> = fs::read_dir(tests_dir)
+        .unwrap()
+        .map(|r| r.unwrap().path())
+        .filter(|p| {
+            p.is_file()
+                && p.extension().map_or(false, |ext| ext == "fe")
+                && p.file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .starts_with("rt_fail_")
+        })
+        .collect();
+
+    entries.sort();
+
+    for test_file in entries {
+        let test_name = test_file.file_stem().unwrap().to_str().unwrap();
+
+        // 1. Check (Compile)
+        let (check_code, check_out) = run_test(&test_file, &["check"]);
+        if check_code != 0 {
+            panic!(
+                "RT_FAIL test '{}' failed compilation with code {}:\n{}",
+                test_name, check_code, check_out
+            );
+        }
+
+        // 2. Run
+        let (run_code, run_out) = run_test(&test_file, &["run"]);
+        if run_code == 0 {
+            panic!(
+                "RT_FAIL test '{}' incorrectly executed successfully:\n{}",
+                test_name, run_out
+            );
+        }
+
+        // Snapshot the runtime error output
+        insta::with_settings!({
+            snapshot_path => "snapshots/rt_fail",
+            prepend_module_to_snapshot => false,
+        }, {
+            insta::assert_snapshot!(test_name, run_out);
+        });
+    }
+}

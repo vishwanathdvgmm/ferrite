@@ -39,19 +39,8 @@ impl<'a> Parser<'a> {
                     if self.match_token(&[TokenKind::Semicolon]) {
                         top_stmts.push(Stmt::ExprStmt(parsed_expr, true));
                     } else {
-                        match &parsed_expr {
-                            Expr::If { .. }
-                            | Expr::Match { .. }
-                            | Expr::While { .. }
-                            | Expr::For { .. }
-                            | Expr::Block(_) => {
-                                top_stmts.push(Stmt::ExprStmt(parsed_expr, false));
-                            }
-                            _ => {
-                                self.error_at_current("Expected ';' after expression.");
-                                self.synchronize();
-                            }
-                        }
+                        // Allow any expression without a semicolon at the top level
+                        top_stmts.push(Stmt::ExprStmt(parsed_expr, false));
                     }
                 } else {
                     self.error_at_current("Expected declaration or statement.");
@@ -61,6 +50,16 @@ impl<'a> Parser<'a> {
         }
 
         if !top_stmts.is_empty() {
+            let mut expr = None;
+            // If the last statement is an expression without a semicolon, promote it to the block's return expression
+            if let Some(Stmt::ExprStmt(_, has_semi)) = top_stmts.last() {
+                if !has_semi {
+                    if let Some(Stmt::ExprStmt(e, _)) = top_stmts.pop() {
+                        expr = Some(Box::new(e));
+                    }
+                }
+            }
+
             decls.push(crate::ast::TopDecl::Func(crate::ast::FuncDecl {
                 visibility: crate::ast::Visibility::Private,
                 effects: vec![],
@@ -73,7 +72,7 @@ impl<'a> Parser<'a> {
                 where_clause: vec![],
                 body: crate::ast::Block {
                     stmts: top_stmts,
-                    expr: None,
+                    expr,
                     span: crate::errors::Span::dummy(),
                 },
                 span: crate::errors::Span::dummy(),
@@ -104,10 +103,11 @@ impl<'a> Parser<'a> {
             | Some(TokenKind::Test)
             | Some(TokenKind::Extern)
             | Some(TokenKind::Fun)
-            | Some(TokenKind::Infer)
-            | Some(TokenKind::Train)
-            | Some(TokenKind::Async)
             | Some(TokenKind::Lt) => true,
+            Some(TokenKind::Infer) | Some(TokenKind::Train) | Some(TokenKind::Async) => {
+                let next = self.tokens.get(pos + 1).map(|t| &t.kind);
+                next == Some(&TokenKind::Fun) || next == Some(&TokenKind::Lt)
+            }
             _ => false,
         }
     }
@@ -1034,7 +1034,9 @@ impl<'a> Parser<'a> {
                             | Expr::Match { .. }
                             | Expr::While { .. }
                             | Expr::For { .. }
-                            | Expr::Block(_) => {
+                            | Expr::Block(_)
+                            | Expr::InferBlock(_)
+                            | Expr::TrainBlock(_) => {
                                 stmts.push(Stmt::ExprStmt(parsed_expr, false));
                             }
                             _ => {
@@ -1460,11 +1462,17 @@ impl<'a> Parser<'a> {
 
     fn parse_multiplicative(&mut self) -> Option<Expr> {
         let mut expr = self.parse_unary()?;
-        while self.match_token(&[TokenKind::Star, TokenKind::Slash, TokenKind::Percent]) {
+        while self.match_token(&[
+            TokenKind::Star,
+            TokenKind::Slash,
+            TokenKind::Percent,
+            TokenKind::At,
+        ]) {
             let op = match self.previous().kind {
                 TokenKind::Star => BinOp::Mul,
                 TokenKind::Slash => BinOp::Div,
                 TokenKind::Percent => BinOp::Mod,
+                TokenKind::At => BinOp::MatMul,
                 _ => unreachable!(),
             };
             let right = self.parse_unary()?;
@@ -1569,16 +1577,12 @@ impl<'a> Parser<'a> {
             return Some(Expr::Block(block));
         }
         if self.match_token(&[TokenKind::Stop]) {
-            self.consume(TokenKind::Semicolon, "Expected ';' after stop")?;
-            return Some(Expr::Stop(
-                self.merge_span(&span, &self.previous().span.clone()),
-            ));
+            // Do NOT consume semicolon here; let the statement parser handle it.
+            return Some(Expr::Stop(span));
         }
         if self.match_token(&[TokenKind::Skip]) {
-            self.consume(TokenKind::Semicolon, "Expected ';' after skip")?;
-            return Some(Expr::Skip(
-                self.merge_span(&span, &self.previous().span.clone()),
-            ));
+            // Do NOT consume semicolon here; let the statement parser handle it.
+            return Some(Expr::Skip(span));
         }
         if self.match_token(&[TokenKind::Infer]) {
             let block = self.parse_block()?;
@@ -2002,3 +2006,5 @@ keep y: int = 10;
         insta::assert_debug_snapshot!("parser_import_simple", summaries);
     }
 }
+
+mod stress_tests;

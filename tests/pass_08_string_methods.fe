@@ -1,0 +1,36 @@
+// Tests string methods: len, charAt, substring, contains, startsWith, endsWith, upper, lower, replace, split, trim
+fun main() {
+    keep s: string = "Hello, World!";
+    // len
+    assert(s.len() == 13, "len");
+    // charAt
+    assert(s.charAt(0) == "H", "charAt 0");
+    assert(s.charAt(7) == "W", "charAt 7");
+    // substring
+    assert(s.substring(0, 5) == "Hello", "substring hello");
+    assert(s.substring(7, 12) == "World", "substring world");
+    // contains
+    assert(s.contains("World"), "contains World");
+    // startsWith / endsWith
+    assert(s.startsWith("Hello"), "startsWith Hello");
+    assert(s.endsWith("!"), "endsWith !");
+    // upper / lower
+    assert(s.upper() == "HELLO, WORLD!", "upper");
+    assert(s.lower() == "hello, world!", "lower");
+    // replace (returns new string — immutable)
+    keep replaced: string = s.replace("World", "Ferrite");
+    assert(replaced == "Hello, Ferrite!", "replace");
+    assert(s == "Hello, World!", "original unchanged");
+    // split
+    keep parts: List<string> = s.split(" ");
+    assert(parts.len() == 2, "split len");
+    assert(parts[0] == "Hello,", "split[0]");
+    assert(parts[1] == "World!", "split[1]");
+    // trim
+    keep padded: string = "  hello  ";
+    assert(padded.trim() == "hello", "trim");
+    // chained operations
+    keep lower_trimmed: string = padded.trim().upper();
+    assert(lower_trimmed == "HELLO", "chain trim then upper");
+    print("pass_08_string_methods ok");
+}

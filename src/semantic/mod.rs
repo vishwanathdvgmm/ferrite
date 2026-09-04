@@ -1,4 +1,5 @@
 use crate::ast::*;
+use crate::errors::Span;
 use std::collections::HashMap;
 
 use crate::types::{operator_trait, ImplDef, TraitDef, TraitMethodDef, Type, TypeEnv};
@@ -726,6 +727,44 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                         self.env.unify(&Type::Bool, &rty, span);
                         Type::Bool
                     }
+                    BinOp::MatMul => {
+                        match (&lty, &rty) {
+                            (Type::Tensor(l_elem, l_shape), Type::Tensor(r_elem, r_shape)) => {
+                                self.env.unify(l_elem, r_elem, span);
+                                if l_shape.dims.len() != 2 || r_shape.dims.len() != 2 {
+                                    self.env.diag.error(
+                                        span.clone(),
+                                        format!(
+                                            "MatMul (@) requires 2D tensors, got {}D and {}D",
+                                            l_shape.dims.len(),
+                                            r_shape.dims.len()
+                                        ),
+                                    );
+                                }
+                                // Ideally check shape compatibility, but for now we just return a Tensor type.
+                                // We can leave the shape dimensions unvalidated here, or compute the output shape.
+                                // For simplicity, we just return a Tensor type (if dimensions are known we could compute it).
+                                // Return type is Tensor<E, (L.0, R.1)>
+                                let out_shape =
+                                    if l_shape.dims.len() == 2 && r_shape.dims.len() == 2 {
+                                        crate::types::tensor::TensorShape::new(vec![
+                                            l_shape.dims[0].clone(),
+                                            r_shape.dims[1].clone(),
+                                        ])
+                                    } else {
+                                        l_shape.clone()
+                                    };
+                                Type::Tensor(l_elem.clone(), out_shape)
+                            }
+                            _ => {
+                                self.env.diag.error(
+                                    span.clone(),
+                                    format!("MatMul (@) expects Tensors, got {} and {}", lty, rty),
+                                );
+                                Type::Error
+                            }
+                        }
+                    }
                 }
             }
             Expr::UnaryOp { op, operand, span } => {
@@ -762,7 +801,16 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                 if let Type::Func(param_tys, func_ret_ty)
                 | Type::ExternFunc(param_tys, func_ret_ty) = &callee_ty
                 {
-                    if args.len() != param_tys.len() {
+                    let builtin_name = if let Expr::Ident(name, _) = callee.as_ref() {
+                        Some(name.as_str())
+                    } else {
+                        None
+                    };
+
+                    let is_variadic_builtin =
+                        matches!(builtin_name, Some("range" | "zeros" | "ones" | "rand"));
+
+                    if !is_variadic_builtin && args.len() != param_tys.len() {
                         self.env.diag.error(
                             span.clone(),
                             format!(
@@ -778,8 +826,15 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                         let mut subst = std::collections::HashMap::new();
                         for (i, arg) in args.iter().enumerate() {
                             let arg_ty = self.analyze_expr(arg);
+                            let expected_ty = if i < param_tys.len() {
+                                &param_tys[i]
+                            } else if is_variadic_builtin {
+                                &Type::Int
+                            } else {
+                                &Type::Error
+                            };
                             self.env.unify_recursive(
-                                &param_tys[i],
+                                expected_ty,
                                 &arg_ty,
                                 &arg.span(),
                                 &mut subst,
@@ -838,6 +893,13 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
                             Type::Error
                         }
                     }
+                    Type::GenericInst(name, args) if name == "List" && args.len() == 1 => {
+                        self.get_list_method(field, &args[0], span)
+                    }
+                    Type::GenericInst(name, args) if name == "Map" && args.len() == 2 => {
+                        self.get_map_method(field, &args[0], &args[1], span)
+                    }
+                    Type::String => self.get_str_method(field, span),
                     Type::Error => Type::Error,
                     _ => {
                         self.env.diag.error(
@@ -855,7 +917,6 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
             } => {
                 let obj_ty = self.analyze_expr(object);
                 let idx_ty = self.analyze_expr(index);
-                self.env.unify(&Type::Int, &idx_ty, span); // indices must be ints
 
                 match obj_ty {
                     Type::Tensor(elem, _) => {
@@ -944,6 +1005,78 @@ impl<'a, 'b> SemanticAnalyzer<'a, 'b> {
             }
         }
     }
+
+    fn get_list_method(&mut self, method: &str, elem_ty: &Type, span: &Span) -> Type {
+        match method {
+            "push" => Type::Func(vec![elem_ty.clone()], Box::new(Type::Unit)),
+            "pop" => Type::Func(vec![], Box::new(elem_ty.clone())),
+            "len" => Type::Func(vec![], Box::new(Type::Int)),
+            "contains" => Type::Func(vec![elem_ty.clone()], Box::new(Type::Bool)),
+            "remove" => Type::Func(vec![Type::Int], Box::new(elem_ty.clone())),
+            "reverse" => Type::Func(vec![], Box::new(Type::Unit)),
+            "clear" => Type::Func(vec![], Box::new(Type::Unit)),
+            "insert" => Type::Func(vec![Type::Int, elem_ty.clone()], Box::new(Type::Unit)),
+            "slice" => Type::Func(
+                vec![Type::Int, Type::Int],
+                Box::new(Type::GenericInst("List".to_string(), vec![elem_ty.clone()])),
+            ),
+            _ => {
+                self.env
+                    .diag
+                    .error(span.clone(), format!("List has no method '{}'", method));
+                Type::Error
+            }
+        }
+    }
+
+    fn get_map_method(&mut self, method: &str, key_ty: &Type, val_ty: &Type, span: &Span) -> Type {
+        match method {
+            "set" => Type::Func(vec![key_ty.clone(), val_ty.clone()], Box::new(Type::Unit)),
+            "get" => Type::Func(vec![key_ty.clone()], Box::new(val_ty.clone())),
+            "contains" => Type::Func(vec![key_ty.clone()], Box::new(Type::Bool)),
+            "remove" => Type::Func(vec![key_ty.clone()], Box::new(val_ty.clone())),
+            "keys" => Type::Func(
+                vec![],
+                Box::new(Type::GenericInst("List".to_string(), vec![key_ty.clone()])),
+            ),
+            "values" => Type::Func(
+                vec![],
+                Box::new(Type::GenericInst("List".to_string(), vec![val_ty.clone()])),
+            ),
+            "len" => Type::Func(vec![], Box::new(Type::Int)),
+            _ => {
+                self.env
+                    .diag
+                    .error(span.clone(), format!("Map has no method '{}'", method));
+                Type::Error
+            }
+        }
+    }
+
+    fn get_str_method(&mut self, method: &str, span: &Span) -> Type {
+        match method {
+            "len" => Type::Func(vec![], Box::new(Type::Int)),
+            "charAt" => Type::Func(vec![Type::Int], Box::new(Type::String)),
+            "substring" => Type::Func(vec![Type::Int, Type::Int], Box::new(Type::String)),
+            "split" => Type::Func(
+                vec![Type::String],
+                Box::new(Type::GenericInst("List".to_string(), vec![Type::String])),
+            ),
+            "contains" => Type::Func(vec![Type::String], Box::new(Type::Bool)),
+            "replace" => Type::Func(vec![Type::String, Type::String], Box::new(Type::String)),
+            "trim" => Type::Func(vec![], Box::new(Type::String)),
+            "upper" => Type::Func(vec![], Box::new(Type::String)),
+            "lower" => Type::Func(vec![], Box::new(Type::String)),
+            "startsWith" => Type::Func(vec![Type::String], Box::new(Type::Bool)),
+            "endsWith" => Type::Func(vec![Type::String], Box::new(Type::Bool)),
+            _ => {
+                self.env
+                    .diag
+                    .error(span.clone(), format!("String has no method '{}'", method));
+                Type::Error
+            }
+        }
+    }
 }
 
 /// Helper to get the human-readable operator symbol
@@ -962,5 +1095,123 @@ fn op_symbol(op: &BinOp) -> &'static str {
         BinOp::GtEq => ">=",
         BinOp::And => "&&",
         BinOp::Or => "||",
+        BinOp::MatMul => "@",
+    }
+}
+
+// ── Unit Tests ──────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::errors::DiagnosticBag;
+    use crate::lexer::Lexer;
+    use crate::parser::Parser;
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+
+    /// Helper to parse and type-check a source string, returning error messages.
+    fn check_source(source: &str) -> Vec<String> {
+        let mut diag = DiagnosticBag::new();
+        let mut lexer = Lexer::new(source, PathBuf::from("<test>"));
+        let tokens = lexer.tokenize(&mut diag);
+
+        let mut parser = Parser::new(tokens, &mut diag);
+        let program = parser.parse_program();
+
+        if !diag.has_errors() {
+            let mut type_env = TypeEnv::new(&mut diag);
+            let mut semantic = SemanticAnalyzer::new(&mut type_env, HashMap::new());
+            semantic.analyze_program(&program);
+        }
+
+        diag.errors().iter().map(|e| e.message.clone()).collect()
+    }
+
+    #[test]
+    fn test_valid_program() {
+        let source = r#"
+            keep x: int = 42;
+            keep y: float = 3.14;
+            keep z: bool = true;
+            keep s: string = "hello";
+        "#;
+        let errors = check_source(source);
+        assert!(
+            errors.is_empty(),
+            "Valid program should have no errors, got: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn test_type_mismatch() {
+        let source = r#"keep x: int = "hello";"#;
+        let errors = check_source(source);
+        assert!(!errors.is_empty(), "Expected type mismatch error");
+        assert!(
+            errors[0].contains("Type mismatch"),
+            "Expected Type mismatch error, got: {}",
+            errors[0]
+        );
+    }
+
+    #[test]
+    fn test_undefined_variable() {
+        let source = r#"keep x: int = y;"#;
+        let errors = check_source(source);
+        assert!(!errors.is_empty(), "Expected undefined variable error");
+        assert!(
+            errors[0].contains("Undefined variable"),
+            "Expected Undefined variable error, got: {}",
+            errors[0]
+        );
+    }
+
+    #[test]
+    fn test_function_arity() {
+        let source = r#"
+            fun add(a: int, b: int) -> int { return a + b; }
+            fun main() { add(1); }
+        "#;
+        let errors = check_source(source);
+        assert!(!errors.is_empty(), "Expected arity error");
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Function expects 2 arguments")),
+            "Expected argument count error"
+        );
+    }
+
+    #[test]
+    fn test_return_type_check() {
+        let source = r#"
+            fun f() -> int { return "x"; }
+        "#;
+        let errors = check_source(source);
+        assert!(!errors.is_empty(), "Expected return type error");
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("Type mismatch") || e.contains("return type")),
+            "Expected return type error"
+        );
+    }
+
+    #[test]
+    fn test_list_index_type() {
+        let source = r#"
+            fun f() {
+                keep l: List<int> = List(1, 2, 3);
+                l["key"];
+            }
+        "#;
+        let errors = check_source(source);
+        assert!(!errors.is_empty(), "Expected index type error");
+        assert!(
+            errors.iter().any(|e| e.contains("Type mismatch")),
+            "Expected type mismatch on index"
+        );
     }
 }

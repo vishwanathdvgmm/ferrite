@@ -17,3 +17,8 @@ news*.md
 *_rs
 *.py
 *.snap
+aws-setup.md
+*.msi
+*.ps1
+*.pem
+*.txt

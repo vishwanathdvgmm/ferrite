@@ -1,12 +1,13 @@
 use super::environment::Environment;
 use super::value::Value;
 use crate::ast::*;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
 pub struct Interpreter {
     pub env: Environment,
-    module_exports: HashMap<String, Vec<TopDecl>>,
+    pub module_exports: HashMap<String, Vec<TopDecl>>,
 }
 
 impl Interpreter {
@@ -22,6 +23,12 @@ impl Interpreter {
         env.declare("float".to_string(), Value::Builtin("float".to_string()));
         env.declare("assert".to_string(), Value::Builtin("assert".to_string()));
         env.declare("exit".to_string(), Value::Builtin("exit".to_string()));
+        env.declare("List".to_string(), Value::Builtin("List".to_string()));
+        env.declare("Map".to_string(), Value::Builtin("Map".to_string()));
+        env.declare("range".to_string(), Value::Builtin("range".to_string()));
+        env.declare("zeros".to_string(), Value::Builtin("zeros".to_string()));
+        env.declare("ones".to_string(), Value::Builtin("ones".to_string()));
+        env.declare("rand".to_string(), Value::Builtin("rand".to_string()));
 
         Self {
             env,
@@ -43,6 +50,12 @@ impl Interpreter {
                 }
                 TopDecl::Import(_) => {
                     // Imports are resolved in pass 1.5
+                }
+                TopDecl::ExternBlock(eb) => {
+                    for f in &eb.functions {
+                        self.env
+                            .declare(f.name.clone(), Value::Builtin(f.name.clone()));
+                    }
                 }
                 TopDecl::Impl(imp) => {
                     for m in &imp.methods {
@@ -190,6 +203,9 @@ impl Interpreter {
                     let val = self.exec_stmt(stmt)?;
                     last_val = val;
                 }
+                if let Some(expr) = &top_func.body.expr {
+                    last_val = self.eval_expr(expr)?;
+                }
                 return Ok(last_val);
             }
             Ok(last_val)
@@ -203,6 +219,12 @@ impl Interpreter {
         let mut last_val = Value::Unit;
         for stmt in &block.stmts {
             last_val = self.exec_stmt(stmt)?;
+            if matches!(last_val, Value::Return(_) | Value::Stop | Value::Skip) {
+                return Ok(last_val);
+            }
+        }
+        if let Some(expr) = &block.expr {
+            last_val = self.eval_expr(expr)?;
         }
         Ok(last_val)
     }
@@ -216,7 +238,10 @@ impl Interpreter {
                 Ok(Value::Unit)
             }
             Stmt::ExprStmt(expr, _) => {
-                self.eval_expr(expr)?;
+                let val = self.eval_expr(expr)?;
+                if matches!(val, Value::Return(_) | Value::Stop | Value::Skip) {
+                    return Ok(val);
+                }
                 Ok(Value::Unit)
             }
         }
@@ -290,9 +315,12 @@ impl Interpreter {
             Value::Int(i) => *i != 0,
             Value::Float(f) => *f != 0.0,
             Value::String(s) => !s.is_empty(),
-            Value::List(l) => !l.is_empty(),
-            Value::Unit => false,
-            _ => true,
+            Value::List(l) => !l.borrow().is_empty(),
+            Value::Map(m) => !m.borrow().is_empty(),
+            Value::Func(_) | Value::Closure(..) | Value::Builtin(_) | Value::BoundMethod(..) => {
+                true
+            }
+            _ => false,
         }
     }
 
@@ -330,7 +358,16 @@ impl Interpreter {
                     if !self.is_truthy(&cond_val) {
                         break;
                     }
-                    self.exec_block(body)?; // Ignoring breaks for now
+                    let res = self.exec_block(body)?;
+                    if let Value::Stop = res {
+                        break;
+                    }
+                    if let Value::Skip = res {
+                        continue;
+                    }
+                    if let Value::Return(_) = res {
+                        return Ok(res);
+                    }
                 }
                 Ok(Value::Unit)
             }
@@ -341,14 +378,62 @@ impl Interpreter {
                 ..
             } => {
                 let iter_val = self.eval_expr(iterable)?;
-                // Assume iter_val is list
-                if let Value::List(elements) = iter_val {
-                    let items = elements.clone();
-                    for item in items {
-                        self.env.enter_scope();
-                        self.env.declare(var.clone(), item);
-                        let _ = self.exec_block(body);
-                        self.env.exit_scope();
+                match iter_val {
+                    Value::List(elements) => {
+                        let items = elements.borrow().clone();
+                        for item in items {
+                            self.env.enter_scope();
+                            self.env.declare(var.clone(), item);
+                            let res = self.exec_block(body)?;
+                            self.env.exit_scope();
+                            if let Value::Stop = res {
+                                break;
+                            }
+                            if let Value::Skip = res {
+                                continue;
+                            }
+                            if let Value::Return(_) = res {
+                                return Ok(res);
+                            }
+                        }
+                    }
+                    Value::Map(pairs) => {
+                        let entries = pairs.borrow().clone();
+                        for (key, _) in entries {
+                            self.env.enter_scope();
+                            self.env.declare(var.clone(), key);
+                            let res = self.exec_block(body)?;
+                            self.env.exit_scope();
+                            if let Value::Stop = res {
+                                break;
+                            }
+                            if let Value::Skip = res {
+                                continue;
+                            }
+                            if let Value::Return(_) = res {
+                                return Ok(res);
+                            }
+                        }
+                    }
+                    Value::String(s) => {
+                        for ch in s.chars() {
+                            self.env.enter_scope();
+                            self.env.declare(var.clone(), Value::String(ch.to_string()));
+                            let res = self.exec_block(body)?;
+                            self.env.exit_scope();
+                            if let Value::Stop = res {
+                                break;
+                            }
+                            if let Value::Skip = res {
+                                continue;
+                            }
+                            if let Value::Return(_) = res {
+                                return Ok(res);
+                            }
+                        }
+                    }
+                    _ => {
+                        return Err("for-in requires a List, Map, or String".to_string());
                     }
                 }
                 Ok(Value::Unit)
@@ -373,15 +458,14 @@ impl Interpreter {
                 let val = value
                     .as_ref()
                     .map(|e| self.eval_expr(e))
-                    .unwrap_or(Ok(Value::Unit));
-                // Return control flow is not properly implemented without panics or early returns.
-                // For now, this just evaluates it.
-                val
+                    .unwrap_or(Ok(Value::Unit))?;
+                Ok(Value::Return(Box::new(val)))
             }
-            Expr::Stop(_) | Expr::Skip(_) => Ok(Value::Unit),
+            Expr::Stop(_) => Ok(Value::Stop),
+            Expr::Skip(_) => Ok(Value::Skip),
             Expr::InferBlock(b) | Expr::TrainBlock(b) => {
-                self.exec_block(b)?;
-                Ok(Value::Unit)
+                let val = self.exec_block(b)?;
+                Ok(val)
             }
             Expr::Lit(lit, _) => match lit {
                 Literal::Int(i) => Ok(Value::Int(*i)),
@@ -455,6 +539,35 @@ impl Interpreter {
                         BinOp::NotEq => Ok(Value::Bool(a != b)),
                         _ => Err(format!("Invalid operator for string: {:?}", op)),
                     },
+                    (Value::Tensor(a_data, a_dims), Value::Tensor(b_data, b_dims)) => match op {
+                        BinOp::MatMul => {
+                            if a_dims.len() != 2 || b_dims.len() != 2 {
+                                return Err("MatMul requires 2D tensors".to_string());
+                            }
+                            let m = a_dims[0] as usize;
+                            let n = a_dims[1] as usize;
+                            let p = b_dims[0] as usize;
+                            let q = b_dims[1] as usize;
+                            if n != p {
+                                return Err(format!(
+                                    "MatMul dimension mismatch: {}x{} @ {}x{}",
+                                    m, n, p, q
+                                ));
+                            }
+                            let mut out_data = vec![0.0; m * q];
+                            for i in 0..m {
+                                for j in 0..q {
+                                    let mut sum = 0.0;
+                                    for k in 0..n {
+                                        sum += a_data[i * n + k] * b_data[k * q + j];
+                                    }
+                                    out_data[i * q + j] = sum;
+                                }
+                            }
+                            Ok(Value::Tensor(out_data, vec![m as i64, q as i64]))
+                        }
+                        _ => Err(format!("Invalid operator for Tensor: {:?}", op)),
+                    },
                     _ => Err(
                         "Invalid or unsupported binary operation types in interpreter".to_string(),
                     ),
@@ -494,7 +607,11 @@ impl Interpreter {
                         }
                         let ret = self.exec_block(&decl.body)?;
                         self.env.exit_scope();
-                        Ok(ret)
+                        if let Value::Return(val) = ret {
+                            Ok(*val)
+                        } else {
+                            Ok(ret)
+                        }
                     }
                     Value::Closure(params, body, captured_env) => {
                         // Closures use pure snapshot semantics:
@@ -514,7 +631,10 @@ impl Interpreter {
                         let result = self.eval_expr(&body);
                         self.env.exit_scope();
                         self.env = saved_env;
-                        result
+                        match result {
+                            Ok(Value::Return(val)) => Ok(*val),
+                            other => other,
+                        }
                     }
                     Value::BoundMethod(receiver, method) => {
                         // Auto-inject `self` (the receiver) as the first argument
@@ -530,8 +650,13 @@ impl Interpreter {
                                 }
                                 let ret = self.exec_block(&decl.body)?;
                                 self.env.exit_scope();
-                                Ok(ret)
+                                if let Value::Return(val) = ret {
+                                    Ok(*val)
+                                } else {
+                                    Ok(ret)
+                                }
                             }
+                            Value::Builtin(ref name) => self.execute_builtin(name, full_args),
                             _ => Err("BoundMethod wraps a non-function value".to_string()),
                         }
                     }
@@ -563,17 +688,18 @@ impl Interpreter {
                     if let Expr::Ident(obj_name, _) = &**object {
                         let idx = self.eval_expr(index)?;
                         let obj = self.env.get(obj_name)?;
-                        if let (Value::List(mut items), Value::Int(i)) = (obj, idx) {
+                        if let (Value::List(items_ref), Value::Int(i)) = (&obj, &idx) {
+                            let i = *i;
                             if i < 0 {
                                 return Err(format!(
                                     "Runtime Error: Negative index {} is not allowed.",
                                     i
                                 ));
                             }
+                            let mut items = items_ref.borrow_mut();
                             let idx = i as usize;
                             if idx < items.len() {
                                 items[idx] = val.clone();
-                                self.env.assign(obj_name, Value::List(items))?;
                                 Ok(val)
                             } else {
                                 Err(format!(
@@ -582,8 +708,16 @@ impl Interpreter {
                                     items.len()
                                 ))
                             }
+                        } else if let (Value::Map(pairs_ref), key_val) = (&obj, &idx) {
+                            let mut pairs = pairs_ref.borrow_mut();
+                            if let Some(pair) = pairs.iter_mut().find(|(k, _)| k == key_val) {
+                                pair.1 = val.clone();
+                            } else {
+                                pairs.push((key_val.clone(), val.clone()));
+                            }
+                            Ok(val)
                         } else {
-                            Err("Index assignment on non-list type".to_string())
+                            Err("Index assignment on non-list/map type".to_string())
                         }
                     } else {
                         Err("Complex index assignment target not supported".to_string())
@@ -632,6 +766,27 @@ impl Interpreter {
                             ))
                         }
                     }
+                    Value::List(_) => {
+                        let method_builtin = Value::Builtin(format!("__list_{}", field));
+                        Ok(Value::BoundMethod(
+                            Box::new(obj.clone()),
+                            Box::new(method_builtin),
+                        ))
+                    }
+                    Value::Map(_) => {
+                        let method_builtin = Value::Builtin(format!("__map_{}", field));
+                        Ok(Value::BoundMethod(
+                            Box::new(obj.clone()),
+                            Box::new(method_builtin),
+                        ))
+                    }
+                    Value::String(_) => {
+                        let method_builtin = Value::Builtin(format!("__str_{}", field));
+                        Ok(Value::BoundMethod(
+                            Box::new(obj.clone()),
+                            Box::new(method_builtin),
+                        ))
+                    }
                     _ => Err("Field access on non-group type".to_string()),
                 }
             }
@@ -639,7 +794,8 @@ impl Interpreter {
                 let obj = self.eval_expr(object)?;
                 let idx = self.eval_expr(index)?;
                 match (obj, idx) {
-                    (Value::List(items), Value::Int(i)) => {
+                    (Value::List(items_ref), Value::Int(i)) => {
+                        let items = items_ref.borrow();
                         if i < 0 {
                             return Err(format!(
                                 "Runtime Error: Negative index {} is not allowed.",
@@ -655,6 +811,14 @@ impl Interpreter {
                                 i,
                                 items.len()
                             ))
+                        }
+                    }
+                    (Value::Map(pairs_ref), key_val) => {
+                        let pairs = pairs_ref.borrow();
+                        if let Some((_, v)) = pairs.iter().find(|(k, _)| k == &key_val) {
+                            Ok(v.clone())
+                        } else {
+                            Err(format!("Runtime Error: Key {} not found in map.", key_val))
                         }
                     }
                     (Value::String(s), Value::Int(i)) => {
@@ -724,8 +888,9 @@ impl Interpreter {
                 if let Some(val) = args.get(0) {
                     match val {
                         Value::String(s) => Ok(Value::Int(s.len() as i64)),
-                        Value::List(items) => Ok(Value::Int(items.len() as i64)),
-                        _ => Err("len() expects a string or list".to_string()),
+                        Value::List(items) => Ok(Value::Int(items.borrow().len() as i64)),
+                        Value::Map(pairs) => Ok(Value::Int(pairs.borrow().len() as i64)),
+                        _ => Err("len() expects a string, list or map".to_string()),
                     }
                 } else {
                     Err("len() expects an argument".to_string())
@@ -792,6 +957,291 @@ impl Interpreter {
                 std::process::exit(code);
             }
             _ => {
+                if name == "List" {
+                    return Ok(Value::List(Rc::new(RefCell::new(args))));
+                }
+                if name == "Map" {
+                    return Ok(Value::Map(Rc::new(RefCell::new(vec![]))));
+                }
+                if name.starts_with("__list_") {
+                    return self.execute_list_builtin(name, args);
+                }
+                if name.starts_with("__map_") {
+                    return self.execute_map_builtin(name, args);
+                }
+                if name.starts_with("__str_") {
+                    return self.execute_str_builtin(name, args);
+                }
+                if name == "range" {
+                    let (start, end, step) = match args.len() {
+                        1 => (
+                            0,
+                            if let Value::Int(i) = args[0] {
+                                i
+                            } else {
+                                return Err("range expects int".to_string());
+                            },
+                            1,
+                        ),
+                        2 => (
+                            if let Value::Int(i) = args[0] {
+                                i
+                            } else {
+                                return Err("range expects int".to_string());
+                            },
+                            if let Value::Int(i) = args[1] {
+                                i
+                            } else {
+                                return Err("range expects int".to_string());
+                            },
+                            1,
+                        ),
+                        3 => (
+                            if let Value::Int(i) = args[0] {
+                                i
+                            } else {
+                                return Err("range expects int".to_string());
+                            },
+                            if let Value::Int(i) = args[1] {
+                                i
+                            } else {
+                                return Err("range expects int".to_string());
+                            },
+                            if let Value::Int(i) = args[2] {
+                                i
+                            } else {
+                                return Err("range expects int".to_string());
+                            },
+                        ),
+                        _ => return Err("range() expects 1-3 arguments".to_string()),
+                    };
+                    let mut items = Vec::new();
+                    let mut i = start;
+                    while (step > 0 && i < end) || (step < 0 && i > end) {
+                        items.push(Value::Int(i));
+                        i += step;
+                    }
+                    return Ok(Value::List(Rc::new(RefCell::new(items))));
+                }
+                if name == "zeros" || name == "ones" || name == "rand" {
+                    if args.is_empty() {
+                        return Err(format!("{}() expects dimensions", name));
+                    }
+                    let mut dims = Vec::new();
+                    let mut total_size = 1;
+                    for arg in args {
+                        if let Value::Int(i) = arg {
+                            dims.push(i);
+                            total_size *= i as usize;
+                        } else {
+                            return Err(format!("{}() dimensions must be integers", name));
+                        }
+                    }
+                    let mut data = vec![0.0; total_size];
+                    if name == "ones" {
+                        data.fill(1.0);
+                    } else if name == "rand" {
+                        // VERY simple PRNG for demonstration
+                        let mut seed: u64 = 12345;
+                        for i in 0..total_size {
+                            seed = seed.wrapping_mul(1103515245).wrapping_add(12345) & 0x7fffffff;
+                            data[i] = (seed as f64) / (0x7fffffff as f64);
+                        }
+                    }
+                    return Ok(Value::Tensor(data, dims));
+                }
+                if name.starts_with("__builtin_math_") {
+                    let func = name.strip_prefix("__builtin_math_").unwrap();
+                    if let Some(Value::Float(x)) = args.get(0) {
+                        match func {
+                            "sin" => return Ok(Value::Float(x.sin())),
+                            "cos" => return Ok(Value::Float(x.cos())),
+                            "tan" => return Ok(Value::Float(x.tan())),
+                            "sqrt" => return Ok(Value::Float(x.sqrt())),
+                            "log" => return Ok(Value::Float(x.ln())),
+                            "log2" => return Ok(Value::Float(x.log2())),
+                            "log10" => return Ok(Value::Float(x.log10())),
+                            "floor" => return Ok(Value::Float(x.floor())),
+                            "ceil" => return Ok(Value::Float(x.ceil())),
+                            "round" => return Ok(Value::Float(x.round())),
+                            "pow" => {
+                                if let Some(Value::Float(y)) = args.get(1) {
+                                    return Ok(Value::Float(x.powf(*y)));
+                                }
+                            }
+                            "atan2" => {
+                                if let Some(Value::Float(y)) = args.get(1) {
+                                    return Ok(Value::Float(x.atan2(*y)));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    return Err(format!("Invalid arguments to {}", name));
+                }
+
+                if name.starts_with("__builtin_io_") {
+                    let func = name.strip_prefix("__builtin_io_").unwrap();
+                    match func {
+                        "read_file" => {
+                            if let Some(Value::String(path)) = args.get(0) {
+                                return match std::fs::read_to_string(path) {
+                                    Ok(content) => Ok(Value::String(content)),
+                                    Err(e) => Err(format!("Failed to read file '{}': {}", path, e)),
+                                };
+                            }
+                        }
+                        "write_file" => {
+                            if let (Some(Value::String(path)), Some(Value::String(content))) =
+                                (args.get(0), args.get(1))
+                            {
+                                return match std::fs::write(path, content) {
+                                    Ok(_) => Ok(Value::Unit),
+                                    Err(e) => {
+                                        Err(format!("Failed to write file '{}': {}", path, e))
+                                    }
+                                };
+                            }
+                        }
+                        "append_file" => {
+                            if let (Some(Value::String(path)), Some(Value::String(content))) =
+                                (args.get(0), args.get(1))
+                            {
+                                use std::fs::OpenOptions;
+                                use std::io::Write;
+                                return match OpenOptions::new().append(true).create(true).open(path)
+                                {
+                                    Ok(mut file) => match file.write_all(content.as_bytes()) {
+                                        Ok(_) => Ok(Value::Unit),
+                                        Err(e) => Err(format!(
+                                            "Failed to append to file '{}': {}",
+                                            path, e
+                                        )),
+                                    },
+                                    Err(e) => Err(format!("Failed to open file '{}': {}", path, e)),
+                                };
+                            }
+                        }
+                        "file_exists" => {
+                            if let Some(Value::String(path)) = args.get(0) {
+                                return Ok(Value::Bool(std::path::Path::new(path).exists()));
+                            }
+                        }
+                        _ => {}
+                    }
+                    return Err(format!("Invalid arguments to {}", name));
+                }
+
+                if name.starts_with("__builtin_string_") {
+                    let func = name.strip_prefix("__builtin_string_").unwrap();
+                    match func {
+                        "split" => {
+                            if let (Some(Value::String(s)), Some(Value::String(delim))) =
+                                (args.get(0), args.get(1))
+                            {
+                                let parts: Vec<Value> = s
+                                    .split(delim)
+                                    .map(|p| Value::String(p.to_string()))
+                                    .collect();
+                                return Ok(Value::List(std::rc::Rc::new(std::cell::RefCell::new(
+                                    parts,
+                                ))));
+                            }
+                        }
+                        "join" => {
+                            if let (Some(Value::List(l)), Some(Value::String(delim))) =
+                                (args.get(0), args.get(1))
+                            {
+                                let parts: Vec<String> =
+                                    l.borrow().iter().map(|v| v.to_string()).collect();
+                                return Ok(Value::String(parts.join(delim)));
+                            }
+                        }
+                        "upper" => {
+                            if let Some(Value::String(s)) = args.get(0) {
+                                return Ok(Value::String(s.to_uppercase()));
+                            }
+                        }
+                        "lower" => {
+                            if let Some(Value::String(s)) = args.get(0) {
+                                return Ok(Value::String(s.to_lowercase()));
+                            }
+                        }
+                        "trim" => {
+                            if let Some(Value::String(s)) = args.get(0) {
+                                return Ok(Value::String(s.trim().to_string()));
+                            }
+                        }
+                        "replace" => {
+                            if let (
+                                Some(Value::String(s)),
+                                Some(Value::String(old)),
+                                Some(Value::String(new)),
+                            ) = (args.get(0), args.get(1), args.get(2))
+                            {
+                                return Ok(Value::String(s.replace(old, new)));
+                            }
+                        }
+                        "starts_with" => {
+                            if let (Some(Value::String(s)), Some(Value::String(prefix))) =
+                                (args.get(0), args.get(1))
+                            {
+                                return Ok(Value::Bool(s.starts_with(prefix)));
+                            }
+                        }
+                        "ends_with" => {
+                            if let (Some(Value::String(s)), Some(Value::String(suffix))) =
+                                (args.get(0), args.get(1))
+                            {
+                                return Ok(Value::Bool(s.ends_with(suffix)));
+                            }
+                        }
+                        "contains" => {
+                            if let (Some(Value::String(s)), Some(Value::String(sub))) =
+                                (args.get(0), args.get(1))
+                            {
+                                return Ok(Value::Bool(s.contains(sub)));
+                            }
+                        }
+                        "repeat" => {
+                            if let (Some(Value::String(s)), Some(Value::Int(n))) =
+                                (args.get(0), args.get(1))
+                            {
+                                return Ok(Value::String(s.repeat(std::cmp::max(0, *n) as usize)));
+                            }
+                        }
+                        "substr" => {
+                            if let (
+                                Some(Value::String(s)),
+                                Some(Value::Int(start)),
+                                Some(Value::Int(length)),
+                            ) = (args.get(0), args.get(1), args.get(2))
+                            {
+                                let start = std::cmp::max(0, *start) as usize;
+                                let length = std::cmp::max(0, *length) as usize;
+                                let end = std::cmp::min(s.len(), start + length);
+                                if start <= s.len() {
+                                    return Ok(Value::String(s[start..end].to_string()));
+                                }
+                                return Ok(Value::String("".to_string()));
+                            }
+                        }
+                        "char_at" => {
+                            if let (Some(Value::String(s)), Some(Value::Int(idx))) =
+                                (args.get(0), args.get(1))
+                            {
+                                let idx = *idx as usize;
+                                if let Some(c) = s.chars().nth(idx) {
+                                    return Ok(Value::String(c.to_string()));
+                                }
+                                return Ok(Value::String("".to_string()));
+                            }
+                        }
+                        _ => {}
+                    }
+                    return Err(format!("Invalid arguments to {}", name));
+                }
+
                 if name.starts_with("enum_") {
                     let parts: Vec<&str> = name.split("::").collect();
                     let enum_name = parts[0].replace("enum_", "");
@@ -801,6 +1251,230 @@ impl Interpreter {
                     Err(format!("Unknown builtin: {}", name))
                 }
             }
+        }
+    }
+
+    fn execute_list_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
+        let list_val = args.get(0).ok_or("List method requires self")?;
+        let items_rc = match list_val {
+            Value::List(rc) => rc,
+            _ => return Err("Expected List".to_string()),
+        };
+        match name {
+            "__list_push" => {
+                let item = args.get(1).ok_or("push requires 1 argument")?;
+                items_rc.borrow_mut().push(item.clone());
+                Ok(Value::Unit)
+            }
+            "__list_pop" => items_rc
+                .borrow_mut()
+                .pop()
+                .ok_or("Cannot pop from empty list".to_string()),
+            "__list_len" => Ok(Value::Int(items_rc.borrow().len() as i64)),
+            "__list_contains" => {
+                let item = args.get(1).ok_or("contains requires 1 argument")?;
+                Ok(Value::Bool(items_rc.borrow().contains(item)))
+            }
+            "__list_remove" => {
+                let idx_val = args.get(1).ok_or("remove requires 1 argument")?;
+                if let Value::Int(i) = idx_val {
+                    let idx = *i as usize;
+                    let mut items = items_rc.borrow_mut();
+                    if idx < items.len() {
+                        Ok(items.remove(idx))
+                    } else {
+                        Err(format!("Index {} out of bounds", idx))
+                    }
+                } else {
+                    Err("remove expects int index".to_string())
+                }
+            }
+            "__list_reverse" => {
+                items_rc.borrow_mut().reverse();
+                Ok(Value::Unit)
+            }
+            "__list_clear" => {
+                items_rc.borrow_mut().clear();
+                Ok(Value::Unit)
+            }
+            "__list_insert" => {
+                let idx_val = args.get(1).ok_or("insert requires 2 arguments")?;
+                let item = args.get(2).ok_or("insert requires 2 arguments")?;
+                if let Value::Int(i) = idx_val {
+                    let idx = *i as usize;
+                    let mut items = items_rc.borrow_mut();
+                    if idx <= items.len() {
+                        items.insert(idx, item.clone());
+                        Ok(Value::Unit)
+                    } else {
+                        Err(format!("Index {} out of bounds", idx))
+                    }
+                } else {
+                    Err("insert expects int index".to_string())
+                }
+            }
+            "__list_slice" => {
+                let start_val = args.get(1).ok_or("slice requires 2 arguments")?;
+                let end_val = args.get(2).ok_or("slice requires 2 arguments")?;
+                if let (Value::Int(start), Value::Int(end)) = (start_val, end_val) {
+                    let start = *start as usize;
+                    let end = *end as usize;
+                    let items = items_rc.borrow();
+                    if start <= items.len() && end <= items.len() && start <= end {
+                        let sliced = items[start..end].to_vec();
+                        Ok(Value::List(Rc::new(RefCell::new(sliced))))
+                    } else {
+                        Err(format!("Invalid slice {}..{}", start, end))
+                    }
+                } else {
+                    Err("slice expects int indices".to_string())
+                }
+            }
+            _ => Err(format!("Unknown list method: {}", name)),
+        }
+    }
+
+    fn execute_map_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
+        let map_val = args.get(0).ok_or("Map method requires self")?;
+        let pairs_rc = match map_val {
+            Value::Map(rc) => rc,
+            _ => return Err("Expected Map".to_string()),
+        };
+        match name {
+            "__map_set" => {
+                let key = args.get(1).ok_or("set requires 2 arguments")?;
+                let val = args.get(2).ok_or("set requires 2 arguments")?;
+                let mut pairs = pairs_rc.borrow_mut();
+                if let Some(pair) = pairs.iter_mut().find(|(k, _)| k == key) {
+                    pair.1 = val.clone();
+                } else {
+                    pairs.push((key.clone(), val.clone()));
+                }
+                Ok(Value::Unit)
+            }
+            "__map_get" => {
+                let key = args.get(1).ok_or("get requires 1 argument")?;
+                let pairs = pairs_rc.borrow();
+                if let Some((_, v)) = pairs.iter().find(|(k, _)| k == key) {
+                    Ok(v.clone())
+                } else {
+                    Err(format!("Key {} not found in map", key))
+                }
+            }
+            "__map_contains" => {
+                let key = args.get(1).ok_or("contains requires 1 argument")?;
+                let pairs = pairs_rc.borrow();
+                Ok(Value::Bool(pairs.iter().any(|(k, _)| k == key)))
+            }
+            "__map_remove" => {
+                let key = args.get(1).ok_or("remove requires 1 argument")?;
+                let mut pairs = pairs_rc.borrow_mut();
+                if let Some(idx) = pairs.iter().position(|(k, _)| k == key) {
+                    Ok(pairs.remove(idx).1)
+                } else {
+                    Err(format!("Key {} not found in map", key))
+                }
+            }
+            "__map_keys" => {
+                let pairs = pairs_rc.borrow();
+                let keys = pairs.iter().map(|(k, _)| k.clone()).collect();
+                Ok(Value::List(Rc::new(RefCell::new(keys))))
+            }
+            "__map_values" => {
+                let pairs = pairs_rc.borrow();
+                let values = pairs.iter().map(|(_, v)| v.clone()).collect();
+                Ok(Value::List(Rc::new(RefCell::new(values))))
+            }
+            "__map_len" => Ok(Value::Int(pairs_rc.borrow().len() as i64)),
+            _ => Err(format!("Unknown map method: {}", name)),
+        }
+    }
+
+    fn execute_str_builtin(&mut self, name: &str, args: Vec<Value>) -> Result<Value, String> {
+        let str_val = args.get(0).ok_or("String method requires self")?;
+        let s = match str_val {
+            Value::String(s) => s,
+            _ => return Err("Expected String".to_string()),
+        };
+        match name {
+            "__str_len" => Ok(Value::Int(s.len() as i64)),
+            "__str_charAt" => {
+                let idx_val = args.get(1).ok_or("charAt requires 1 argument")?;
+                if let Value::Int(i) = idx_val {
+                    let idx = *i as usize;
+                    if idx < s.len() {
+                        Ok(Value::String(s.chars().nth(idx).unwrap().to_string()))
+                    } else {
+                        Err(format!("Index {} out of bounds", idx))
+                    }
+                } else {
+                    Err("charAt expects int index".to_string())
+                }
+            }
+            "__str_substring" => {
+                let start_val = args.get(1).ok_or("substring requires 2 arguments")?;
+                let end_val = args.get(2).ok_or("substring requires 2 arguments")?;
+                if let (Value::Int(start), Value::Int(end)) = (start_val, end_val) {
+                    let start = *start as usize;
+                    let end = *end as usize;
+                    if start <= s.len() && end <= s.len() && start <= end {
+                        Ok(Value::String(s[start..end].to_string()))
+                    } else {
+                        Err(format!("Invalid substring {}..{}", start, end))
+                    }
+                } else {
+                    Err("substring expects int indices".to_string())
+                }
+            }
+            "__str_split" => {
+                let delim_val = args.get(1).ok_or("split requires 1 argument")?;
+                if let Value::String(delim) = delim_val {
+                    let parts = s
+                        .split(delim)
+                        .map(|p| Value::String(p.to_string()))
+                        .collect();
+                    Ok(Value::List(Rc::new(RefCell::new(parts))))
+                } else {
+                    Err("split expects string delimiter".to_string())
+                }
+            }
+            "__str_contains" => {
+                let substr_val = args.get(1).ok_or("contains requires 1 argument")?;
+                if let Value::String(substr) = substr_val {
+                    Ok(Value::Bool(s.contains(substr)))
+                } else {
+                    Err("contains expects string argument".to_string())
+                }
+            }
+            "__str_replace" => {
+                let from_val = args.get(1).ok_or("replace requires 2 arguments")?;
+                let to_val = args.get(2).ok_or("replace requires 2 arguments")?;
+                if let (Value::String(from), Value::String(to)) = (from_val, to_val) {
+                    Ok(Value::String(s.replace(from, to)))
+                } else {
+                    Err("replace expects string arguments".to_string())
+                }
+            }
+            "__str_trim" => Ok(Value::String(s.trim().to_string())),
+            "__str_upper" => Ok(Value::String(s.to_uppercase())),
+            "__str_lower" => Ok(Value::String(s.to_lowercase())),
+            "__str_startsWith" => {
+                let prefix_val = args.get(1).ok_or("startsWith requires 1 argument")?;
+                if let Value::String(prefix) = prefix_val {
+                    Ok(Value::Bool(s.starts_with(prefix)))
+                } else {
+                    Err("startsWith expects string argument".to_string())
+                }
+            }
+            "__str_endsWith" => {
+                let suffix_val = args.get(1).ok_or("endsWith requires 1 argument")?;
+                if let Value::String(suffix) = suffix_val {
+                    Ok(Value::Bool(s.ends_with(suffix)))
+                } else {
+                    Err("endsWith expects string argument".to_string())
+                }
+            }
+            _ => Err(format!("Unknown string method: {}", name)),
         }
     }
 }

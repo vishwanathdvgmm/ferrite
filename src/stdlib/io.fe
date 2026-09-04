@@ -1,13 +1,22 @@
+extern "builtin" {
+    fun __builtin_io_read_file(path: string) -> string;
+    fun __builtin_io_write_file(path: string, content: string);
+    fun __builtin_io_append_file(path: string, content: string);
+    fun __builtin_io_file_exists(path: string) -> bool;
+}
+
 pub fun read_file(path: string) -> string {
-    return "";
+    unsafe { return __builtin_io_read_file(path); }
 }
 
 pub fun write_file(path: string, content: string) {
+    unsafe { __builtin_io_write_file(path, content) };
 }
 
 pub fun append_file(path: string, content: string) {
+    unsafe { __builtin_io_append_file(path, content) };
 }
 
 pub fun file_exists(path: string) -> bool {
-    return true;
+    unsafe { return __builtin_io_file_exists(path); }
 }

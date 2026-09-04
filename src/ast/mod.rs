@@ -535,19 +535,20 @@ pub enum Literal {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinOp {
-    Add,   // +
-    Sub,   // -
-    Mul,   // *
-    Div,   // /
-    Mod,   // %
-    Eq,    // ==
-    NotEq, // !=
-    Lt,    // <
-    Gt,    // >
-    LtEq,  // <=
-    GtEq,  // >=
-    And,   // &&
-    Or,    // ||
+    Add,    // +
+    Sub,    // -
+    Mul,    // *
+    Div,    // /
+    Mod,    // %
+    MatMul, // @
+    Eq,     // ==
+    NotEq,  // !=
+    Lt,     // <
+    Gt,     // >
+    LtEq,   // <=
+    GtEq,   // >=
+    And,    // &&
+    Or,     // ||
 }
 
 #[derive(Debug, Clone, PartialEq)]

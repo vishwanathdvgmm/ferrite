@@ -645,6 +645,7 @@ impl Formatter {
                     BinOp::Mul => " * ",
                     BinOp::Div => " / ",
                     BinOp::Mod => " % ",
+                    BinOp::MatMul => " @ ",
                     BinOp::Eq => " == ",
                     BinOp::NotEq => " != ",
                     BinOp::Lt => " < ",

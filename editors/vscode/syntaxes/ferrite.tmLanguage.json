@@ -39,7 +39,7 @@
       "patterns": [
         {
           "name": "keyword.control.ferrite",
-          "match": "\\b(if|else|while|for|match|case|return|stop|skip)\\b"
+          "match": "\\b(if|else|while|for|in|match|case|return|stop|skip)\\b"
         },
         {
           "name": "keyword.other.ferrite",
@@ -66,7 +66,7 @@
       "patterns": [
         {
           "name": "support.type.ferrite",
-          "match": "\\b(int|float|string|bool|Tensor|Self|List|Never|Unit)\\b"
+          "match": "\\b(int|float|string|bool|Tensor|Self|List|Map|Never|Unit)\\b"
         },
         {
           "name": "entity.name.type.ferrite",

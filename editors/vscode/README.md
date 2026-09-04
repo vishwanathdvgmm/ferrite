@@ -26,6 +26,11 @@ See the [issue tracker](https://github.com/vishwanathdvgmm/ferrite/issues) for k
 
 ## Release Notes
 
+### 1.3.1
+
+- **Formatter Fixes**: Fixed auto-formatting issues for `infer`, `train`, `match`, and lambda expressions.
+- **Parser Fixes**: Fixed parsing of `stop` and `skip` to properly handle semicolons.
+
 ### 1.1.0
 
 - **Smart Compiler Discovery**: The extension now intelligently locates the `ferrite.exe` compiler from your system `PATH` or local workspace automatically.

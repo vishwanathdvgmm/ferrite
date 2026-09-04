@@ -189,6 +189,10 @@ impl DiagnosticBag {
         self.diagnostics.iter().any(|d| d.level == Level::Error)
     }
 
+    pub fn errors(&self) -> &Vec<Diagnostic> {
+        &self.diagnostics
+    }
+
     pub fn has_error_at(&self, span: &Span) -> bool {
         self.diagnostics
             .iter()

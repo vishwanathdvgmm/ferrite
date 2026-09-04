@@ -1,0 +1,56 @@
+fun main() {
+    // List tests
+    keep l: List<int> = List();
+    l.push(1);
+    l.push(2);
+    l.push(3);
+    l.push(4);
+    assert(l.len() == 4, "fail");
+    assert(l.contains(2), "fail");
+    keep popped: int = l.pop();
+    assert(popped == 4, "fail");
+    assert(l.len() == 3, "fail");
+    l.insert(1, 10);
+    assert(l[1] == 10, "fail");
+    l.remove(1);
+    assert(l[1] == 2, "fail");
+    l.reverse();
+    assert(l[0] == 3, "fail");
+    keep sub: List<int> = l.slice(0, 2);
+    assert(sub.len() == 2, "fail");
+    assert(sub[0] == 3, "fail");
+    l.clear();
+    assert(l.len() == 0, "fail");
+    // Map tests
+    keep m: Map<string, int> = Map();
+    m.set("a", 1);
+    m.set("b", 2);
+    assert(m.len() == 2, "fail");
+    assert(m.get("a") == 1, "fail");
+    assert(m.contains("b"), "fail");
+    m["c"] = 3;
+    assert(m.get("c") == 3, "fail");
+    assert(m["c"] == 3, "fail");
+    keep removed: int = m.remove("b");
+    assert(removed == 2, "fail");
+    assert(m.len() == 2, "fail");
+    keep keys: List<string> = m.keys();
+    assert(keys.len() == 2, "fail");
+    keep values: List<int> = m.values();
+    assert(values.len() == 2, "fail");
+    // String tests
+    keep s: string = "hello world";
+    assert(s.len() == 11, "fail");
+    assert(s.charAt(0) == "h", "fail");
+    assert(s.substring(0, 5) == "hello", "fail");
+    assert(s.contains("world"), "fail");
+    assert(s.startsWith("hel"), "fail");
+    assert(s.endsWith("rld"), "fail");
+    assert(s.upper() == "HELLO WORLD", "fail");
+    keep rep: string = s.replace("world", "ferrite");
+    assert(rep == "hello ferrite", "fail");
+    keep parts: List<string> = s.split(" ");
+    assert(parts.len() == 2, "fail");
+    assert(parts[0] == "hello", "fail");
+    println("PASS");
+}

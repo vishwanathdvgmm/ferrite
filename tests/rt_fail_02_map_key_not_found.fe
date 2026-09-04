@@ -1,0 +1,8 @@
+// Tests Map key not found error
+fun main() {
+    keep m: Map<string, int> = Map();
+    m.set("a", 1);
+    
+    // Should cause runtime error because "b" is not in the map
+    keep val: int = m.get("b");
+}

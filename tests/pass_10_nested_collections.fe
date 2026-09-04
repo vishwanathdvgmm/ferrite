@@ -1,0 +1,37 @@
+// Tests nested collections: List<List<int>>, Map<string, List<int>>, nested iteration
+fun main() {
+    // List of Lists (2D matrix)
+    keep matrix: List<List<int>> = List();
+    keep row1: List<int> = List();
+    row1.push(1);
+    row1.push(2);
+    keep row2: List<int> = List();
+    row2.push(3);
+    row2.push(4);
+    matrix.push(row1);
+    matrix.push(row2);
+    assert(matrix.len() == 2, "matrix rows");
+    // Map with List values
+    keep grades: Map<string, List<int>> = Map();
+    keep alice_grades: List<int> = List();
+    alice_grades.push(90);
+    alice_grades.push(85);
+    alice_grades.push(92);
+    grades.set("alice", alice_grades);
+    keep bob_grades: List<int> = List();
+    bob_grades.push(78);
+    bob_grades.push(88);
+    grades.set("bob", bob_grades);
+    assert(grades.len() == 2, "grades map len");
+    // Nested iteration — sum all grades
+    keep total: int = 0;
+    keep keys: List<string> = grades.keys();
+    for k in keys {
+        keep g: List<int> = grades.get(k);
+        for score in g {
+            total = total + score;
+        };
+    };
+    assert(total == 433, "total grades 90+85+92+78+88");
+    print("pass_10_nested_collections ok");
+}

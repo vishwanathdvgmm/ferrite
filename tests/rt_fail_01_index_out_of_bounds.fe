@@ -1,0 +1,8 @@
+// Tests List index out of bounds
+fun main() {
+    keep l: List<int> = List();
+    l.push(1);
+    
+    // Should cause runtime error
+    keep x: int = l[1];
+}

@@ -101,6 +101,97 @@ void ferrite_print(char *ptr, int64_t len) {
   }
 }
 
+// ==========================================
+// Stdlib IO & String Bindings
+// ==========================================
+
+FerriteString *__builtin_io_read_file(FerriteString *path_str) {
+  char path[1024];
+  int64_t len = path_str->len < 1023 ? path_str->len : 1023;
+  memcpy(path, path_str->ptr, len);
+  path[len] = '\0';
+
+  FILE *f = fopen(path, "rb");
+  if (!f)
+    return ferrite_string_concat(NULL, 0, NULL, 0); // Empty string on error
+  fseek(f, 0, SEEK_END);
+  int64_t fsize = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  FerriteString *result =
+      (FerriteString *)ferrite_alloc(sizeof(FerriteString) + fsize + 1);
+  char *new_ptr = (char *)(result + 1);
+  fread(new_ptr, 1, fsize, f);
+  fclose(f);
+
+  new_ptr[fsize] = '\0';
+  result->ptr = new_ptr;
+  result->len = fsize;
+  return result;
+}
+
+void __builtin_io_write_file(FerriteString *path_str,
+                             FerriteString *content_str) {
+  char path[1024];
+  int64_t len = path_str->len < 1023 ? path_str->len : 1023;
+  memcpy(path, path_str->ptr, len);
+  path[len] = '\0';
+
+  FILE *f = fopen(path, "wb");
+  if (f) {
+    fwrite(content_str->ptr, 1, content_str->len, f);
+    fclose(f);
+  }
+}
+
+void __builtin_io_append_file(FerriteString *path_str,
+                              FerriteString *content_str) {
+  char path[1024];
+  int64_t len = path_str->len < 1023 ? path_str->len : 1023;
+  memcpy(path, path_str->ptr, len);
+  path[len] = '\0';
+
+  FILE *f = fopen(path, "ab");
+  if (f) {
+    fwrite(content_str->ptr, 1, content_str->len, f);
+    fclose(f);
+  }
+}
+
+int64_t __builtin_io_file_exists(FerriteString *path_str) {
+  char path[1024];
+  int64_t len = path_str->len < 1023 ? path_str->len : 1023;
+  memcpy(path, path_str->ptr, len);
+  path[len] = '\0';
+
+  FILE *f = fopen(path, "rb");
+  if (f) {
+    fclose(f);
+    return 1;
+  }
+  return 0;
+}
+
+// NOTE: String functions that return Lists (e.g., split) are complex in C
+// because they require constructing Ferrite List structs (which contain
+// RefCells in interpreter, but bare structs in LLVM). For complete full LLVM
+// support of strings, these bindings can be implemented here. For brevity, a
+// simple substring implementation is shown.
+
+FerriteString *__builtin_string_substr(FerriteString *s, int64_t start,
+                                       int64_t length) {
+  if (start < 0)
+    start = 0;
+  if (length < 0)
+    length = 0;
+  if (start > s->len)
+    start = s->len;
+  if (start + length > s->len)
+    length = s->len - start;
+
+  return ferrite_string_concat(s->ptr + start, length, NULL, 0);
+}
+
 extern void ferrite_main();
 
 int main() {

@@ -231,7 +231,7 @@ fn main() {
                     TopDecl::Enum(e) => e.visibility == Visibility::Public,
                     TopDecl::Trait(t) => t.visibility == Visibility::Public,
                     TopDecl::TestFunc(_) => false, // tests are not exported
-                    TopDecl::ExternBlock(_) => false, // extern blocks not exported by default
+                    TopDecl::ExternBlock(_) => true, // extern blocks must be exported for builtins
                     TopDecl::Impl(_) => true,      // impl blocks are always public
                     TopDecl::Import(_) => false,   // don't re-export imports
                 })

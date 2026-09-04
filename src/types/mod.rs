@@ -217,24 +217,24 @@ impl<'a> TypeEnv<'a> {
         // Register core builtins
         globals.insert(
             "print".to_string(),
-            Type::Func(vec![Type::String], Box::new(Type::Unit)),
+            Type::Func(vec![Type::Generic("T".to_string())], Box::new(Type::Unit)),
         );
         globals.insert(
             "println".to_string(),
-            Type::Func(vec![Type::String], Box::new(Type::Unit)),
+            Type::Func(vec![Type::Generic("T".to_string())], Box::new(Type::Unit)),
         );
         globals.insert(
             "input".to_string(),
-            Type::Func(vec![Type::String], Box::new(Type::String)),
+            Type::Func(vec![Type::Generic("T".to_string())], Box::new(Type::String)),
         );
         globals.insert(
             "len".to_string(),
-            Type::Func(vec![Type::String], Box::new(Type::Int)),
+            Type::Func(vec![Type::Generic("T".to_string())], Box::new(Type::Int)),
         );
         globals.insert(
             "str".to_string(),
-            Type::Func(vec![Type::Int], Box::new(Type::String)),
-        ); // Ideally overloaded, using int for now
+            Type::Func(vec![Type::Generic("T".to_string())], Box::new(Type::String)),
+        ); // Overloaded to take anything
         globals.insert(
             "int".to_string(),
             Type::Func(vec![Type::String], Box::new(Type::Int)),
@@ -249,11 +249,9 @@ impl<'a> TypeEnv<'a> {
         );
         globals.insert(
             "List".to_string(),
-            Type::Func(
-                vec![],
-                Box::new(Type::GenericInst("List".to_string(), vec![Type::Int])),
-            ),
+            Type::Func(vec![], Box::new(Type::Error)),
         );
+        globals.insert("Map".to_string(), Type::Func(vec![], Box::new(Type::Error)));
         globals.insert(
             "push".to_string(),
             Type::Func(
@@ -276,7 +274,22 @@ impl<'a> TypeEnv<'a> {
             Type::Func(vec![Type::Int], Box::new(Type::Never)),
         );
         globals.insert(
+            "range".to_string(),
+            Type::Func(
+                vec![Type::Int],
+                Box::new(Type::GenericInst("List".to_string(), vec![Type::Int])),
+            ),
+        );
+        globals.insert(
             "zeros".to_string(),
+            Type::Func(vec![], Box::new(Type::Error)),
+        );
+        globals.insert(
+            "ones".to_string(),
+            Type::Func(vec![], Box::new(Type::Error)),
+        );
+        globals.insert(
+            "rand".to_string(),
             Type::Func(vec![], Box::new(Type::Error)),
         );
 

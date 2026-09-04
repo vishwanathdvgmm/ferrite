@@ -156,6 +156,7 @@ impl Lexer {
             '*' => TokenKind::Star,
             '/' => TokenKind::Slash,
             '%' => TokenKind::Percent,
+            '@' => TokenKind::At,
 
             // ── Multi-character operators ─────────────────
             '-' => {
@@ -479,7 +480,7 @@ mod tests {
 
     #[test]
     fn test_unknown_character() {
-        let (_, errors) = tokenize_to_strings("@");
+        let (_, errors) = tokenize_to_strings("$");
         assert!(
             !errors.is_empty(),
             "Unknown character should produce an error"

@@ -1,0 +1,40 @@
+// Tests Map operations: constructor, set, get, contains, remove, keys, values, len, index access/assignment
+fun main() {
+    // Empty map constructor
+    keep m: Map<string, int> = Map();
+    assert(m.len() == 0, "empty map len");
+    // set and len
+    m.set("alice", 90);
+    m.set("bob", 85);
+    m.set("charlie", 95);
+    assert(m.len() == 3, "len after set");
+    // get
+    assert(m.get("alice") == 90, "get alice");
+    assert(m.get("bob") == 85, "get bob");
+    assert(m.get("charlie") == 95, "get charlie");
+    // contains
+    assert(m.contains("alice"), "contains alice");
+    // index access (same as get)
+    assert(m["bob"] == 85, "index bob");
+    // index assignment
+    m["dave"] = 88;
+    assert(m.len() == 4, "len after index assign");
+    assert(m["dave"] == 88, "index dave");
+    // overwrite via set
+    m.set("alice", 92);
+    assert(m.get("alice") == 92, "overwrite alice");
+    assert(m.len() == 4, "len unchanged after overwrite");
+    // overwrite via index assignment
+    m["bob"] = 100;
+    assert(m["bob"] == 100, "index overwrite bob");
+    // remove
+    keep removed: int = m.remove("charlie");
+    assert(removed == 95, "remove returns value");
+    assert(m.len() == 3, "len after remove");
+    // keys and values
+    keep k: List<string> = m.keys();
+    assert(k.len() == 3, "keys len");
+    keep v: List<int> = m.values();
+    assert(v.len() == 3, "values len");
+    print("pass_07_map_operations ok");
+}

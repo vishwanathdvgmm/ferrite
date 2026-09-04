@@ -2,7 +2,7 @@
   "name": "ferrite-language",
   "displayName": "Ferrite Programming Language",
   "description": "Official VS Code extension for the Ferrite Programming Language",
-  "version": "1.2.0",
+  "version": "1.3.1",
   "license": "MIT",
   "icon": "icon.png",
   "publisher": "vishwanathdvgmm",

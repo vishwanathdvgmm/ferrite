@@ -27,6 +27,13 @@ pub struct LLVMCodegen<'ctx, 'a, 'b> {
     // Generic List Type struct: { ptr, i64, i64 } (buffer, capacity, length)
     list_struct_type: StructType<'ctx>,
     list_type: inkwell::types::PointerType<'ctx>,
+
+    // Stack of active loop blocks (cond_bb, end_bb, target_depth) for skip/stop
+    loop_blocks: Vec<(
+        inkwell::basic_block::BasicBlock<'ctx>,
+        inkwell::basic_block::BasicBlock<'ctx>,
+        usize,
+    )>,
 }
 
 impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
@@ -53,6 +60,7 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
             string_type,
             list_struct_type,
             list_type,
+            loop_blocks: Vec::new(),
         }
     }
 
@@ -103,6 +111,39 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
 
     fn drop_scopes_for_return(&mut self) {
         for scope in self.scopes.iter().rev() {
+            for (_, (ptr, ty)) in scope {
+                if *ty == self.list_type.into() {
+                    let list_ptr = self
+                        .builder
+                        .build_load(*ty, *ptr, "list_drop")
+                        .unwrap()
+                        .into_pointer_value();
+                    let buffer_ptr_ptr = self
+                        .builder
+                        .build_struct_gep(self.list_struct_type, list_ptr, 0, "buf_gep")
+                        .unwrap();
+                    let ptr_type = self.context.ptr_type(inkwell::AddressSpace::default());
+                    let buffer_ptr = self
+                        .builder
+                        .build_load(ptr_type, buffer_ptr_ptr, "buf")
+                        .unwrap()
+                        .into_pointer_value();
+                    let free_func = self.module.get_function("free").unwrap();
+                    self.builder
+                        .build_call(free_func, &[buffer_ptr.into()], "")
+                        .unwrap();
+                    self.builder
+                        .build_call(free_func, &[list_ptr.into()], "")
+                        .unwrap();
+                }
+            }
+        }
+    }
+
+    fn drop_scopes_for_loop(&mut self, target_depth: usize) {
+        // Iterate backwards from the top scope down to `target_depth` (exclusive of target_depth).
+        // For example, if target_depth is 2, we drop scopes 2, 3, etc. but keep scopes 0 and 1.
+        for scope in self.scopes[target_depth..].iter().rev() {
             for (_, (ptr, ty)) in scope {
                 if *ty == self.list_type.into() {
                     let list_ptr = self
@@ -305,6 +346,8 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
 
         let fn_name = if f.name == "main" {
             "ferrite_main"
+        } else if f.name.starts_with("__builtin_math_") {
+            f.name.strip_prefix("__builtin_math_").unwrap()
         } else {
             &f.name
         };
@@ -729,6 +772,36 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                             inkwell::values::ValueKind::Basic(v) => Ok(Some(v)),
                             _ => Ok(None),
                         }
+                    } else if let Some((ptr, _ty)) = self.resolve_variable(name) {
+                        // Indirect call (Lambda)
+                        let ptr_val = *ptr;
+                        let mut compiled_args = Vec::new();
+                        let mut arg_types = Vec::new();
+                        for arg in args {
+                            let arg_val = self.compile_expr(arg)?.unwrap();
+                            compiled_args.push(arg_val.into());
+                            arg_types.push(arg_val.get_type().into());
+                        }
+
+                        let func_ptr = self
+                            .builder
+                            .build_load(
+                                self.context.ptr_type(inkwell::AddressSpace::default()),
+                                ptr_val,
+                                "load_func_ptr",
+                            )
+                            .unwrap()
+                            .into_pointer_value();
+                        let func_type = self.context.i64_type().fn_type(&arg_types, false);
+                        let call = self
+                            .builder
+                            .build_indirect_call(func_type, func_ptr, &compiled_args, "calltmp")
+                            .unwrap();
+
+                        match call.try_as_basic_value() {
+                            inkwell::values::ValueKind::Basic(v) => Ok(Some(v)),
+                            _ => Ok(None),
+                        }
                     } else {
                         Err(format!("Unknown function: {}", name))
                     }
@@ -1041,10 +1114,17 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                     .build_conditional_branch(cond_val, loop_bb, end_bb)
                     .unwrap();
                 self.builder.position_at_end(loop_bb);
+
+                let target_depth = self.scopes.len();
+                self.loop_blocks.push((cond_bb, end_bb, target_depth));
                 self.push_scope();
                 for s in &body.stmts {
                     self.compile_stmt(s)?;
                 }
+                if let Some(ref expr) = body.expr {
+                    self.compile_expr(expr)?;
+                }
+                self.loop_blocks.pop();
                 if self
                     .builder
                     .get_insert_block()
@@ -1081,13 +1161,195 @@ impl<'ctx, 'a, 'b> LLVMCodegen<'ctx, 'a, 'b> {
                 }
                 Ok(None)
             }
-            ast::Expr::Stop(_) | ast::Expr::Skip(_) => {
-                // Just stub it
+            ast::Expr::Stop(_) => {
+                if let Some(&(_, end_bb, target_depth)) = self.loop_blocks.last() {
+                    self.drop_scopes_for_loop(target_depth);
+                    self.builder.build_unconditional_branch(end_bb).unwrap();
+                }
                 Ok(None)
             }
-            ast::Expr::Match { .. } => Ok(None),
-            ast::Expr::InferBlock(_) | ast::Expr::TrainBlock(_) | ast::Expr::Select { .. } => {
+            ast::Expr::Skip(_) => {
+                if let Some(&(cond_bb, _, target_depth)) = self.loop_blocks.last() {
+                    self.drop_scopes_for_loop(target_depth);
+                    self.builder.build_unconditional_branch(cond_bb).unwrap();
+                }
                 Ok(None)
+            }
+            ast::Expr::Match { subject, cases, .. } => {
+                let subj_val = self.compile_expr(subject)?.unwrap();
+                let parent = self
+                    .builder
+                    .get_insert_block()
+                    .unwrap()
+                    .get_parent()
+                    .unwrap();
+                let merge_bb = self.context.append_basic_block(parent, "matchcont");
+
+                let mut current_bb = self.builder.get_insert_block().unwrap();
+
+                for (i, case) in cases.iter().enumerate() {
+                    let test_bb = self
+                        .context
+                        .append_basic_block(parent, &format!("match_test_{}", i));
+                    let body_bb = self
+                        .context
+                        .append_basic_block(parent, &format!("match_body_{}", i));
+                    let next_bb = self
+                        .context
+                        .append_basic_block(parent, &format!("match_next_{}", i));
+
+                    self.builder.position_at_end(current_bb);
+                    self.builder.build_unconditional_branch(test_bb).unwrap();
+
+                    self.builder.position_at_end(test_bb);
+                    let cond_val = match &case.pattern {
+                        ast::Pattern::Literal(lit) => match lit {
+                            ast::Literal::Int(v) => {
+                                let cmp_val = self.context.i64_type().const_int(*v as u64, false);
+                                self.builder
+                                    .build_int_compare(
+                                        inkwell::IntPredicate::EQ,
+                                        subj_val.into_int_value(),
+                                        cmp_val,
+                                        "cmp",
+                                    )
+                                    .unwrap()
+                            }
+                            ast::Literal::Bool(b) => {
+                                let cmp_val = self.context.bool_type().const_int(*b as u64, false);
+                                self.builder
+                                    .build_int_compare(
+                                        inkwell::IntPredicate::EQ,
+                                        subj_val.into_int_value(),
+                                        cmp_val,
+                                        "cmp",
+                                    )
+                                    .unwrap()
+                            }
+                            _ => self.context.bool_type().const_int(0, false),
+                        },
+                        ast::Pattern::Wildcard(_) | ast::Pattern::Binding(_, _) => {
+                            self.context.bool_type().const_int(1, false)
+                        }
+                        _ => self.context.bool_type().const_int(0, false),
+                    };
+
+                    if let Some(guard) = &case.guard {
+                        let guard_test_bb = self.context.append_basic_block(parent, "guard_test");
+                        self.builder
+                            .build_conditional_branch(cond_val, guard_test_bb, next_bb)
+                            .unwrap();
+                        self.builder.position_at_end(guard_test_bb);
+                        let guard_val = self.compile_expr(guard)?.unwrap().into_int_value();
+                        self.builder
+                            .build_conditional_branch(guard_val, body_bb, next_bb)
+                            .unwrap();
+                    } else {
+                        self.builder
+                            .build_conditional_branch(cond_val, body_bb, next_bb)
+                            .unwrap();
+                    }
+
+                    self.builder.position_at_end(body_bb);
+                    self.push_scope();
+                    if let ast::Pattern::Binding(name, _) = &case.pattern {
+                        let alloc = self
+                            .builder
+                            .build_alloca(subj_val.get_type(), name)
+                            .unwrap();
+                        self.builder.build_store(alloc, subj_val).unwrap();
+                        self.scopes
+                            .last_mut()
+                            .unwrap()
+                            .insert(name.clone(), (alloc, subj_val.get_type()));
+                    }
+
+                    for stmt in &case.body.stmts {
+                        self.compile_stmt(stmt)?;
+                    }
+                    if let Some(ref expr) = case.body.expr {
+                        self.compile_expr(expr)?;
+                    }
+
+                    if self
+                        .builder
+                        .get_insert_block()
+                        .unwrap()
+                        .get_terminator()
+                        .is_none()
+                    {
+                        self.pop_scope_and_free();
+                        self.builder.build_unconditional_branch(merge_bb).unwrap();
+                    }
+
+                    current_bb = next_bb;
+                }
+
+                self.builder.position_at_end(current_bb);
+                self.builder.build_unconditional_branch(merge_bb).unwrap();
+
+                self.builder.position_at_end(merge_bb);
+                Ok(None)
+            }
+            ast::Expr::InferBlock(block) | ast::Expr::TrainBlock(block) => {
+                self.push_scope();
+                let mut val = None;
+                for stmt in &block.stmts {
+                    self.compile_stmt(stmt)?;
+                }
+                if let Some(ref expr) = block.expr {
+                    val = self.compile_expr(expr)?;
+                }
+                self.pop_scope_and_free();
+                Ok(val)
+            }
+            ast::Expr::Select { .. } => Ok(None),
+            ast::Expr::Lambda { params, body, .. } => {
+                // Static non-capturing lambda compilation for Phase 3
+                let mut arg_types = Vec::new();
+                for param in params {
+                    arg_types.push(
+                        self.compile_ast_type(&param.ty)
+                            .unwrap_or(self.context.i64_type().into())
+                            .into(),
+                    );
+                }
+
+                // Assume i64 return type for now (type inference during codegen will be fully solved in Phase 4)
+                let func_type = self.context.i64_type().fn_type(&arg_types, false);
+                let func_name = format!("__ferrite_lambda_{}", self.scopes.len());
+                let func = self.module.add_function(&func_name, func_type, None);
+
+                let current_bb = self.builder.get_insert_block().unwrap();
+                let basic_block = self.context.append_basic_block(func, "entry");
+                self.builder.position_at_end(basic_block);
+
+                self.push_scope();
+                for (i, arg) in func.get_param_iter().enumerate() {
+                    let param_name = &params[i].name;
+                    let alloca = self
+                        .builder
+                        .build_alloca(arg.get_type(), param_name)
+                        .unwrap();
+                    self.builder.build_store(alloca, arg).unwrap();
+                    self.scopes
+                        .last_mut()
+                        .unwrap()
+                        .insert(param_name.clone(), (alloca, arg.get_type()));
+                }
+
+                let val = self.compile_expr(body)?;
+                self.pop_scope_and_free();
+
+                if let Some(v) = val {
+                    self.builder.build_return(Some(&v)).unwrap();
+                } else {
+                    self.builder.build_return(None).unwrap();
+                }
+
+                self.builder.position_at_end(current_bb);
+
+                Ok(Some(func.as_global_value().as_pointer_value().into()))
             }
             _ => Ok(None),
         }
