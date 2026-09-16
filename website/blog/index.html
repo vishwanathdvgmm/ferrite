@@ -55,6 +55,24 @@
           <div class="centered-feed-layout">
             <!-- Main articles list -->
             <div class="blog-posts-list">
+              <!-- Post: 3.2.0 -->
+              <article class="centered-feed-post">
+                <header class="post-header">
+                  <div class="post-meta">September 4, 2026 • Releases</div>
+                  <h3 class="post-title">Ferrite v3.2.0: Native Maps & String Methods</h3>
+                </header>
+                <p class="post-summary">Ferrite v3.2.0 brings Native Maps, rich String Manipulation, and a new `range()` builtin to make iteration and data structure usage incredibly powerful!</p>
+                <div class="post-content-full">
+                  <p>In this release, we've extended our native LLVM collections with <code>Map&lt;K, V&gt;</code> and extensive string methods like <code>charAt</code>, <code>split</code>, and <code>substring</code>.</p>
+                  <pre><code class="language-ferrite">
+keep m: Map&lt;string, int&gt; = Map::new();
+m.set("score", 100);
+for k in m { print(k); }
+                  </code></pre>
+                </div>
+                <button class="btn btn-secondary btn-read-more">Read More</button>
+              </article>
+
               <!-- Post: 3.1.0 -->
               <article class="centered-feed-post">
                 <header class="post-header">

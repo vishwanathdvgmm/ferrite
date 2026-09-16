@@ -86,6 +86,9 @@
                   <li>
                     <a href="#docs-pattern" class="docs-link">Pattern Matching</a>
                   </li>
+                  <li>
+                    <a href="#docs-collections" class="docs-link">Collections & Strings</a>
+                  </li>
                 </ul>
               </div>
 
@@ -192,7 +195,7 @@
                     href="https://github.com/vishwanathdvgmm/ferrite/releases"
                     target="_blank"
                     rel="noopener noreferrer"
-                    >ferrite-v3.1.0-setup.exe</a
+                    >ferrite-v3.2.0-setup.exe</a
                   >. The wizard will install the compiler and automatically
                   configure your environment variables.
                 </p>
@@ -225,7 +228,7 @@ curl -fsSL https://ferrite-lang.org/install.sh | sh
                   extract it, and add it to your path:
                 </p>
                 <pre><code class="language-bash">
-tar -xzf ferrite-v3.1.0-linux-x86_64.tar.gz
+tar -xzf ferrite-v3.2.0-linux-x86_64.tar.gz
 sudo mv ferrite /usr/local/bin/
                             </code></pre>
 
@@ -426,6 +429,34 @@ println(status);
 
 println(message);
                             </code></pre>
+              </div>
+
+              <!-- Collections & Strings -->
+              <div id="docs-collections" class="docs-section-content">
+                <h2>Collections & Strings</h2>
+                <p>
+                  Ferrite v3.2.0 features fully native dynamic collections like <code>List&lt;T&gt;</code> and <code>Map&lt;K, V&gt;</code> along with rich string methods.
+                </p>
+
+                <h3>Maps and Lists</h3>
+                <pre><code class="language-ferrite">
+<span class="keyword">keep</span> list = [1, 2, 3];
+list.push(4);
+
+<span class="keyword">keep</span> map: Map&lt;string, int&gt; = Map::new();
+map.set("alice", 100);
+println(str(map.contains("alice")));
+                </code></pre>
+
+                <h3>String Methods & Ranges</h3>
+                <pre><code class="language-ferrite">
+<span class="keyword">keep</span> text = "Ferrite";
+println(text.substring(0, 4)); <span class="comment">// "Ferr"</span>
+
+<span class="keyword">for</span> i <span class="keyword">in</span> range(1, 5) {
+    println(str(i));
+}
+                </code></pre>
               </div>
 
               <!-- Groups & Traits -->
